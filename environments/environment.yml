@@ -1,0 +1,16 @@
+name: postprocessing
+channels: 
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.11
+  - conda-forge::numpy=1.26
+  - pytest
+  - jupyter
+  - matplotlib
+  - netcdf4
+  - pandas
+  - pip
+  - scipy
+  - sphinx
+  - xarray

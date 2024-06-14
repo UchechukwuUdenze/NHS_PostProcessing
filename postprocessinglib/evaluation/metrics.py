@@ -1,0 +1,352 @@
+from collections.abc import Generator
+import numpy as np
+import pandas as pd
+
+from postprocessinglib.utilities.errors import AllInvalidError
+
+
+def available_metrics() -> list[int]:
+    """ Get a list of currently available metrics
+
+    Returns
+    -------
+    List[str]
+        List of implemented metric names.
+
+    """
+    metrics =[
+        "MSE", "RMSE", "MAE", "NSE", "KGE", "PBIAS"
+    ]
+    
+    return metrics
+
+def validate_inputs(observed: pd.DataFrame, simulated: pd.DataFrame):
+    if not isinstance(observed, pd.DataFrame) or not isinstance(simulated, pd.DataFrame):
+        raise ValueError("Both observed and simulated values must be pandas DataFrames.")
+    
+    if observed.shape != simulated.shape:
+        raise RuntimeError("Shapes of observations and simulations must match")
+
+    if (len(observed.shape) < 2) or (observed.shape[1] < 3):
+        raise RuntimeError("observed or simulated data is incomplete")
+
+
+def generate_dfs(csv_fpath: str) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """ Function to Generate the required dataframes
+
+    Parameters
+    ----------
+    csv_fpath : string
+            the path to the csv file
+
+    Returns
+    -------
+    tuple[pd.DataFrame, pd.DataFrame]
+        the observed datframe, the simulated dataframe
+    csv_fpath: the path to the csv file you are trying to read. It can be relative or absolute
+
+    """
+
+    if csv_fpath is not None:
+        # read the csv into a dataframe making sure to account for unnecessary spaces.
+        df = pd.read_csv(csv_fpath, skipinitialspace = True)
+    
+    # if there are any extra columns at the end of the csv file, remove them
+    if len(df.columns) % 2 != 0:
+        df.drop(columns=df.columns[-1], inplace = True) 
+        
+    simulated = observed = df.iloc[:, 1]
+    for j in range(2, len(df.columns), 2):
+        arr1 = df.iloc[:, j]
+        arr2 = df.iloc[:, j+1]
+        observed = pd.concat([observed, arr1], axis = 1)
+        simulated = pd.concat([simulated, arr2], axis = 1)
+
+    # validate inputs
+    validate_inputs(observed, simulated)
+    
+    return observed, simulated
+
+
+def remove_inv_df(df: pd.DataFrame, num_stations: int,
+                  neg: int = 0, zero: int = 0, NaN: int = 0,
+                  inf: int = 0) -> pd.DataFrame:
+    """
+    df: the dataframe which you want to remove invalid values from
+    neg = 1: indicate if the negative fields are the inavlid ones
+    zero = 1: indicate if the zero fields are the negative ones
+    NaN = 1: indicate if the empty fields are the invalid ones
+    inf = 1: indicate if the inf fields are the invalid ones
+    """
+    for j in range(1, num_stations+1):
+        if neg == 1:
+            df = df.drop(df[df.iloc[:, j] < 0.0].index)
+        elif zero == 1:
+            df = df.drop(df[df.iloc[:, j] == 0.0].index)
+        elif NaN == 1:
+            df = df.drop(df[df.iloc[:, j] == np.nan].index)
+        elif inf == 1:
+            df = df.drop(df[df.iloc[:, j] == np.inf].index)
+
+    return df
+
+
+def station_df(observed_df: pd.DataFrame, simulated_df: pd.DataFrame,
+               station_num: list[int]) -> Generator[pd.DataFrame]:
+    """
+    observed: Observed values[1: Day of the year; 2: Streamflow Values]
+    simulated: Simulated values[1: Day of the year; 2: Streamflow Values]
+    station_num: array containing the index of the particular stations(s)
+    """
+
+    # validate inputs
+    validate_inputs(observed_df, simulated_df)
+
+    if max(station_num) < observed_df.columns.size:
+        for j in station_num:
+            station_df =  observed_df.iloc[:, 0]
+            station_df = pd.concat([station_df, observed_df.iloc[:, j], simulated_df.iloc[:, j]], axis = 1)
+            yield station_df.iloc[:]
+
+
+def mse(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: list[int], num_min: int=0) -> float:
+    """
+    observed: Observed values[1: Day of the year; 2: Streamflow Value]
+    simulated: Simulated values[1: Day of the year; 2: Streamflow Value]
+    num_stations: A list of which stations are being checked
+    num_min: Number of days required to "warm up" the system
+    """     
+    # validate inputs
+    validate_inputs(observed, simulated)
+
+    if len(observed) <= num_min:
+        raise ValueError("Number of days should be greater than the minimum number of days to warm up the system.")
+
+    MSE = []    
+    for j in num_stations:            
+        summation = np.sum((abs(observed.iloc[num_min:, j] - simulated.iloc[num_min:, j]))**2)
+        mse = summation/len(observed)  #dividing summation by total number of values to obtain average    
+        MSE.append(mse)
+    
+    return MSE
+
+
+def rmse(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: list[int],
+        num_min: int=0) -> float:
+    """
+    observed: Observed values[1: Day of the year; 2: Streamflow Value]
+    simulated: Simulated values[1: Day of the year; 2: Streamflow Value]
+    num_stations: A list of which stations are being checked
+    num_min: Number of days required to "warm up" the system
+    """     
+    # validate inputs
+    validate_inputs(observed, simulated)
+
+    if len(observed) <= num_min:
+        raise ValueError("Number of days should be greater than the minimum number of days to warm up the system.")
+    
+    RMSE =[]
+    for j in num_stations:
+        summation = np.sum((abs((observed.iloc[num_min:, j]) - simulated.iloc[num_min:, j]))**2)
+        rmse = np.sqrt(summation/len(observed)) #dividing summation by total number of values to obtain average    
+        RMSE.append(rmse)    
+
+    return RMSE
+
+
+def mae(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: list[int],
+        num_min: int=0) -> float:
+    """
+    observed: Observed values[1: Day of the year; 2: Streamflow Value]
+    simulated: Simulated values[1: Day of the year; 2: Streamflow Value]
+    num_stations: A list of which stations are being checked
+    num_min: Number of days required to "warm up" the system
+    """
+    # validate inputs
+    validate_inputs(observed, simulated)
+
+    if len(observed) <= num_min:
+        raise ValueError("Number of days should be greater than the minimum number of days to warm up the system.")
+    
+    MAE = []
+    for j in num_stations:            
+        summation = np.sum(abs(observed.iloc[num_min:, j] - simulated.iloc[num_min:, j]))
+        mae = summation/len(observed)  #dividing summation by total number of values to obtain average   
+        MAE.append(mae)
+    
+    return MAE
+
+
+def nse(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: list[int],
+        num_min: int=0) -> float:
+    """
+    observed: Observed values[1: Day of the year; 2: Streamflow Value]
+    simulated: Simulated values[1: Day of the year; 2: Streamflow Value]
+    num_stations: A list of which stations are being checked
+    num_min: Number of days required to "warm up" the system
+    """        
+    # validate inputs
+    validate_inputs(observed, simulated)
+
+    if len(observed) <= num_min:
+        raise ValueError("Number of days should be greater than the minimum number of days to warm up the system.")
+
+    NSE = []
+    for j in num_stations:            
+        num_valid = len(observed.iloc[num_min:, j][observed.iloc[:, j] > 0])
+        observed_mean = np.sum(observed.iloc[num_min:, j][observed.iloc[:, j] > 0])
+        observed_mean = observed_mean/num_valid
+
+        summation_num = np.sum((abs(observed.iloc[num_min:, j][observed.iloc[:, j] > 0] - simulated.iloc[num_min:, j]))**2)
+        summation_denom = np.sum((abs(observed.iloc[num_min:, j][observed.iloc[:, j] > 0] - observed_mean))**2)
+        
+        nse = (1 - (summation_num/summation_denom))  #dividing summation by total number of values to obtain average
+        NSE.append(nse)
+        
+    return NSE
+
+
+def kge(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: list[int],
+        num_min: int=0, scale: list[float]=[1. ,1. ,1.]) -> float:
+    """
+    observed: Observed values[1: Day of the year; 2: Streamflow Value]
+    simulated: Simulated values[1: Day of the year; 2: Streamflow Value]
+    num_stations: A list of which stations are being checked
+    num_min: Number of days required to "warm up" the system
+    Scale factor for correlation[0], alpha[1], and beta[2] components in the calculation of KGE. 
+    """
+    # validate inputs
+    validate_inputs(observed, simulated)
+
+    if len(observed) <= num_min:
+        raise ValueError("Number of days should be greater than the minimum number of days to warm up the system.")
+
+    KGE = []
+    for j in num_stations:
+        num_valid = len(observed.iloc[num_min:, j][observed.iloc[:, j] > 0])
+        mean_observed = np.sum(observed.iloc[num_min:, j][observed.iloc[:, j] > 0]) 
+        mean_simulated = np.sum(simulated.iloc[num_min:, j][observed.iloc[:, j] > 0]) 
+        mean_observed = mean_observed / num_valid
+        mean_simulated = mean_simulated / num_valid
+        
+        
+        std_observed = np.sum((observed.iloc[num_min:, j][observed.iloc[:, j] > 0] - mean_observed)**2) 
+        std_simulated = np.sum((simulated.iloc[num_min:, j][observed.iloc[:, j] > 0] - mean_simulated)**2)
+        sum = np.sum((observed.iloc[num_min:, j][observed.iloc[:, j] > 0] - mean_observed) * (simulated.iloc[num_min:, j] - mean_simulated))
+        
+        # r: Pearson's Correlation Coefficient
+        r = sum / np.sqrt(std_simulated * std_observed)
+        
+        std_observed = np.sqrt(std_observed/(num_valid - 1))
+        std_simulated = np.sqrt(std_simulated/(num_valid - 1))
+
+        # a: A term representing the variability of prediction errors,
+        # b: A bias term
+        b = mean_simulated / mean_observed
+        a = std_simulated / std_observed 
+        
+        # In 2012 the formula was modified so that a(alpha) equals a slightly different value. 
+        # Please ensure you are using the right value for your analysis
+        # a =  (std_simulated: pd.DataFrame / mean_simulated)/(std_observed / mean_observed)
+        
+        kge = 1 - np.sqrt((scale[0]*(r - 1))**2 + (scale[1]*(a - 1))**2 + (scale[2]*(b - 1))**2)
+        KGE.append(kge)
+    
+    return KGE
+
+
+def bias(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: list[int],
+        num_min: int=0) -> float:
+    """
+    observed: Observed values[1: Day of the year; 2: Streamflow Value]
+    simulated: Simulated values[1: Day of the year; 2: Streamflow Value]
+    num_stations: A list of which stations are being checked
+    num_min: Number of days required to "warm up" the system
+    """    
+    # validate inputs
+    validate_inputs(observed, simulated)
+
+    if len(observed) <= num_min:
+        raise ValueError("Number of days should be greater than the minimum number of days to warm up the system.")
+    
+    BIAS = []
+    for j in num_stations:            
+        bias = np.sum((observed.iloc[num_min:, j][observed.iloc[:, j] > 0] - simulated.iloc[num_min:, j]))/np.sum(abs(observed.iloc[num_min:, j][observed.iloc[:, j] > 0]))
+        BIAS.append(bias)
+    
+    return BIAS
+        
+
+def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: list[int],
+        num_min: int=0) -> dict[str, float]:
+    """Calculate all metrics.
+    """
+    # validate inputs
+    validate_inputs(observed, simulated)
+    parameters = (observed, simulated, num_stations, num_min)
+
+    check_all_invalid(observed, simulated)
+
+    results = {
+        "MSE" : mse(*parameters),
+        "RMSE" : rmse(*parameters),
+        "MAE" : mae(*parameters),
+        "NSE" : nse(*parameters),
+        "KGE" : kge(*parameters),
+        "BIAS" : bias(*parameters),
+    }
+
+    return results
+
+def calculate_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, metrices: list[str], num_stations: list[int],
+        num_min: int=0) -> dict[str, float]:
+    """
+    """
+    # validate inputs
+    validate_inputs(observed, simulated)
+    parameters = (observed, simulated, num_stations, num_min)
+
+    if "all" in metrices:
+        return calculate_all_metrics(*parameters)
+    
+    check_all_invalid(observed, simulated)
+
+    values = {}
+    for metric in metrices:
+        if metric.lower() ==  "mse":
+            values["MSE"] = mse(*parameters)
+        elif metric.lower() ==  "rmse":
+            values["RMSE"] = rmse(*parameters)
+        elif metric.lower() ==  "mae":
+            values["MAE"] = mae(*parameters)
+        elif metric.lower() ==  "nse":
+            values["NSE"] = nse(*parameters)
+        elif metric.lower() ==  "kge":
+            values["KGE"] = kge(*parameters)
+        elif metric.lower() ==  "bias":
+            values["BIAS"] = bias(*parameters)
+        elif metric.lower() == "pbias":
+            values["BIAS"] = bias(*parameters)     
+        else:
+            raise RuntimeError(f"Unknown metric {metric}")
+        
+
+    return values
+
+
+def check_all_invalid(observed: pd.DataFrame, simulated: pd.DataFrame):
+    """Check if all observations or simulations are invalid and raise an exception if this is the case.
+
+    Raises
+    ------
+    AllInvalidError
+        If all observations or all simulations are NaN or negative.
+    """
+    if len(observed.index) == 0:
+        raise AllInvalidError("All observed values are NaN")
+    if len(simulated.index) == 0:
+        raise AllInvalidError("All simulated values are NaN")
+    if (observed.values < 0).any():
+        raise AllInvalidError("All observed values are invalid(negative)")
+    if (simulated.values < 0).any():
+        raise AllInvalidError("All simulated values are invalid(negative)")
