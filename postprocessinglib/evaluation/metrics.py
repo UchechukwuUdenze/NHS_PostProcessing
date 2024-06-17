@@ -285,7 +285,7 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, num_s
     validate_inputs(observed, simulated)
     parameters = (observed, simulated, num_stations, num_min)
 
-    #check_all_invalid(observed, simulated)
+    check_all_invalid(observed, simulated)
 
     results = {
         "MSE" : mse(*parameters),
@@ -346,7 +346,7 @@ def check_all_invalid(observed: pd.DataFrame, simulated: pd.DataFrame):
         raise AllInvalidError("All observed values are NaN")
     if len(simulated.index) == 0:
         raise AllInvalidError("All simulated values are NaN")
-    if (observed.values < 0).any():
+    if (observed.values < 0).all():
         raise AllInvalidError("All observed values are invalid(negative)")
-    if (simulated.values < 0).any():
+    if (simulated.values < 0).all():
         raise AllInvalidError("All simulated values are invalid(negative)")
