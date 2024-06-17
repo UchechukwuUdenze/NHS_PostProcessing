@@ -16,7 +16,7 @@ setup(
             'postprocessinglib.evaluation',
             'postprocessinglib.utilities'
     ]), 
-    # url='https://postprocessinglib.readthedocs.io' 
+    url='https://postprocessinglib.readthedocs.io', 
     # project_urls={
     #     'Source': 'https://github.com/repo/repo/repo',
     # },  

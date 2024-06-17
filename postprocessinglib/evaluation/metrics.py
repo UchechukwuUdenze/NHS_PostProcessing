@@ -285,7 +285,7 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, num_s
     validate_inputs(observed, simulated)
     parameters = (observed, simulated, num_stations, num_min)
 
-    check_all_invalid(observed, simulated)
+    #check_all_invalid(observed, simulated)
 
     results = {
         "MSE" : mse(*parameters),
