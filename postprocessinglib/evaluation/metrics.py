@@ -68,7 +68,7 @@ def generate_dfs(csv_fpath: str) -> tuple[pd.DataFrame, pd.DataFrame]:
     return observed, simulated
 
 
-def remove_inv_df(df: pd.DataFrame, num_stations: int,
+def remove_invalid_df(df: pd.DataFrame, num_stations: int,
                   neg: int = 0, zero: int = 0, NaN: int = 0,
                   inf: int = 0) -> pd.DataFrame:
     """

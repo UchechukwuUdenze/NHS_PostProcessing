@@ -5,6 +5,7 @@ from collections.abc import Generator
 import unittest
 
 from postprocessinglib.evaluation import metrics
+from postprocessinglib.utilities.errors import AllInvalidError
 
 path = "MESH_output_streamflow.csv"
 df = pd.read_csv(path, skipinitialspace = True)
@@ -54,8 +55,22 @@ class TestLibrary(unittest.TestCase):
                    'NSE': [-0.004971126241519741], 'KGE': [0.4799990974685058], 'BIAS': [0.286022121992192]}
         self.assertEqual(metrics.calculate_metrics(actual, predicted, check_metrices, [1], 182), result)
 
-    def test_remove_inv_df(self):
-        self.assertEqual(len(metrics.remove_inv_df(actual, 2, neg = 1)) , 3138)
+    def test_check_all_invalid(self):
+        try:
+            metrics.check_all_invalid(actual, predicted)
+        except AllInvalidError:
+            self.fail("Test for invalid values failed")
+
+    def test_validate_inputs(self):
+        try: 
+            metrics.validate_inputs(actual, predicted)
+        except RuntimeError:
+            self.fail("Incomplete data or wrong shape")
+        except ValueError:
+            self.fail("One of them isn't a Dataframe")
+    
+    def test_remove_invalid_df(self):
+        self.assertEqual(len(metrics.remove_invalid_df(actual, 2, neg = 1)) , 3138)
 
 if __name__ == '__main__':
     unittest.main()
