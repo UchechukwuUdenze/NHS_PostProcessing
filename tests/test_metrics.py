@@ -24,22 +24,22 @@ class TestLibrary(unittest.TestCase):
             assert_frame_equal(station, stations)
 
     def test_mse(self):
-        self.assertEqual(metrics.mse(actual, predicted, [1], 182), [2313.095496940375])
+        self.assertEqual(metrics.mse(actual, predicted, 1, 182), [2313.095496940375])
 
     def test_rmse(self):
-        self.assertEqual(metrics.rmse(actual, predicted, [1], 182), [48.09465143797567])
+        self.assertEqual(metrics.rmse(actual, predicted, 1, 182), [48.09465143797567])
 
     def test_mae(self):
-        self.assertEqual(metrics.mae(actual, predicted, [1], 182), [25.447288581268012])
+        self.assertEqual(metrics.mae(actual, predicted, 1, 182), [25.447288581268012])
 
     def test_nse(self):
-        self.assertEqual(metrics.nse(actual, predicted, [1], 182), [-0.004971126241519741])
+        self.assertEqual(metrics.nse(actual, predicted, 1, 182), [-0.004971126241519741])
 
     def test_kge(self):
-        self.assertEqual(metrics.kge(actual, predicted, [1], 182), [0.4799990974685058])
+        self.assertEqual(metrics.kge(actual, predicted, 1, 182), [0.4799990974685058])
 
     def test_bias(self):
-        self.assertEqual(metrics.bias(actual, predicted, [1], 182), [0.286022121992192])
+        self.assertEqual(metrics.bias(actual, predicted, 1, 182), [0.286022121992192])
 
     def test_available_metrics(self):
         self.assertEqual(metrics.available_metrics(), ["MSE", "RMSE", "MAE", "NSE", "KGE", "PBIAS"])
@@ -47,13 +47,13 @@ class TestLibrary(unittest.TestCase):
     def test_calculate_all_metrics(self):
         result = {'MSE': [2313.095496940375], 'RMSE': [48.09465143797567], 'MAE': [25.447288581268012],
                    'NSE': [-0.004971126241519741], 'KGE': [0.4799990974685058], 'BIAS': [0.286022121992192]}
-        self.assertEqual(metrics.calculate_all_metrics(actual, predicted, [1], 182), result)
+        self.assertEqual(metrics.calculate_all_metrics(actual, predicted, 1, 182), result)
 
     def test_calculate_metrics(self):
         check_metrices = ["MSE", "RMSE", "MAE", "NSE", "KGE", "PBIAS"]
         result = {'MSE': [2313.095496940375], 'RMSE': [48.09465143797567], 'MAE': [25.447288581268012],
                    'NSE': [-0.004971126241519741], 'KGE': [0.4799990974685058], 'BIAS': [0.286022121992192]}
-        self.assertEqual(metrics.calculate_metrics(actual, predicted, check_metrices, [1], 182), result)
+        self.assertEqual(metrics.calculate_metrics(actual, predicted, check_metrices, 1, 182), result)
 
     def test_check_all_invalid(self):
         try:
