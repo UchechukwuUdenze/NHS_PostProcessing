@@ -34,7 +34,7 @@ def validate_inputs(observed: pd.DataFrame, simulated: pd.DataFrame):
     if observed.shape != simulated.shape:
         raise RuntimeError("Shapes of observations and simulations must match")
 
-    if (len(observed.shape) < 2) or (observed.shape[1] < 3):
+    if (len(observed.shape) < 2) or (observed.shape[1] < 2):
         raise RuntimeError("observed or simulated data is incomplete")
 
 

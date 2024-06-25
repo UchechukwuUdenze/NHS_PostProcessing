@@ -12,11 +12,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 import postprocessinglib.evaluation.metrics as metr
 
+# path = "MESH_output_streamflow.csv"
+# df = pd.read_csv(path, skipinitialspace = True)
+# df.drop(columns=df.columns[-1], inplace = True)
+# predicted = df.iloc[:, [1, 3, 5]]
+# actual = df.iloc[:, [1, 2, 4]]
+# station_1 = df.iloc[:, [1, 2, 3]]
+
 def plot(dataframe: pd.DataFrame, legend: tuple[str, str] = ('Simulated Data', 'Observed Data'), 
          metrics: list[str] = None, num_min: int = 0, grid: bool = False, title: str = None, 
          labels: tuple[str, str] = None, linestyles: tuple[str, str] = ('r-', 'b-'), padding: bool = False ,
          fig_size: tuple[float, float] = (10,6), metrics_adjust: tuple[float, float] = (-0.35, 0.75),
-         plot_adjust: float = 0.27):
+         plot_adjust: float = 0.15):
     """ Create a compsriosn time series line plot of simulated and observed time series data
 
     Parameters
@@ -79,27 +86,27 @@ def plot(dataframe: pd.DataFrame, legend: tuple[str, str] = ('Simulated Data', '
     time = dataframe.index.values
 
     # Plotting the Data
-    plt.plot(time, obs, linestyles[1], label=legend[1])
-    plt.plot(time, sim, linestyles[0], label=legend[0])
-    plt.legend(fontsize=14)
+    plt.plot(time, obs, linestyles[1], label=legend[1], linewidth = 1.25)
+    plt.plot(time, sim, linestyles[0], label=legend[0], linewidth = 0.5)
+    plt.legend(fontsize=10)
 
     # Adjusting the plot if user wants tight x axis limits
     if padding:
         plt.xlim(time[0], time[-1])
 
-    plt.xticks(fontsize=14, rotation=45)
-    plt.yticks(fontsize=14)
+    plt.xticks(fontsize=10, rotation=45)
+    plt.yticks(fontsize=10)
 
     # Placing Labels if requested
     if labels:
         # Plotting Labels
-        plt.xlabel(labels[0], fontsize=18)
-        plt.ylabel(labels[1], fontsize=18)
+        plt.xlabel(labels[0], fontsize=14)
+        plt.ylabel(labels[1], fontsize=14)
     if title:
         title_dict = {'family': 'sans-serif',
                       'color': 'black',
                       'weight': 'normal',
-                      'size': 20,
+                      'size': 18,
                       }
         ax.set_title(label=title, fontdict=title_dict, pad=25)
 
@@ -117,22 +124,22 @@ def plot(dataframe: pd.DataFrame, legend: tuple[str, str] = ('Simulated Data', '
         sim_metric = dataframe.iloc[:, [0, 2]]
 
 
-        formatted_selected_metrics = ''
+        formatted_selected_metrics = 'Metrics for this station: \n'
         if metrics == 'all':
             for key, value in metr.calculate_all_metrics(observed=obs_metric, simulated=sim_metric, 
                                                          num_stations=1, num_min=num_min).items():
-                formatted_selected_metrics += key + ':' + value + '\n'
+                formatted_selected_metrics += key + ' : ' + str(value[0]) + '\n'
         else: 
             assert isinstance(metrics, list)
             for metric in metrics:
                 assert metric.upper() in metr.available_metrics
             for key, value in metr.calculate_metrics(observed=obs_metric, simulated=sim_metric, metrices=metrics,
                                    num_stations=1, num_min=num_min).items():
-                formatted_selected_metrics += key + ':' + value + '\n'
+                formatted_selected_metrics += key + ' : ' + str(value[0]) + '\n'
 
         font = {'family': 'sans-serif',
                 'weight': 'normal',
-                'size': 14}
+                'size': 12}
         plt.text(metrics_adjust[0], metrics_adjust[1], formatted_selected_metrics, ha='left', va='center',
                  transform=ax.transAxes, fontdict=font)
 
@@ -140,13 +147,18 @@ def plot(dataframe: pd.DataFrame, legend: tuple[str, str] = ('Simulated Data', '
 
     return fig
 
+def histogram():
+    return
 
-# plot(merged_data_df=merged_df, title='Hydrograph of Entire Time Series', linestyles=['r-', 'k-'],
-#      legend=('SFPT', 'GLOFAS'), labels=['Datetime', 'Streamflow (cfs)'], metrics=['ME', 'NSE', 'SA'],grid=True)
+def scatter():
+    return
+
+# plot(dataframe=station_1, 
+#      title='Hydrograph of Entire Time Series of Station 1',
+#      linestyles=['r-', 'k-'],
+#      labels=['Datetime', 'Streamflow'],
+#     #  metrics=['RMSE', 'NSE', 'KGE'],
+#      # metrics = 'all',
+#      plot_adjust = 0.15,
+#      grid=True)
 # plt.show()
-
-# def histogram():
-#     return
-
-# def scatter():
-#     return
