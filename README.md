@@ -30,7 +30,7 @@ git clone https://github.com/Udenze-Uchechukwu/NHS_PostProcessing.git
 
 or just download the zip file [here](https://github.com/Udenze-Uchechukwu/NHS_PostProcessing/archive/refs/heads/main.zip)
 
-After this, you are then left with a directory called __NHS_PostProcessing__ or __NHS_PostProcessing-main__.  Next, we’ll go to that directory and install a local, editable copy of the package:
+After this, you are then left with a directory called *NHS_PostProcessing* or *NHS_PostProcessing-main*.  Next, we’ll go to that directory and install a local, editable copy of the package:
 ```
 cd NHS_PostProcessing
 pip install -e .
@@ -39,7 +39,7 @@ pip install -e .
 #### Note:
 
 This is a work in progress and I am very open to suggestions and ideas
-- Documentation: **__Coming soon__**
+- Documentation: **_Coming soon_**
 - Bug reports/Feature Requests: [issue](https://github.com/Udenze-Uchechukwu/NHS_PostProcessing/issues)
 
 ## Contact

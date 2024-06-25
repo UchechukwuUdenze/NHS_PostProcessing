@@ -1,3 +1,10 @@
+"""
+The metrics module contains all of the metrics required during the prost processing process.
+Each metric has a function and there are heper functions that help with error checking and 
+reading and preparatoin of data to be evaluated.  
+
+"""
+
 from collections.abc import Generator
 import numpy as np
 import pandas as pd
