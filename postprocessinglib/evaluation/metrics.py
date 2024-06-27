@@ -22,7 +22,7 @@ def available_metrics() -> list[int]:
 
     """
     metrics =[
-        "MSE", "RMSE", "MAE", "NSE", "KGE", "PBIAS"
+        "MSE", "RMSE", "MAE", "NSE", "KGE 2009", "KGE 2012", "PBIAS"
     ]
     
     return metrics
@@ -308,7 +308,7 @@ def nse(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int,
     return NSE
 
 
-def kge(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int,
+def kge_2009(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int,
         num_min: int=0, scale: list[float]=[1. ,1. ,1.]) -> float:
     """ Calculates the Kling-Gupta Efficiency of the data
 
@@ -365,9 +365,68 @@ def kge(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int,
         b = mean_simulated / mean_observed
         a = std_simulated / std_observed 
         
-        # In 2012 the formula was modified so that a(alpha) equals a slightly different value. 
-        # Please ensure you are using the right value for your analysis
-        # a =  (std_simulated/ mean_simulated)/(std_observed / mean_observed)
+        kge = 1 - np.sqrt((scale[0]*(r - 1))**2 + (scale[1]*(a - 1))**2 + (scale[2]*(b - 1))**2)
+        KGE.append(kge)
+    
+    return KGE
+
+
+def kge_2012(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int,
+        num_min: int=0, scale: list[float]=[1. ,1. ,1.]) -> float:
+    """ Calculates the Kling-Gupta Efficiency of the data
+
+    Parameters
+    ---------- 
+    observed: pd.DataFrame
+            Observed values[1: Day of the year; 2: Streamflow Values]
+    simulated: pd.DataFrame
+            Simulated values[1: Day of the year; 2: Streamflow Values]
+    num_stations: int
+            number of stations in the data
+    num_min: int 
+            number of days required to "warm up" the system
+    scale: list[float, float, float]
+            Scale factor for correlation[0], alpha[1], and beta[2] components 
+            in the calculation of KGE
+
+    Returns
+    -------
+    float:
+        the Kling-Gupta Efficiency of the data
+
+    """
+    # validate inputs
+    validate_inputs(observed, simulated)
+
+    if len(observed) <= num_min:
+        raise ValueError("Number of days should be greater than the minimum number of days to warm up the system.")
+
+    KGE = []
+    for j in range(1, num_stations+1):
+        # Remove the invalid values from that station 
+        valid_observed = remove_invalid_df(observed.iloc[num_min:], station_num = j, neg = 1)
+        
+        num_valid = len(valid_observed.iloc[:, j])
+        mean_observed = np.sum(valid_observed.iloc[:, j]) 
+        mean_simulated = np.sum(simulated.iloc[:, j][valid_observed.iloc[:, j].index])
+        mean_observed = mean_observed / num_valid
+        mean_simulated = mean_simulated / num_valid
+        
+        
+        std_observed = np.sum((valid_observed.iloc[:, j] - mean_observed)**2) 
+        std_simulated = np.sum((simulated.iloc[:, j][valid_observed.iloc[:, j].index] - mean_simulated)**2)
+        sum = np.sum((valid_observed.iloc[:, j] - mean_observed) * (simulated.iloc[:, j] - mean_simulated))
+        
+        # r: Pearson's Correlation Coefficient
+        r = sum / np.sqrt(std_simulated * std_observed)
+        
+        std_observed = np.sqrt(std_observed/(num_valid - 1))
+        std_simulated = np.sqrt(std_simulated/(num_valid - 1))
+
+        # a: A term representing the variability of prediction errors,
+        # b: A bias term
+        b = mean_simulated / mean_observed
+        a =  (std_simulated/ mean_simulated)/(std_observed / mean_observed)
         
         kge = 1 - np.sqrt((scale[0]*(r - 1))**2 + (scale[1]*(a - 1))**2 + (scale[2]*(b - 1))**2)
         KGE.append(kge)
@@ -446,7 +505,8 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, num_s
         "RMSE" : rmse(*parameters),
         "MAE" : mae(*parameters),
         "NSE" : nse(*parameters),
-        "KGE" : kge(*parameters),
+        "KGE 2009" : kge_2009(*parameters),
+        "KGE 2012" : kge_2012(*parameters),
         "BIAS" : bias(*parameters),
     }
 
@@ -494,8 +554,10 @@ def calculate_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, metrices:
             values["MAE"] = mae(*parameters)
         elif metric.lower() ==  "nse":
             values["NSE"] = nse(*parameters)
-        elif metric.lower() ==  "kge":
-            values["KGE"] = kge(*parameters)
+        elif metric.lower() ==  "kge 2009":
+            values["KGE 2009"] = kge_2009(*parameters)
+        elif metric.lower() ==  "kge 2012":
+            values["KGE 2012"] = kge_2012(*parameters)
         elif metric.lower() ==  "bias":
             values["BIAS"] = bias(*parameters)
         elif metric.lower() == "pbias":
