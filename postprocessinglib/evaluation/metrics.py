@@ -74,7 +74,7 @@ def generate_dfs(csv_fpath: str) -> tuple[pd.DataFrame, pd.DataFrame]:
     return observed, simulated
 
 
-def remove_invalid_df(df: pd.DataFrame, num_stations: int,
+def remove_invalid_df(df: pd.DataFrame, station_num: int = 0, station: str = "",
                   neg: int = 0, zero: int = 0, NaN: int = 0,
                   inf: int = 0) -> pd.DataFrame:
     """ Removes the invalid values from a dataframe
@@ -83,6 +83,8 @@ def remove_invalid_df(df: pd.DataFrame, num_stations: int,
     ----------
     df : pd.DataFrame
             the dataframe which you want to remove invalid values from
+    station_num : int
+            the number referring to the station values we are trying to modify
     neg = 1: int 
             indicates that the negative fields are the inavlid ones
     zero = 1: int 
@@ -99,16 +101,28 @@ def remove_invalid_df(df: pd.DataFrame, num_stations: int,
 
     """
 
-    for j in range(1, num_stations+1):
+    if not station and station_num == 0:
+        raise ValueError("You must have either a station_num or station variable")
+    
+    if not station:
         if neg == 1:
-            df = df.drop(df[df.iloc[:, j] < 0.0].index)
+            df = df.drop(df[df.iloc[:, station_num] < 0.0].index)
         elif zero == 1:
-            df = df.drop(df[df.iloc[:, j] == 0.0].index)
+            df = df.drop(df[df.iloc[:, station_num] == 0.0].index)
         elif NaN == 1:
-            df = df.drop(df[df.iloc[:, j] == np.nan].index)
+            df = df.drop(df[df.iloc[:, station_num] == np.nan].index)
         elif inf == 1:
-            df = df.drop(df[df.iloc[:, j] == np.inf].index)
+            df = df.drop(df[df.iloc[:, station_num] == np.inf].index)        
+        return df
 
+    if neg == 1:
+        df = df.drop(df[df[station] < 0.0].index)
+    elif zero == 1:
+        df = df.drop(df[df[station] == 0.0].index)
+    elif NaN == 1:
+        df = df.drop(df[df[station] == np.nan].index)
+    elif inf == 1:
+        df = df.drop(df[df[station] == np.inf].index)        
     return df
 
 
@@ -277,13 +291,16 @@ def nse(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int,
         raise ValueError("Number of days should be greater than the minimum number of days to warm up the system.")
 
     NSE = []
-    for j in range(1, num_stations+1):            
-        num_valid = len(observed.iloc[num_min:, j][observed.iloc[:, j] > 0])
-        observed_mean = np.sum(observed.iloc[num_min:, j][observed.iloc[:, j] > 0])
+    for j in range(1, num_stations+1): 
+        # Remove the invalid values from that station 
+        valid_observed = remove_invalid_df(observed.iloc[num_min:], station_num = j, neg = 1)
+        
+        num_valid = len(valid_observed.iloc[:, j])
+        observed_mean = np.sum(valid_observed.iloc[:, j])
         observed_mean = observed_mean/num_valid
 
-        summation_num = np.sum((abs(observed.iloc[num_min:, j][observed.iloc[:, j] > 0] - simulated.iloc[num_min:, j]))**2)
-        summation_denom = np.sum((abs(observed.iloc[num_min:, j][observed.iloc[:, j] > 0] - observed_mean))**2)
+        summation_num = np.sum((abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))**2)
+        summation_denom = np.sum((abs(valid_observed.iloc[:, j] - observed_mean))**2)
         
         nse = (1 - (summation_num/summation_denom))  #dividing summation by total number of values to obtain average
         NSE.append(nse)
@@ -323,16 +340,19 @@ def kge(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int,
 
     KGE = []
     for j in range(1, num_stations+1):
-        num_valid = len(observed.iloc[num_min:, j][observed.iloc[:, j] > 0])
-        mean_observed = np.sum(observed.iloc[num_min:, j][observed.iloc[:, j] > 0]) 
-        mean_simulated = np.sum(simulated.iloc[num_min:, j][observed.iloc[:, j] > 0]) 
+        # Remove the invalid values from that station 
+        valid_observed = remove_invalid_df(observed.iloc[num_min:], station_num = j, neg = 1)
+        
+        num_valid = len(valid_observed.iloc[:, j])
+        mean_observed = np.sum(valid_observed.iloc[:, j]) 
+        mean_simulated = np.sum(simulated.iloc[:, j][valid_observed.iloc[:, j].index])
         mean_observed = mean_observed / num_valid
         mean_simulated = mean_simulated / num_valid
         
         
-        std_observed = np.sum((observed.iloc[num_min:, j][observed.iloc[:, j] > 0] - mean_observed)**2) 
-        std_simulated = np.sum((simulated.iloc[num_min:, j][observed.iloc[:, j] > 0] - mean_simulated)**2)
-        sum = np.sum((observed.iloc[num_min:, j][observed.iloc[:, j] > 0] - mean_observed) * (simulated.iloc[num_min:, j] - mean_simulated))
+        std_observed = np.sum((valid_observed.iloc[:, j] - mean_observed)**2) 
+        std_simulated = np.sum((simulated.iloc[:, j][valid_observed.iloc[:, j].index] - mean_simulated)**2)
+        sum = np.sum((valid_observed.iloc[:, j] - mean_observed) * (simulated.iloc[:, j] - mean_simulated))
         
         # r: Pearson's Correlation Coefficient
         r = sum / np.sqrt(std_simulated * std_observed)
@@ -347,7 +367,7 @@ def kge(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int,
         
         # In 2012 the formula was modified so that a(alpha) equals a slightly different value. 
         # Please ensure you are using the right value for your analysis
-        # a =  (std_simulated: pd.DataFrame / mean_simulated)/(std_observed / mean_observed)
+        # a =  (std_simulated/ mean_simulated)/(std_observed / mean_observed)
         
         kge = 1 - np.sqrt((scale[0]*(r - 1))**2 + (scale[1]*(a - 1))**2 + (scale[2]*(b - 1))**2)
         KGE.append(kge)
@@ -383,8 +403,11 @@ def bias(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int,
         raise ValueError("Number of days should be greater than the minimum number of days to warm up the system.")
     
     BIAS = []
-    for j in range(1, num_stations+1):            
-        bias = np.sum((observed.iloc[num_min:, j][observed.iloc[:, j] > 0] - simulated.iloc[num_min:, j]))/np.sum(abs(observed.iloc[num_min:, j][observed.iloc[:, j] > 0]))
+    for j in range(1, num_stations+1):  
+        # Remove the invalid values from that station 
+        valid_observed = remove_invalid_df(observed.iloc[num_min:], station_num = j, neg = 1)
+        
+        bias = np.sum(valid_observed.iloc[:, j] - simulated.iloc[:, j])/np.sum(abs(valid_observed.iloc[:, j]))
         BIAS.append(bias)
     
     return BIAS
