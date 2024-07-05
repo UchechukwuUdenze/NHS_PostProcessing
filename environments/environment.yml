@@ -9,7 +9,7 @@ dependencies:
   - jupyter
   - matplotlib
   - netcdf4
-  - pandas
+  - pandas>=3.0
   - pip
   - scipy
   - sphinx
