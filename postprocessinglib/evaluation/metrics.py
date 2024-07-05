@@ -12,6 +12,53 @@ import pandas as pd
 from postprocessinglib.utilities.errors import AllInvalidError
 
 
+def check_valid_dataframe(observed: pd.DataFrame, simulated: pd.DataFrame):
+    """Check if all observations or simulations are invalid and raise an exception if this is the case.
+
+    Raises
+    ------
+    AllInvalidError
+        If all observations or all simulations are NaN or negative.
+    """
+    if len(observed.index) == 0:
+        raise AllInvalidError("All observed values are NaN")
+    if len(simulated.index) == 0:
+        raise AllInvalidError("All simulated values are NaN")
+    if (observed.values < 0).all():
+        raise AllInvalidError("All observed values are invalid(negative)")
+    if (simulated.values < 0).all():
+        raise AllInvalidError("All simulated values are invalid(negative)")
+    
+    
+def is_leap_year(year: int) -> bool:
+    """ Determines if a year is a leap year
+
+    Paremeters:
+    -----------
+    year: int
+            the year being checked
+
+    Returns:
+    --------
+    bool: 
+        True if it is a leap year, False otherwise
+    """
+    if year % 4 == 0:
+        return True
+    return False
+
+
+def validate_data(observed: pd.DataFrame, simulated: pd.DataFrame):
+    if not isinstance(observed, pd.DataFrame) or not isinstance(simulated, pd.DataFrame):
+        raise ValueError("Both observed and simulated values must be pandas DataFrames.")
+    
+    if observed.shape != simulated.shape:
+        raise RuntimeError("Shapes of observations and simulations must match")
+
+    if (len(observed.shape) < 2) or (observed.shape[1] < 2):
+        raise RuntimeError("observed or simulated data is incomplete")
+
+
 def available_metrics() -> list[int]:
     """ Get a list of currently available metrics
 
@@ -26,16 +73,6 @@ def available_metrics() -> list[int]:
     ]
     
     return metrics
-
-def validate_data(observed: pd.DataFrame, simulated: pd.DataFrame):
-    if not isinstance(observed, pd.DataFrame) or not isinstance(simulated, pd.DataFrame):
-        raise ValueError("Both observed and simulated values must be pandas DataFrames.")
-    
-    if observed.shape != simulated.shape:
-        raise RuntimeError("Shapes of observations and simulations must match")
-
-    if (len(observed.shape) < 2) or (observed.shape[1] < 2):
-        raise RuntimeError("observed or simulated data is incomplete")
 
 
 def generate_dataframes(csv_fpath: str, num_min: int = 0) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -449,6 +486,58 @@ def bias(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int) -> 
     return BIAS
         
 
+def time_to_peak(df: pd.DataFrame, num_stations: int)->int:
+    """ Calculates the time to peak of a given series of data whether observed 
+        or simulated
+
+    Parameters:
+    -----------
+    df: pd.DataFrame
+            the observed or simulated dataframe
+
+    num_stations: int
+            number of stations in the data
+
+    Returns:
+    --------
+    int:
+        the average time to peak value of the given data
+    
+    """
+    TTP = []
+    last_year = df.index[-1][0]
+    for j in range(0, num_stations):
+        year = df.index[0][0]
+        first = 0
+        yearly_ttp = []
+        while year != last_year:
+            # check the number of days
+            num_of_days = 365
+            if is_leap_year(year):
+                num_of_days = 366
+            
+            valid_values = np.sum(np.fromiter((df.index[i][0] == year for i in range(first, num_of_days+first)), int))
+            
+            if valid_values > 200 and np.sum(df.iloc[first:num_of_days+first, j]) > 0.0:
+                peak_day = np.argmax(df.iloc[first:num_of_days+first, j]) + 1
+                yearly_ttp.append(peak_day)
+            first += valid_values
+            year += 1
+        ttp = np.mean(yearly_ttp)
+        TTP.append(ttp)
+    return TTP
+
+def time_to_centre_of_mass():
+    """
+    """
+    return None
+
+def SpringPulseOnset():
+    """
+    """
+    return None
+
+
 def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame,
                           num_stations: int) -> dict[str: float]:
     """Calculate all metrics.
@@ -540,21 +629,3 @@ def calculate_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, metrices:
         
 
     return values
-
-
-def check_valid_dataframe(observed: pd.DataFrame, simulated: pd.DataFrame):
-    """Check if all observations or simulations are invalid and raise an exception if this is the case.
-
-    Raises
-    ------
-    AllInvalidError
-        If all observations or all simulations are NaN or negative.
-    """
-    if len(observed.index) == 0:
-        raise AllInvalidError("All observed values are NaN")
-    if len(simulated.index) == 0:
-        raise AllInvalidError("All simulated values are NaN")
-    if (observed.values < 0).all():
-        raise AllInvalidError("All observed values are invalid(negative)")
-    if (simulated.values < 0).all():
-        raise AllInvalidError("All simulated values are invalid(negative)")
