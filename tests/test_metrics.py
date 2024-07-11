@@ -130,5 +130,8 @@ class TestLibrary(unittest.TestCase):
         self.assertEqual(metrics.is_leap_year(2020), True)
         self.assertEqual(metrics.is_leap_year(2021), False)
 
+    def test_datetime_to_index(self):
+        self.assertEqual(metrics.datetime_to_index("1980-12-31"), (1980, 366))
+
 if __name__ == '__main__':
     unittest.main()

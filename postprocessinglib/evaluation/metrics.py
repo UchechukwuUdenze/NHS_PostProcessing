@@ -47,6 +47,37 @@ def is_leap_year(year: int) -> bool:
         return True
     return False
 
+def datetime_to_index(datetime :str)-> tuple[int, int]:
+    """ Convert the datetime value to index value for use in the dataframe
+
+    Parameters:
+    -----------
+    datetime: str
+            a string containing the date being searched for entered in the format "yyyy-mm-dd"
+
+    Returns:
+    --------
+    tuple: [int, int]
+        an index representig the year and jday index of the dataframe
+    """
+    year, month, day = datetime.split("-")
+    jday = 0
+    for i in range(1, int(month)):
+        if i == 1 or i == 3 or i == 5 or i == 7 or i == 8 or i == 10 or i == 12:
+            # the months with 31 days
+            jday += 31
+        elif i == 4 or i == 6 or i == 9 or i == 11:
+            # the months with 30 days
+            jday += 30
+        else:     #i == 2 (february)
+            if is_leap_year(int(year)):
+                jday += 29
+            else:
+                jday += 28
+
+    jday += int(day)        
+    return(int(year), jday)
+
 
 def validate_data(observed: pd.DataFrame, simulated: pd.DataFrame):
     if not isinstance(observed, pd.DataFrame) or not isinstance(simulated, pd.DataFrame):
