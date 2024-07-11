@@ -2,6 +2,6 @@ TO-DO.txt
 postprocessinglib.egg-info/
 dist/
 build/
-postprocessinglib/__pychache__/
+__pychache__/
 tests/
 MESH_output_streamflow.csv
