@@ -68,8 +68,9 @@ def available_metrics() -> list[int]:
         List of implemented metric names.
 
     """
-    metrics =[
-        "MSE", "RMSE", "MAE", "NSE", "KGE 2009", "KGE 2012", "PBIAS"
+    metrics = [
+        "MSE", "RMSE", "MAE", "NSE", "NegNSE", "LogNSE", "NegLogNSE",
+        "KGE", "NegKGE", "KGE 2012", "BIAS", "AbsBIAS", "TTP", "TTCoM", "SPOD" 
     ]
     
     return metrics
@@ -337,8 +338,46 @@ def nse(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int) -> f
         
     return NSE
 
+def lognse(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int) -> float:
+    """ Calculates the Logarithmic Nash-Sutcliffe Efficiency of the data
 
-def kge_2009(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int,
+    Parameters
+    ---------- 
+    observed: pd.DataFrame
+            Observed values[1: Day of the year; 2: Streamflow Values]
+    simulated: pd.DataFrame
+            Simulated values[1: Day of the year; 2: Streamflow Values]
+    num_stations: int
+            number of stations in the data
+
+    Returns
+    -------
+    float:
+        the Logarithmic Nash-Sutcliffe Efficiency of the data
+
+    """       
+    # validate inputs
+    validate_data(observed, simulated)
+
+    LOGNSE = []
+    for j in range(0, num_stations):  
+        # Remove the invalid values from that station 
+        valid_observed = filter_valid_data(observed.iloc[:], station_num = j, neg = 1)
+        
+        num_valid = len(valid_observed.iloc[:, j])
+        observed_mean = np.sum(np.log(valid_observed.iloc[:, j]))
+        observed_mean = observed_mean/num_valid
+
+        summation_num = np.sum((abs(np.log(valid_observed.iloc[:, j]) - np.log(simulated.iloc[:, j])))**2)
+        summation_denom = np.sum((abs(np.log(valid_observed.iloc[:, j]) - observed_mean))**2)
+        
+        lognse = (1 - (summation_num/summation_denom))  #dividing summation by total number of values to obtain average
+        LOGNSE.append(lognse)
+        
+    return LOGNSE
+
+
+def kge(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int,
              scale: list[float]=[1. ,1. ,1.]) -> float:
     """ Calculates the Kling-Gupta Efficiency of the data
 
@@ -486,7 +525,7 @@ def bias(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int) -> 
     return BIAS
         
 
-def time_to_peak(df: pd.DataFrame, num_stations: int)->int:
+def time_to_peak(df: pd.DataFrame, num_stations: int)->float:
     """ Calculates the time to peak of a given series of data whether observed 
         or simulated
 
@@ -527,15 +566,93 @@ def time_to_peak(df: pd.DataFrame, num_stations: int)->int:
         TTP.append(ttp)
     return TTP
 
-def time_to_centre_of_mass():
-    """
-    """
-    return None
+def time_to_centre_of_mass(df: pd.DataFrame, num_stations: int)->float:
+    """ Calculates the time it takes to obtain 50% of the stream flow in a given year
 
-def SpringPulseOnset():
+    Parameters:
+    -----------
+    df: pd.DataFrame
+            the observed or simulated dataframe
+
+    num_stations: int
+            number of stations in the data
+
+    Returns:
+    --------
+    int:
+        the average time to the centre of mass of mass for the station
     """
+    TTCoM = []
+    last_year = df.index[-1][0]
+    for j in range(0, num_stations):
+        year = df.index[0][0]
+        first = 0
+        yearly_ttcom = []
+        while year != last_year:
+            # check the number of days
+            num_of_days = 365
+            if is_leap_year(year):
+                num_of_days = 366
+
+            valid_values = np.sum(np.fromiter((df.index[i][0] == year for i in range(first, num_of_days+first)), int))
+            
+            if valid_values > 200 and np.sum(df.iloc[first:num_of_days+first, j]) > 0.0:
+                CoM = np.sum(np.arange(1, num_of_days+1) * df.iloc[first:num_of_days+first, j])
+                CoM = CoM / np.sum(df.iloc[first:num_of_days+first, j])
+                yearly_ttcom.append(CoM)
+            first += valid_values
+            year += 1
+        ttcom = np.mean(yearly_ttcom)
+        TTCoM.append(ttcom)
+    return TTCoM
+
+def SpringPulseOnset(df: pd.DataFrame, num_stations: int)->int:
+    """ Calculates when spring start i.e., the beginning of snowmelt
+
+    Parameters:
+    -----------
+    df: pd.DataFrame
+            the observed or simulated dataframe
+
+    num_stations: int
+            number of stations in the data
+
+    Returns:
+    --------
+    int:
+        the average time it takes till when snowmelt begins 
     """
-    return None
+    SPOD = []
+    last_year = df.index[-1][0]
+    for j in range(0, num_stations):
+        year = df.index[0][0]
+        first = 0
+        yearly_spod = []
+        while year != last_year:
+            # check the number of days
+            num_of_days = 365
+            if is_leap_year(year):
+                num_of_days = 366
+
+            valid_values = np.sum(np.fromiter((df.index[i][0] == year for i in range(first, num_of_days+first)), int))
+
+            if valid_values > 200 and np.sum(df.iloc[first:num_of_days+first, j]) > 0.0:
+                mean = np.mean(df.iloc[first:num_of_days+first, j])
+                minimum_cumulative = 1.0E38
+                cumulative = 0
+                onset_day = 0
+                for index in range(first, num_of_days+first):
+                    cumulative += (df.iloc[index, j] - mean)
+                    if cumulative < minimum_cumulative:
+                        minimum_cumulative = cumulative
+                        onset_day = (index % num_of_days) + 1
+                yearly_spod.append(onset_day)
+            first += valid_values
+            year += 1          
+        print("\n")
+        spod = np.mean(yearly_spod)
+        SPOD.append(spod)
+    return SPOD
 
 
 def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame,
@@ -569,9 +686,20 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame,
         "RMSE" : rmse(*parameters),
         "MAE" : mae(*parameters),
         "NSE" : nse(*parameters),
-        "KGE 2009" : kge_2009(*parameters),
+        "NegNSE" : [-x for x in nse(*parameters)],
+        "LogNSE" : lognse(*parameters),
+        "NegLogNSE" : [-x for x in lognse(*parameters)],
+        "KGE" : kge(*parameters),
+        "NegKGE" : [-x for x in kge(*parameters)],
         "KGE 2012" : kge_2012(*parameters),
         "BIAS" : bias(*parameters),
+        "AbsBIAS" : list(map(abs, bias(*parameters))), 
+        "TTP_obs" : time_to_peak(observed, num_stations),
+        "TTP_sim" : time_to_peak(simulated, num_stations),
+        "TTCoM_obs" : time_to_centre_of_mass(observed, num_stations),
+        "TTCoM_sim" : time_to_centre_of_mass(simulated, num_stations),
+        "SPOD_obs" : SpringPulseOnset(observed, num_stations),
+        "SPOD_sim" : SpringPulseOnset(simulated, num_stations),
     }
 
     return results
@@ -616,14 +744,36 @@ def calculate_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, metrices:
             values["MAE"] = mae(*parameters)
         elif metric.lower() ==  "nse":
             values["NSE"] = nse(*parameters)
-        elif metric.lower() ==  "kge 2009":
-            values["KGE 2009"] = kge_2009(*parameters)
+        elif metric.lower() ==  "negnse":
+            values["NegNSE"] = [-x for x in nse(*parameters)]
+        elif metric.lower() ==  "lognse":
+            values["LogNSE"] = lognse(*parameters)
+        elif metric.lower() ==  "neglognse":
+            values["NegLogNSE"] = [-x for x in lognse(*parameters)]
+        elif metric.lower() ==  "kge":
+            values["KGE"] = kge(*parameters)
+        elif metric.lower() ==  "negkge":
+            values["NegKGE"] = [-x for x in kge(*parameters)]
         elif metric.lower() ==  "kge 2012":
             values["KGE 2012"] = kge_2012(*parameters)
         elif metric.lower() ==  "bias":
             values["BIAS"] = bias(*parameters)
         elif metric.lower() == "pbias":
-            values["BIAS"] = bias(*parameters)     
+            values["BIAS"] = bias(*parameters)
+        elif metric.lower() ==  "absbias":
+            values["AbsBIAS"] = list(map(abs, bias(*parameters))),
+        elif metric.lower() == "ttp_obs":
+            values["TTP_obs"] = time_to_peak(observed, num_stations)
+        elif metric.lower() == "ttp_sim":
+            values["TTP_sim"] = time_to_peak(simulated, num_stations)
+        elif metric.lower() == "ttcom_obs":
+            values["TTCoM_obs"] = time_to_centre_of_mass(observed, num_stations)
+        elif metric.lower() == "ttcom_sim":
+            values["TTCoM_sim"] = time_to_centre_of_mass(simulated, num_stations)
+        elif metric.lower() == "spod_obs":
+            values["SPOD_obs"] = SpringPulseOnset(observed, num_stations)
+        elif metric.lower() == "spod_sim":
+            values["SPOD_sim"] = SpringPulseOnset(simulated, num_stations)
         else:
             raise RuntimeError(f"Unknown metric {metric}")
         
