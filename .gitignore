@@ -1,5 +1,5 @@
 TO-DO.txt
-postprocessinglib.egg-info/
+*.egg-info/
 dist/
 build/
 __pychache__/
