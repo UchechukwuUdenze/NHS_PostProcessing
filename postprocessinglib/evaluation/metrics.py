@@ -149,8 +149,8 @@ def generate_dataframes(csv_fpath: str, num_min: int = 0) -> tuple[pd.DataFrame,
 
 
 def filter_valid_data(df: pd.DataFrame, station_num: int = 0, station: str = "",
-                  neg: int = 0, zero: int = 0, NaN: int = 0,
-                  inf: int = 0) -> pd.DataFrame:
+                  remove_neg: bool = False, remove_zero: bool = False, remove_NaN: bool = False,
+                  remove_inf: bool = False) -> pd.DataFrame:
     """ Removes the invalid values from a dataframe
 
     Parameters
@@ -159,13 +159,13 @@ def filter_valid_data(df: pd.DataFrame, station_num: int = 0, station: str = "",
             the dataframe which you want to remove invalid values from
     station_num : int
             the number referring to the station values we are trying to modify
-    neg = 1: int 
+    remove_neg = True: bool 
             indicates that the negative fields are the inavlid ones
-    zero = 1: int 
-            indicate that the zero fields are the negative ones
-    NaN = 1: int 
+    remove_zero = True: bool 
+            indicate that the zero fields are the invalid ones
+    remove_NaN = True: bool 
             indicate that the empty fields are the invalid ones
-    inf = 1: int
+    remove_inf = True: bool
             indicate that the inf fields are the invalid ones
 
     Returns
@@ -179,23 +179,23 @@ def filter_valid_data(df: pd.DataFrame, station_num: int = 0, station: str = "",
         raise ValueError("You must have either a valid station number or station name")
     
     if not station:
-        if neg == 1:
+        if remove_neg:
             df = df.drop(df[df.iloc[:, station_num] <= 0.0].index)
-        elif zero == 1:
+        elif remove_zero:
             df = df.drop(df[df.iloc[:, station_num] == 0.0].index)
-        elif NaN == 1:
+        elif remove_NaN:
             df = df.drop(df[df.iloc[:, station_num] == np.nan].index)
-        elif inf == 1:
+        elif remove_inf:
             df = df.drop(df[df.iloc[:, station_num] == np.inf].index)        
         return df
 
-    if neg == 1:
+    if remove_neg:
         df = df.drop(df[df[station] < 0.0].index)
-    elif zero == 1:
+    elif remove_zero:
         df = df.drop(df[df[station] == 0.0].index)
-    elif NaN == 1:
+    elif remove_NaN:
         df = df.drop(df[df[station] == np.nan].index)
-    elif inf == 1:
+    elif remove_inf:
         df = df.drop(df[df[station] == np.inf].index)        
     return df
 
@@ -255,7 +255,7 @@ def mse(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int) -> f
     MSE = []    
     for j in range(0, num_stations):
         # Remove the invalid values from that station 
-        valid_observed = filter_valid_data(observed.iloc[:], station_num = j, neg = 1)
+        valid_observed = filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
         
         summation = np.sum((abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))**2)
         mse = summation/len(valid_observed)  #dividing summation by total number of values to obtain average    
@@ -289,7 +289,7 @@ def rmse(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int,
     RMSE =[]
     for j in range(0, num_stations):
         # Remove the invalid values from that station 
-        valid_observed = filter_valid_data(observed.iloc[:], station_num = j, neg = 1)
+        valid_observed = filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
         
         summation = np.sum((abs((valid_observed.iloc[:, j]) - simulated.iloc[:, j]))**2)
         rmse = np.sqrt(summation/len(valid_observed)) #dividing summation by total number of values to obtain average    
@@ -322,7 +322,7 @@ def mae(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int) -> f
     MAE = []
     for j in range(0, num_stations): 
         # Remove the invalid values from that station 
-        valid_observed = filter_valid_data(observed.iloc[:], station_num = j, neg = 1)
+        valid_observed = filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
         
         summation = np.sum(abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))
         mae = summation/len(valid_observed)  #dividing summation by total number of values to obtain average   
@@ -355,7 +355,7 @@ def nse(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int) -> f
     NSE = []
     for j in range(0, num_stations):  
         # Remove the invalid values from that station 
-        valid_observed = filter_valid_data(observed.iloc[:], station_num = j, neg = 1)
+        valid_observed = filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
         
         num_valid = len(valid_observed.iloc[:, j])
         observed_mean = np.sum(valid_observed.iloc[:, j])
@@ -393,7 +393,7 @@ def lognse(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int) -
     LOGNSE = []
     for j in range(0, num_stations):  
         # Remove the invalid values from that station 
-        valid_observed = filter_valid_data(observed.iloc[:], station_num = j, neg = 1)
+        valid_observed = filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
         
         num_valid = len(valid_observed.iloc[:, j])
         observed_mean = np.sum(np.log(valid_observed.iloc[:, j]))
@@ -436,7 +436,7 @@ def kge(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int,
     KGE = []
     for j in range(0, num_stations): 
         # Remove the invalid values from that station 
-        valid_observed = filter_valid_data(observed.iloc[:], station_num = j, neg = 1)
+        valid_observed = filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
         
         num_valid = len(valid_observed.iloc[:, j])
         mean_observed = np.sum(valid_observed.iloc[:, j]) 
@@ -494,7 +494,7 @@ def kge_2012(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int,
     KGE = []
     for j in range(0, num_stations):
         # Remove the invalid values from that station 
-        valid_observed = filter_valid_data(observed.iloc[:], station_num = j, neg = 1)
+        valid_observed = filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
         
         num_valid = len(valid_observed.iloc[:, j])
         mean_observed = np.sum(valid_observed.iloc[:, j]) 
@@ -548,7 +548,7 @@ def bias(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int) -> 
     BIAS = []
     for j in range(0, num_stations):   
         # Remove the invalid values from that station 
-        valid_observed = filter_valid_data(observed.iloc[:], station_num = j, neg = 1)
+        valid_observed = filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
         
         bias = np.sum(simulated.iloc[:, j] - valid_observed.iloc[:, j])/np.sum(abs(valid_observed.iloc[:, j])) * 100
         BIAS.append(bias)
@@ -669,7 +669,7 @@ def SpringPulseOnset(df: pd.DataFrame, num_stations: int)->int:
 
             if valid_values > 200 and np.sum(df.iloc[first:num_of_days+first, j]) > 0.0:
                 mean = np.mean(df.iloc[first:num_of_days+first, j])
-                minimum_cumulative = 1.0E38
+                minimum_cumulative = 1.0E38         # Some Arbitrarily large number
                 cumulative = 0
                 onset_day = 0
                 for index in range(first, num_of_days+first):
