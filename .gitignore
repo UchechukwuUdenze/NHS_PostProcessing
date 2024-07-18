@@ -5,3 +5,6 @@ build/
 __pychache__/
 tests/
 MESH_output_streamflow.csv
+
+docs/build
+docs/make.bat
