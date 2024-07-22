@@ -19,7 +19,7 @@ project = 'NHS_postprocessing'
 copyright = f'{datetime.datetime.now().year}, Uchechukwu Udenze'
 author = 'Uchechukwu Udenze'
 version = {}
-with open("postprocessinglib/__version__.py", "r") as fp:
+with open("../../postprocessinglib/__version__.py", "r") as fp:
     exec(fp.read(), version)
 release = version
 
