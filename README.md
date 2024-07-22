@@ -39,8 +39,8 @@ pip install -e .
 #### Note:
 
 This is a work in progress and I am very open to suggestions and ideas
-- Documentation: **_Coming soon_**
-- Bug reports/Feature Requests: [issue](https://github.com/Udenze-Uchechukwu/NHS_PostProcessing/issues)
+- Documentation: [NHS_postprocessing ReadTheDocs](https://nhs-postprocessing.readthedocs.io/en/latest/)
+- Bug reports/Feature Requests: https://github.com/Udenze-Uchechukwu/NHS_PostProcessing/issues
 
 ## Contact
 

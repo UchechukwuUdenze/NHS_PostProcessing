@@ -1,4 +1,4 @@
-Metrics (postprocessinglib.metrics)
-===================================
+Metrics
+========
 
-.. automodapi:: postprocessinglib.metrics
+.. automodapi:: postprocessinglib.evaluation.metrics
