@@ -13,18 +13,8 @@ This project is still under Active Development
 Content
 =======
 .. toctree::
+   :maxdepth: 2
+   :caption: Contents:
    
-   Installation
-   Preprocessing
-   Visualization
    Metrics
-   Analysis
-   contribute
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`search`
+   
