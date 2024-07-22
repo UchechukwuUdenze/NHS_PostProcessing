@@ -4,5 +4,4 @@ dist/
 build/
 __pychache__/
 tests/
-docs/build
 MESH_output_streamflow.csv
