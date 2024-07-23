@@ -89,7 +89,7 @@ pygments==2.18.0
     #   sphinx
 python-dateutil==2.9.0.post0
     # via jupyter-client
-pywin32==306
+pypiwin32==306
     # via jupyter-core
 pyzmq==26.0.3
     # via jupyter-client
