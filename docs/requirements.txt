@@ -81,16 +81,15 @@ packaging==24.1
     #   sphinx
 pandocfilters==1.5.1
     # via nbconvert
-platformdirs==4.2.2;
+platformdirs==4.2.2
     # via jupyter-core
-platform_system=="Windows"
 pygments==2.18.0
     # via
     #   nbconvert
     #   sphinx
 python-dateutil==2.9.0.post0
     # via jupyter-client
-pywin32==303
+pywin32==303; platform_system=="Windows"
     # via jupyter-core
 pyzmq==26.0.3
     # via jupyter-client
