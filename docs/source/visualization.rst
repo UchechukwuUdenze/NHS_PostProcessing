@@ -1,5 +1,5 @@
 Visualization
 =============
 
-.. automodule:: postprocessinglib.evaluation.visuals
+.. automodapi:: postprocessinglib.evaluation.visuals
     

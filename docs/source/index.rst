@@ -22,9 +22,9 @@ Content
    :caption: Contents:
    
    QuickStart
-   Preprocessing
    Metrics
    Visualization
+   Preprocessing
    Analysis
    Contribute
 
