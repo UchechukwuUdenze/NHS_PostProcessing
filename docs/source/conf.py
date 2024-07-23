@@ -24,11 +24,14 @@ release = "1"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
+    'sphinx_automodapi.automodapi',
+    'sphinx_automodapi.smart_resolver',
+    'sphinx_rtd_theme',
     'sphinx.ext.autodoc',  # autodocument
     'sphinx.ext.napoleon',  # google and numpy doc string support
     'sphinx.ext.mathjax',  # latex rendering of equations using MathJax
     'nbsphinx',  # for direct embedding of jupyter notebooks into sphinx docs
-    'nbsphinx_link'  # to be able to include notebooks from outside of the docs folder
+    'nbsphinx_link'
     ]
 numpydoc_show_class_members = False
 

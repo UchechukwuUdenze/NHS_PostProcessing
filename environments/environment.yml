@@ -13,7 +13,7 @@ dependencies:
   - nose2
   - scipy
   - sphinx
-  - sphinx_automodapi
+  - sphinx-automodapi
   - nbsphinx
-  - nbsphinx_link
+  - nbsphinx-link
   - xarray

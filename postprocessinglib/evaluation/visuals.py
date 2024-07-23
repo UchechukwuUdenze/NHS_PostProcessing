@@ -12,12 +12,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import postprocessinglib.evaluation.metrics as metr
 
-path = "MESH_output_streamflow.csv"
-df = pd.read_csv(path, skipinitialspace = True)
-df.drop(columns=df.columns[-1], inplace = True)
-predicted = df.iloc[:, [1, 3, 5]]
-actual = df.iloc[:, [1, 2, 4]]
-station_1 = df.iloc[:, [1, 2, 3]]
+# path = "MESH_output_streamflow.csv"
+# df = pd.read_csv(path, skipinitialspace = True)
+# df.drop(columns=df.columns[-1], inplace = True)
+# predicted = df.iloc[:, [1, 3, 5]]
+# actual = df.iloc[:, [1, 2, 4]]
+# station_1 = df.iloc[:, [1, 2, 3]]
 
 def plot(dataframe: pd.DataFrame, legend: tuple[str, str] = ('Simulated Data', 'Observed Data'), 
          metrics: list[str] = None, num_min: int = 0, grid: bool = False, title: str = None, 
@@ -153,12 +153,12 @@ def histogram():
 def scatter():
     return
 
-plot(dataframe=station_1, 
-     title='Hydrograph of Entire Time Series of Station 1',
-     linestyles=['r-', 'k-'],
-     labels=['Datetime', 'Streamflow'],
-    #  metrics=['RMSE', 'NSE', 'KGE'],
-     # metrics = 'all',
-     plot_adjust = 0.15,
-     grid=True)
-plt.show()
+# plot(dataframe=station_1, 
+#      title='Hydrograph of Entire Time Series of Station 1',
+#      linestyles=['r-', 'k-'],
+#      labels=['Datetime', 'Streamflow'],
+#     #  metrics=['RMSE', 'NSE', 'KGE'],
+#      # metrics = 'all',
+#      plot_adjust = 0.15,
+#      grid=True)
+# plt.show()
