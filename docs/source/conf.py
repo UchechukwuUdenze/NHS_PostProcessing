@@ -24,7 +24,6 @@ release = "1"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    'sphinx_automodapi.automodapi',
     'sphinx.ext.autodoc',  # autodocument
     'sphinx.ext.napoleon',  # google and numpy doc string support
     'sphinx.ext.mathjax',  # latex rendering of equations using MathJax
