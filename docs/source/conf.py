@@ -18,10 +18,7 @@ sys.path.insert(0, os.path.abspath('../../'))
 project = 'NHS_postprocessing'
 copyright = f'{datetime.datetime.now().year}, Uchechukwu Udenze'
 author = 'Uchechukwu Udenze'
-version = {}
-with open("../../postprocessinglib/__version__.py", "r") as fp:
-    exec(fp.read(), version)
-release = version
+release = "1"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -34,6 +31,7 @@ extensions = [
     'nbsphinx',  # for direct embedding of jupyter notebooks into sphinx docs
     'nbsphinx_link'  # to be able to include notebooks from outside of the docs folder
     ]
+numpydoc_show_class_members = False
 
 templates_path = ['_templates']
 exclude_patterns = ['**.ipynb_checkpoints', '_build']

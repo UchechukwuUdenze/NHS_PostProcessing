@@ -1,4 +1,5 @@
-Metrics
-========
+Visualization
+=============
 
-.. automodapi:: postprocessinglib.evaluation.visuals
+.. automodule:: postprocessinglib.evaluation.visuals
+    

@@ -22,10 +22,7 @@ Content
    
    QuickStart
    Metrics
-   Preprocessing
-   Analysis
    Visualization
-   Contribution
 
 
    
