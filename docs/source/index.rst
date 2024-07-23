@@ -21,8 +21,11 @@ Content
    :maxdepth: 4
    
    QuickStart
+   Preprocessing
    Metrics
    Visualization
+   Analysis
+   Contribute
 
 
    

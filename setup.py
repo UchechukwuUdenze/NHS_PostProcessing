@@ -28,7 +28,8 @@ setup(
         'numpy',
         'pandas',
         'xarray',
-        'netcdf4'
+        'netcdf4',
+        'matplotlib'
     ],
     test_suite='tests',
 )
