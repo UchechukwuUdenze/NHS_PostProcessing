@@ -89,8 +89,6 @@ pygments==2.18.0
     #   sphinx
 python-dateutil==2.9.0.post0
     # via jupyter-client
-pypiwin32==219
-    # via jupyter-core
 pyzmq==26.0.3
     # via jupyter-client
 referencing==0.35.1
