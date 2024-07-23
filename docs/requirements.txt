@@ -83,7 +83,7 @@ pandocfilters==1.5.1
     # via nbconvert
 platformdirs==4.2.2
     # via jupyter-core
-platform_system=="Windows"
+platform_system=="Windows";
 pygments==2.18.0
     # via
     #   nbconvert
