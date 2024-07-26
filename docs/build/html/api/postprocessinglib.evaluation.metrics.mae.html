@@ -5,7 +5,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mae &mdash; NHS_postprocessing 1 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b76e3c8a" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
 
@@ -22,7 +22,9 @@
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="mse" href="postprocessinglib.evaluation.metrics.mse.html" />
+    <link rel="prev" title="lognse" href="postprocessinglib.evaluation.metrics.lognse.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -44,10 +46,38 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../QuickStart.html">Quick Start</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Metrics.html">Metrics</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../Metrics.html">Metrics</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../Metrics.html#module-postprocessinglib.evaluation.metrics">postprocessinglib.evaluation.metrics Module</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../Metrics.html#functions">Functions</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.SpringPulseOnset.html">SpringPulseOnset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.available_metrics.html">available_metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.bias.html">bias</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.calculate_all_metrics.html">calculate_all_metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.calculate_metrics.html">calculate_metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.generate_dataframes.html">generate_dataframes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.kge.html">kge</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.kge_2012.html">kge_2012</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.lognse.html">lognse</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">mae</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.mse.html">mse</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.nse.html">nse</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.rmse.html">rmse</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.station_dataframe.html">station_dataframe</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.time_to_centre_of_mass.html">time_to_centre_of_mass</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.time_to_peak.html">time_to_peak</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../Visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Analysis.html">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Contribute.html">Contribution</a></li>
 </ul>
 
         </div>
@@ -64,6 +94,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../Metrics.html">Metrics</a></li>
       <li class="breadcrumb-item active">mae</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/api/postprocessinglib.evaluation.metrics.mae.rst.txt" rel="nofollow"> View page source</a>
@@ -97,12 +128,52 @@
 </dl>
 </dd></dl>
 
+<p><a class="reference internal" href="../notebooks/Examples.html"><span class="doc">JUPYTER NOTEBOOK EXAMPLE</span></a></p>
+<section id="example">
+<h2>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h2>
+<p>Calculate the Mean Average Error</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="linenos"> 2</span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="hll"><span class="linenos"> 3</span><span class="kn">from</span> <span class="nn">postprocessinglib.evaluation</span> <span class="kn">import</span> <span class="n">metrics</span>
+</span><span class="linenos"> 4</span>
+<span class="linenos"> 5</span><span class="c1"># Create your index as an array</span>
+<span class="linenos"> 6</span><span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1981</span><span class="p">,</span> <span class="mi">1982</span><span class="p">,</span> <span class="mi">1983</span><span class="p">,</span> <span class="mi">1984</span><span class="p">,</span> <span class="mi">1985</span><span class="p">,</span> <span class="mi">1986</span><span class="p">,</span> <span class="mi">1987</span><span class="p">,</span> <span class="mi">1988</span><span class="p">,</span> <span class="mi">1989</span><span class="p">,</span> <span class="mi">1990</span><span class="p">])</span>
+<span class="linenos"> 7</span>
+<span class="linenos"> 8</span><span class="c1"># Create a test dataframe</span>
+<span class="linenos"> 9</span><span class="n">test_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">columns</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;obs1&quot;</span><span class="p">,</span> <span class="s2">&quot;sim1&quot;</span><span class="p">,</span> <span class="s2">&quot;obs2&quot;</span><span class="p">,</span> <span class="s2">&quot;sim2&quot;</span><span class="p">),</span> <span class="n">index</span> <span class="o">=</span> <span class="n">index</span><span class="p">)</span>
+<span class="linenos">10</span><span class="nb">print</span><span class="p">(</span><span class="n">test_df</span><span class="p">)</span>
+<span class="linenos">11</span>          <span class="n">obs1</span>      <span class="n">sim1</span>      <span class="n">obs2</span>      <span class="n">sim2</span>
+<span class="linenos">12</span><span class="mi">1981</span>  <span class="mf">0.966878</span>  <span class="mf">0.348580</span>  <span class="mf">0.053977</span>  <span class="mf">0.043133</span>
+<span class="linenos">13</span><span class="mi">1982</span>  <span class="mf">0.188252</span>  <span class="mf">0.739990</span>  <span class="mf">0.941848</span>  <span class="mf">0.580866</span>
+<span class="linenos">14</span><span class="mi">1983</span>  <span class="mf">0.430902</span>  <span class="mf">0.292824</span>  <span class="mf">0.963190</span>  <span class="mf">0.798885</span>
+<span class="linenos">15</span><span class="mi">1984</span>  <span class="mf">0.718644</span>  <span class="mf">0.098746</span>  <span class="mf">0.031072</span>  <span class="mf">0.446317</span>
+<span class="linenos">16</span><span class="mi">1985</span>  <span class="mf">0.586581</span>  <span class="mf">0.479616</span>  <span class="mf">0.541689</span>  <span class="mf">0.639898</span>
+<span class="linenos">17</span><span class="mi">1986</span>  <span class="mf">0.380978</span>  <span class="mf">0.193639</span>  <span class="mf">0.737498</span>  <span class="mf">0.025509</span>
+<span class="linenos">18</span><span class="mi">1987</span>  <span class="mf">0.072452</span>  <span class="mf">0.095210</span>  <span class="mf">0.188173</span>  <span class="mf">0.357554</span>
+<span class="linenos">19</span><span class="mi">1988</span>  <span class="mf">0.833037</span>  <span class="mf">0.542694</span>  <span class="mf">0.913704</span>  <span class="mf">0.963027</span>
+<span class="linenos">20</span><span class="mi">1989</span>  <span class="mf">0.434239</span>  <span class="mf">0.817284</span>  <span class="mf">0.425448</span>  <span class="mf">0.865841</span>
+<span class="linenos">21</span><span class="mi">1990</span>  <span class="mf">0.698412</span>  <span class="mf">0.484796</span>  <span class="mf">0.693588</span>  <span class="mf">0.981778</span>
+<span class="linenos">22</span>
+<span class="linenos">23</span><span class="c1"># Generate the observed and simulated Dataframes</span>
+<span class="linenos">24</span><span class="n">obs</span> <span class="o">=</span> <span class="n">test_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]]</span>
+<span class="linenos">25</span><span class="n">sim</span> <span class="o">=</span> <span class="n">test_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">]]</span>
+<span class="linenos">26</span>
+<span class="linenos">27</span><span class="c1"># Calculate the mean average error</span>
+<span class="hll"><span class="linenos">28</span><span class="n">mae</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">mae</span><span class="p">(</span><span class="n">observed</span> <span class="o">=</span> <span class="n">obs</span><span class="p">,</span> <span class="n">simulated</span> <span class="o">=</span> <span class="n">sim</span><span class="p">,</span> <span class="n">num_stations</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
+</span><span class="linenos">29</span><span class="nb">print</span><span class="p">(</span><span class="n">mae</span><span class="p">)</span>
+<span class="linenos">30</span>    <span class="p">[</span><span class="mf">0.3132076084592758</span><span class="p">,</span> <span class="mf">0.2708857712262245</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
 </section>
 
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="postprocessinglib.evaluation.metrics.lognse.html" class="btn btn-neutral float-left" title="lognse" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="postprocessinglib.evaluation.metrics.mse.html" class="btn btn-neutral float-right" title="mse" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 

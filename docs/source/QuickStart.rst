@@ -14,7 +14,7 @@ Use:
 
 Installation
 -------------
-**The Library is not yet avaialable on PyPi so it wll have to be installed directly from the git repo**
+**The Library is not yet avaialable on PyPi so it will have to be installed directly from the git repo**
 
 To install the library use:
 
@@ -23,7 +23,7 @@ To install the library use:
     pip install git+https://github.com/Udenze-Uchechukwu/NHS_PostProcessing.git
 
 
-If you want to install an editable verson to implememt your own models or dataset you'll have to clone the repository  using:
+If you want to install an editable version to implememt your own models or dataset you'll have to clone the repository  using:
 
 .. code-block::
 

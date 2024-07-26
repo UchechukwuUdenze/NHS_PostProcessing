@@ -26,5 +26,10 @@ Note
    Analysis
    Contribute
 
+Indices and tables
+==================
+
+* :ref:`genindex`
+
 
    

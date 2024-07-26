@@ -1,7 +1,7 @@
 """
 The metrics module contains all of the metrics required during the prost processing process.
 Each metric has a function and there are hepler functions that help with error checking and 
-reading and preparatoin of data to be evaluated.  
+reading and preparation of data to be evaluated.  
 
 """
 
@@ -9,86 +9,7 @@ from collections.abc import Generator
 import numpy as np
 import pandas as pd
 
-from postprocessinglib.utilities.errors import AllInvalidError
-
-
-def check_valid_dataframe(observed: pd.DataFrame, simulated: pd.DataFrame):
-    """Check if all observations or simulations are invalid and raise an exception if this is the case.
-
-    Raises
-    ------
-    AllInvalidError
-        If all observations or all simulations are NaN or negative.
-    """
-    if len(observed.index) == 0:
-        raise AllInvalidError("All observed values are NaN")
-    if len(simulated.index) == 0:
-        raise AllInvalidError("All simulated values are NaN")
-    if (observed.values < 0).all():
-        raise AllInvalidError("All observed values are invalid(negative)")
-    if (simulated.values < 0).all():
-        raise AllInvalidError("All simulated values are invalid(negative)")
-    
-    
-def is_leap_year(year: int) -> bool:
-    """ Determines if a year is a leap year
-
-    Paremeters:
-    -----------
-    year: int
-            the year being checked
-
-    Returns:
-    --------
-    bool: 
-        True if it is a leap year, False otherwise
-    """
-    if year % 4 == 0:
-        return True
-    return False
-
-def datetime_to_index(datetime :str)-> tuple[int, int]:
-    """ Convert the datetime value to index value for use in the dataframe
-
-    Parameters:
-    -----------
-    datetime: str
-            a string containing the date being searched for entered in the format "yyyy-mm-dd"
-
-    Returns:
-    --------
-    tuple: [int, int]
-        an index representig the year and jday index of the dataframe
-    """
-    year, month, day = datetime.split("-")
-    jday = 0
-    for i in range(1, int(month)):
-        if i == 1 or i == 3 or i == 5 or i == 7 or i == 8 or i == 10 or i == 12:
-            # the months with 31 days
-            jday += 31
-        elif i == 4 or i == 6 or i == 9 or i == 11:
-            # the months with 30 days
-            jday += 30
-        else:     #i == 2 (february)
-            if is_leap_year(int(year)):
-                jday += 29
-            else:
-                jday += 28
-
-    jday += int(day)        
-    return(int(year), jday)
-
-
-def validate_data(observed: pd.DataFrame, simulated: pd.DataFrame):
-    if not isinstance(observed, pd.DataFrame) or not isinstance(simulated, pd.DataFrame):
-        raise ValueError("Both observed and simulated values must be pandas DataFrames.")
-    
-    if observed.shape != simulated.shape:
-        raise RuntimeError("Shapes of observations and simulations must match")
-
-    if (len(observed.shape) < 2) or (observed.shape[1] < 2):
-        raise RuntimeError("observed or simulated data is incomplete")
-
+from postprocessinglib.evaluation import preprocessing
 
 def available_metrics() -> list[int]:
     """ Get a list of currently available metrics
@@ -143,61 +64,9 @@ def generate_dataframes(csv_fpath: str, num_min: int = 0) -> tuple[pd.DataFrame,
         simulated = pd.concat([simulated, arr2], axis = 1)
 
     # validate inputs
-    validate_data(observed, simulated)
+    preprocessing.validate_data(observed, simulated)
     
     return observed, simulated
-
-
-def filter_valid_data(df: pd.DataFrame, station_num: int = 0, station: str = "",
-                  remove_neg: bool = False, remove_zero: bool = False, remove_NaN: bool = False,
-                  remove_inf: bool = False) -> pd.DataFrame:
-    """ Removes the invalid values from a dataframe
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-            the dataframe which you want to remove invalid values from
-    station_num : int
-            the number referring to the station values we are trying to modify
-    remove_neg = True: bool 
-            indicates that the negative fields are the inavlid ones
-    remove_zero = True: bool 
-            indicate that the zero fields are the invalid ones
-    remove_NaN = True: bool 
-            indicate that the empty fields are the invalid ones
-    remove_inf = True: bool
-            indicate that the inf fields are the invalid ones
-
-    Returns
-    -------
-    pd.DataFrame: 
-            the modified input dataframe 
-
-    """
-
-    if not station and station_num < 0 and station_num >= df.shape[1] :
-        raise ValueError("You must have either a valid station number or station name")
-    
-    if not station:
-        if remove_neg:
-            df = df.drop(df[df.iloc[:, station_num] <= 0.0].index)
-        elif remove_zero:
-            df = df.drop(df[df.iloc[:, station_num] == 0.0].index)
-        elif remove_NaN:
-            df = df.drop(df[df.iloc[:, station_num] == np.nan].index)
-        elif remove_inf:
-            df = df.drop(df[df.iloc[:, station_num] == np.inf].index)        
-        return df
-
-    if remove_neg:
-        df = df.drop(df[df[station] < 0.0].index)
-    elif remove_zero:
-        df = df.drop(df[df[station] == 0.0].index)
-    elif remove_NaN:
-        df = df.drop(df[df[station] == np.nan].index)
-    elif remove_inf:
-        df = df.drop(df[df[station] == np.inf].index)        
-    return df
 
 
 def station_dataframe(observed_df: pd.DataFrame, simulated_df: pd.DataFrame,
@@ -221,7 +90,7 @@ def station_dataframe(observed_df: pd.DataFrame, simulated_df: pd.DataFrame,
     """
 
     # validate inputs
-    validate_data(observed_df, simulated_df)
+    preprocessing.validate_data(observed_df, simulated_df)
 
     if station_num < observed_df.columns.size:
         for j in range(0, station_num):
@@ -250,12 +119,12 @@ def mse(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int) -> f
 
     """     
     # validate inputs
-    validate_data(observed, simulated)
+    preprocessing.validate_data(observed, simulated)
 
     MSE = []    
     for j in range(0, num_stations):
         # Remove the invalid values from that station 
-        valid_observed = filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
+        valid_observed = preprocessing.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
         
         summation = np.sum((abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))**2)
         mse = summation/len(valid_observed)  #dividing summation by total number of values to obtain average    
@@ -284,12 +153,12 @@ def rmse(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int,
 
     """   
     # validate inputs
-    validate_data(observed, simulated)
+    preprocessing.validate_data(observed, simulated)
     
     RMSE =[]
     for j in range(0, num_stations):
         # Remove the invalid values from that station 
-        valid_observed = filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
+        valid_observed = preprocessing.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
         
         summation = np.sum((abs((valid_observed.iloc[:, j]) - simulated.iloc[:, j]))**2)
         rmse = np.sqrt(summation/len(valid_observed)) #dividing summation by total number of values to obtain average    
@@ -317,12 +186,12 @@ def mae(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int) -> f
 
     """
     # validate inputs
-    validate_data(observed, simulated)
+    preprocessing.validate_data(observed, simulated)
     
     MAE = []
     for j in range(0, num_stations): 
         # Remove the invalid values from that station 
-        valid_observed = filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
+        valid_observed = preprocessing.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
         
         summation = np.sum(abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))
         mae = summation/len(valid_observed)  #dividing summation by total number of values to obtain average   
@@ -350,12 +219,12 @@ def nse(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int) -> f
 
     """       
     # validate inputs
-    validate_data(observed, simulated)
+    preprocessing.validate_data(observed, simulated)
 
     NSE = []
     for j in range(0, num_stations):  
         # Remove the invalid values from that station 
-        valid_observed = filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
+        valid_observed = preprocessing.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
         
         num_valid = len(valid_observed.iloc[:, j])
         observed_mean = np.sum(valid_observed.iloc[:, j])
@@ -388,12 +257,12 @@ def lognse(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int) -
 
     """       
     # validate inputs
-    validate_data(observed, simulated)
+    preprocessing.validate_data(observed, simulated)
 
     LOGNSE = []
     for j in range(0, num_stations):  
         # Remove the invalid values from that station 
-        valid_observed = filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
+        valid_observed = preprocessing.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
         
         num_valid = len(valid_observed.iloc[:, j])
         observed_mean = np.sum(np.log(valid_observed.iloc[:, j]))
@@ -431,12 +300,12 @@ def kge(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int,
 
     """
     # validate inputs
-    validate_data(observed, simulated)
+    preprocessing.validate_data(observed, simulated)
 
     KGE = []
     for j in range(0, num_stations): 
         # Remove the invalid values from that station 
-        valid_observed = filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
+        valid_observed = preprocessing.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
         
         num_valid = len(valid_observed.iloc[:, j])
         mean_observed = np.sum(valid_observed.iloc[:, j]) 
@@ -489,12 +358,12 @@ def kge_2012(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int,
 
     """
     # validate inputs
-    validate_data(observed, simulated)
+    preprocessing.validate_data(observed, simulated)
 
     KGE = []
     for j in range(0, num_stations):
         # Remove the invalid values from that station 
-        valid_observed = filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
+        valid_observed = preprocessing.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
         
         num_valid = len(valid_observed.iloc[:, j])
         mean_observed = np.sum(valid_observed.iloc[:, j]) 
@@ -543,12 +412,12 @@ def bias(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int) -> 
 
     """    
     # validate inputs
-    validate_data(observed, simulated)
+    preprocessing.validate_data(observed, simulated)
     
     BIAS = []
     for j in range(0, num_stations):   
         # Remove the invalid values from that station 
-        valid_observed = filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
+        valid_observed = preprocessing.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
         
         bias = np.sum(simulated.iloc[:, j] - valid_observed.iloc[:, j])/np.sum(abs(valid_observed.iloc[:, j])) * 100
         BIAS.append(bias)
@@ -583,7 +452,7 @@ def time_to_peak(df: pd.DataFrame, num_stations: int)->float:
         while year != last_year:
             # check the number of days
             num_of_days = 365
-            if is_leap_year(year):
+            if preprocessing.is_leap_year(year):
                 num_of_days = 366
             
             valid_values = np.sum(np.fromiter((df.index[i][0] == year for i in range(first, num_of_days+first)), int))
@@ -622,7 +491,7 @@ def time_to_centre_of_mass(df: pd.DataFrame, num_stations: int)->float:
         while year != last_year:
             # check the number of days
             num_of_days = 365
-            if is_leap_year(year):
+            if preprocessing.is_leap_year(year):
                 num_of_days = 366
 
             valid_values = np.sum(np.fromiter((df.index[i][0] == year for i in range(first, num_of_days+first)), int))
@@ -662,7 +531,7 @@ def SpringPulseOnset(df: pd.DataFrame, num_stations: int)->int:
         while year != last_year:
             # check the number of days
             num_of_days = 365
-            if is_leap_year(year):
+            if preprocessing.is_leap_year(year):
                 num_of_days = 366
 
             valid_values = np.sum(np.fromiter((df.index[i][0] == year for i in range(first, num_of_days+first)), int))
@@ -707,10 +576,10 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame,
             
     """
     # validate inputs
-    validate_data(observed, simulated)
+    preprocessing.validate_data(observed, simulated)
     parameters = (observed, simulated, num_stations)
 
-    check_valid_dataframe(observed, simulated)
+    preprocessing.check_valid_dataframe(observed, simulated)
 
     results = {
         "MSE" : mse(*parameters),
@@ -757,13 +626,13 @@ def calculate_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, metrices:
             
     """
     # validate inputs
-    validate_data(observed, simulated)
+    preprocessing.validate_data(observed, simulated)
     parameters = (observed, simulated, num_stations)
 
     if "all" in metrices:
         return calculate_all_metrics(*parameters)
     
-    check_valid_dataframe(observed, simulated)
+    preprocessing.check_valid_dataframe(observed, simulated)
 
     values = {}
     for metric in metrices:

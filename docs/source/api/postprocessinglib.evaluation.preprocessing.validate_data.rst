@@ -1,6 +1,6 @@
 validate_data
 =============
 
-.. currentmodule:: postprocessinglib.evaluation.metrics
+.. currentmodule:: postprocessinglib.evaluation.preprocessing
 
 .. autofunction:: validate_data

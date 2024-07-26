@@ -5,7 +5,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Preprocessing &mdash; NHS_postprocessing 1 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b76e3c8a" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
 
@@ -23,8 +23,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Metrics" href="Metrics.html" />
-    <link rel="prev" title="Quick Start" href="QuickStart.html" /> 
+    <link rel="next" title="check_valid_dataframe" href="api/postprocessinglib.evaluation.preprocessing.check_valid_dataframe.html" />
+    <link rel="prev" title="scatter" href="api/postprocessinglib.evaluation.visuals.scatter.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -46,11 +46,25 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul class="current">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="QuickStart.html">Quick Start</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Preprocessing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Metrics.html">Metrics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Visualization.html">Visualization</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Preprocessing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-postprocessinglib.evaluation.preprocessing">postprocessinglib.evaluation.preprocessing Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#functions">Functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/postprocessinglib.evaluation.preprocessing.check_valid_dataframe.html">check_valid_dataframe</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/postprocessinglib.evaluation.preprocessing.datetime_to_index.html">datetime_to_index</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/postprocessinglib.evaluation.preprocessing.filter_valid_data.html">filter_valid_data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/postprocessinglib.evaluation.preprocessing.is_leap_year.html">is_leap_year</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/postprocessinglib.evaluation.preprocessing.validate_data.html">validate_data</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="Analysis.html">Analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribution</a></li>
 </ul>
@@ -81,14 +95,41 @@
              
   <section id="preprocessing">
 <h1>Preprocessing<a class="headerlink" href="#preprocessing" title="Link to this heading"></a></h1>
+<section id="module-postprocessinglib.evaluation.preprocessing">
+<span id="postprocessinglib-evaluation-preprocessing-module"></span><h2>postprocessinglib.evaluation.preprocessing Module<a class="headerlink" href="#module-postprocessinglib.evaluation.preprocessing" title="Link to this heading"></a></h2>
+<p>The preprocessing module contains all of the functions used alongside the metrics to filter, limit and validate the data
+before it gets evaluated.</p>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h3>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/postprocessinglib.evaluation.preprocessing.check_valid_dataframe.html#postprocessinglib.evaluation.preprocessing.check_valid_dataframe" title="postprocessinglib.evaluation.preprocessing.check_valid_dataframe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_valid_dataframe</span></code></a>(observed, simulated)</p></td>
+<td><p>Check if all observations or simulations are invalid and raise an exception if this is the case.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="api/postprocessinglib.evaluation.preprocessing.datetime_to_index.html#postprocessinglib.evaluation.preprocessing.datetime_to_index" title="postprocessinglib.evaluation.preprocessing.datetime_to_index"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datetime_to_index</span></code></a>(datetime)</p></td>
+<td><p>Convert the datetime value to index value for use in the dataframe</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/postprocessinglib.evaluation.preprocessing.filter_valid_data.html#postprocessinglib.evaluation.preprocessing.filter_valid_data" title="postprocessinglib.evaluation.preprocessing.filter_valid_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filter_valid_data</span></code></a>(df[, station_num, ...])</p></td>
+<td><p>Removes the invalid values from a dataframe</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="api/postprocessinglib.evaluation.preprocessing.is_leap_year.html#postprocessinglib.evaluation.preprocessing.is_leap_year" title="postprocessinglib.evaluation.preprocessing.is_leap_year"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_leap_year</span></code></a>(year)</p></td>
+<td><p>Determines if a year is a leap year</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/postprocessinglib.evaluation.preprocessing.validate_data.html#postprocessinglib.evaluation.preprocessing.validate_data" title="postprocessinglib.evaluation.preprocessing.validate_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_data</span></code></a>(observed, simulated)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="QuickStart.html" class="btn btn-neutral float-left" title="Quick Start" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="Metrics.html" class="btn btn-neutral float-right" title="Metrics" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="api/postprocessinglib.evaluation.visuals.scatter.html" class="btn btn-neutral float-left" title="scatter" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api/postprocessinglib.evaluation.preprocessing.check_valid_dataframe.html" class="btn btn-neutral float-right" title="check_valid_dataframe" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

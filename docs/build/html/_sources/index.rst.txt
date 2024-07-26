@@ -15,8 +15,6 @@ Note
 
    **This project is still under Active Development**
 
-Content
-=======
 .. toctree::
    :maxdepth: 1
    :caption: Contents:
@@ -27,6 +25,11 @@ Content
    Preprocessing
    Analysis
    Contribute
+
+Indices and tables
+==================
+
+* :ref:`genindex`
 
 
    
