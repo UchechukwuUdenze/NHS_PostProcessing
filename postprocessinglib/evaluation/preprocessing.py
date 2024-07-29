@@ -77,6 +77,13 @@ def datetime_to_index(datetime :str)-> tuple[int, int]:
 
 
 def validate_data(observed: pd.DataFrame, simulated: pd.DataFrame):
+    """ Ensures that a set of observed and simulated dataframes are valid
+
+    Raises
+    ------
+    RuntimeError:
+            if the sizes or shapes of both dataframes are not the same
+    """
     if not isinstance(observed, pd.DataFrame) or not isinstance(simulated, pd.DataFrame):
         raise ValueError("Both observed and simulated values must be pandas DataFrames.")
     
