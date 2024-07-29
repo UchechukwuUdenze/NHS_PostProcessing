@@ -109,17 +109,19 @@
 <h1>generate_dataframes<a class="headerlink" href="#generate-dataframes" title="Link to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="postprocessinglib.evaluation.metrics.generate_dataframes">
-<span class="sig-prename descclassname"><span class="pre">postprocessinglib.evaluation.metrics.</span></span><span class="sig-name descname"><span class="pre">generate_dataframes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csv_fpath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_min</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#postprocessinglib.evaluation.metrics.generate_dataframes" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">postprocessinglib.evaluation.metrics.</span></span><span class="sig-name descname"><span class="pre">generate_dataframes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csv_fpath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_min</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#postprocessinglib.evaluation.metrics.generate_dataframes" title="Link to this definition"></a></dt>
 <dd><p>Function to Generate the required dataframes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>csv_fpath</strong> (<em>string</em>) – the path to the csv file. It can be relative or absolute</p></li>
 <li><p><strong>num_min</strong> (<em>int</em>) – number of days required to “warm up” the system</p></li>
+<li><p><strong>start_date</strong> (<em>str</em>) – The date at which you want to start calculating the metric [yyyy-mm-dd]</p></li>
+<li><p><strong>end_date</strong> (<em>str</em>) – The date at which you want the calculations to end [yyyy-mm-dd]</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>the observed datframe, the simulated dataframe</p>
+<dd class="field-even"><p>the observed dataframe, the simulated dataframe</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>tuple[pd.DataFrame, pd.DataFrame]</p>
@@ -131,54 +133,193 @@
 <section id="example">
 <h2>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h2>
 <p>Generate the observed and simulated dataframes from the csv file</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="linenos"> 2</span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="hll"><span class="linenos"> 3</span><span class="kn">from</span> <span class="nn">postprocessinglib.evaluation</span> <span class="kn">import</span> <span class="n">metrics</span>
-</span><span class="linenos"> 4</span>
-<span class="linenos"> 5</span><span class="c1"># Create your index as an array</span>
-<span class="linenos"> 6</span><span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1981</span><span class="p">,</span> <span class="mi">1982</span><span class="p">,</span> <span class="mi">1983</span><span class="p">,</span> <span class="mi">1984</span><span class="p">,</span> <span class="mi">1985</span><span class="p">,</span> <span class="mi">1986</span><span class="p">,</span> <span class="mi">1987</span><span class="p">,</span> <span class="mi">1988</span><span class="p">,</span> <span class="mi">1989</span><span class="p">,</span> <span class="mi">1990</span><span class="p">])</span>
-<span class="linenos"> 7</span>
-<span class="linenos"> 8</span><span class="c1"># Create a test dataframe</span>
-<span class="linenos"> 9</span><span class="n">test_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">columns</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;obs1&quot;</span><span class="p">,</span> <span class="s2">&quot;sim1&quot;</span><span class="p">,</span> <span class="s2">&quot;obs2&quot;</span><span class="p">,</span> <span class="s2">&quot;sim2&quot;</span><span class="p">),</span> <span class="n">index</span> <span class="o">=</span> <span class="n">index</span><span class="p">)</span>
-<span class="linenos">10</span><span class="nb">print</span><span class="p">(</span><span class="n">test_df</span><span class="p">)</span>
-<span class="linenos">11</span>          <span class="n">obs1</span>      <span class="n">sim1</span>      <span class="n">obs2</span>      <span class="n">sim2</span>
-<span class="linenos">12</span><span class="mi">1981</span>  <span class="mf">0.966878</span>  <span class="mf">0.348580</span>  <span class="mf">0.053977</span>  <span class="mf">0.043133</span>
-<span class="linenos">13</span><span class="mi">1982</span>  <span class="mf">0.188252</span>  <span class="mf">0.739990</span>  <span class="mf">0.941848</span>  <span class="mf">0.580866</span>
-<span class="linenos">14</span><span class="mi">1983</span>  <span class="mf">0.430902</span>  <span class="mf">0.292824</span>  <span class="mf">0.963190</span>  <span class="mf">0.798885</span>
-<span class="linenos">15</span><span class="mi">1984</span>  <span class="mf">0.718644</span>  <span class="mf">0.098746</span>  <span class="mf">0.031072</span>  <span class="mf">0.446317</span>
-<span class="linenos">16</span><span class="mi">1985</span>  <span class="mf">0.586581</span>  <span class="mf">0.479616</span>  <span class="mf">0.541689</span>  <span class="mf">0.639898</span>
-<span class="linenos">17</span><span class="mi">1986</span>  <span class="mf">0.380978</span>  <span class="mf">0.193639</span>  <span class="mf">0.737498</span>  <span class="mf">0.025509</span>
-<span class="linenos">18</span><span class="mi">1987</span>  <span class="mf">0.072452</span>  <span class="mf">0.095210</span>  <span class="mf">0.188173</span>  <span class="mf">0.357554</span>
-<span class="linenos">19</span><span class="mi">1988</span>  <span class="mf">0.833037</span>  <span class="mf">0.542694</span>  <span class="mf">0.913704</span>  <span class="mf">0.963027</span>
-<span class="linenos">20</span><span class="mi">1989</span>  <span class="mf">0.434239</span>  <span class="mf">0.817284</span>  <span class="mf">0.425448</span>  <span class="mf">0.865841</span>
-<span class="linenos">21</span><span class="mi">1990</span>  <span class="mf">0.698412</span>  <span class="mf">0.484796</span>  <span class="mf">0.693588</span>  <span class="mf">0.981778</span>
-<span class="linenos">22</span>
-<span class="hll"><span class="linenos">23</span><span class="n">observed</span><span class="p">,</span> <span class="n">simulated</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">generate_dataframes</span><span class="p">(</span><span class="n">csv_fpath</span> <span class="o">=</span> <span class="n">filepath</span><span class="p">)</span>
-</span><span class="linenos">24</span><span class="nb">print</span><span class="p">(</span><span class="n">observed</span><span class="p">)</span>
-<span class="linenos">25</span>          <span class="n">obs1</span>      <span class="n">obs2</span>
-<span class="linenos">26</span><span class="mi">1981</span>  <span class="mf">0.966878</span>  <span class="mf">0.053977</span>
-<span class="linenos">27</span><span class="mi">1982</span>  <span class="mf">0.188252</span>  <span class="mf">0.941848</span>
-<span class="linenos">28</span><span class="mi">1983</span>  <span class="mf">0.430902</span>  <span class="mf">0.963190</span>
-<span class="linenos">29</span><span class="mi">1984</span>  <span class="mf">0.718644</span>  <span class="mf">0.031072</span>
-<span class="linenos">30</span><span class="mi">1985</span>  <span class="mf">0.586581</span>  <span class="mf">0.541689</span>
-<span class="linenos">31</span><span class="mi">1986</span>  <span class="mf">0.380978</span>  <span class="mf">0.737498</span>
-<span class="linenos">32</span><span class="mi">1987</span>  <span class="mf">0.072452</span>  <span class="mf">0.188173</span>
-<span class="linenos">33</span><span class="mi">1988</span>  <span class="mf">0.833037</span>  <span class="mf">0.913704</span>
-<span class="linenos">34</span><span class="mi">1989</span>  <span class="mf">0.434239</span>  <span class="mf">0.425448</span>
-<span class="linenos">35</span><span class="mi">1990</span>  <span class="mf">0.698412</span>  <span class="mf">0.693588</span>
-<span class="linenos">36</span>
-<span class="linenos">37</span><span class="nb">print</span><span class="p">(</span><span class="n">simulated</span><span class="p">)</span>
-<span class="linenos">38</span>          <span class="n">sim1</span>      <span class="n">sim2</span>
-<span class="linenos">39</span><span class="mi">1981</span>  <span class="mf">0.348580</span>  <span class="mf">0.043133</span>
-<span class="linenos">40</span><span class="mi">1982</span>  <span class="mf">0.739990</span>  <span class="mf">0.580866</span>
-<span class="linenos">41</span><span class="mi">1983</span>  <span class="mf">0.292824</span>  <span class="mf">0.798885</span>
-<span class="linenos">42</span><span class="mi">1984</span>  <span class="mf">0.098746</span>  <span class="mf">0.446317</span>
-<span class="linenos">43</span><span class="mi">1985</span>  <span class="mf">0.479616</span>  <span class="mf">0.639898</span>
-<span class="linenos">44</span><span class="mi">1986</span>  <span class="mf">0.193639</span>  <span class="mf">0.025509</span>
-<span class="linenos">45</span><span class="mi">1987</span>  <span class="mf">0.095210</span>  <span class="mf">0.357554</span>
-<span class="linenos">46</span><span class="mi">1988</span>  <span class="mf">0.542694</span>  <span class="mf">0.963027</span>
-<span class="linenos">47</span><span class="mi">1989</span>  <span class="mf">0.817284</span>  <span class="mf">0.865841</span>
-<span class="linenos">48</span><span class="mi">1990</span>  <span class="mf">0.484796</span>  <span class="mf">0.981778</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="hll"><span class="linenos"> 1</span><span class="kn">from</span> <span class="nn">postprocessinglib.evaluation</span> <span class="kn">import</span> <span class="n">metrics</span>
+</span><span class="linenos"> 2</span>
+<span class="hll"><span class="linenos"> 3</span><span class="n">observed_all</span><span class="p">,</span> <span class="n">simulated_all</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">generate_dataframes</span><span class="p">(</span><span class="n">csvfpath</span><span class="o">=</span><span class="s2">&quot;MESH_output_streamflow.csv&quot;</span><span class="p">,</span> <span class="n">num_min</span><span class="o">=</span><span class="mi">365</span><span class="p">)</span>
+</span><span class="linenos"> 4</span><span class="nb">print</span><span class="p">(</span><span class="n">observed</span><span class="p">)</span>
+<span class="linenos"> 5</span>            <span class="n">QOMEAS_05BB001</span>  <span class="n">QOMEAS_05BA001</span>
+<span class="linenos"> 6</span><span class="n">YEAR</span> <span class="n">JDAY</span>
+<span class="linenos"> 7</span><span class="mi">1980</span> <span class="mi">366</span>            <span class="mf">10.20</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos"> 8</span><span class="mi">1981</span> <span class="mi">1</span>               <span class="mf">9.85</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos"> 9</span>     <span class="mi">2</span>              <span class="mf">10.20</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">10</span>     <span class="mi">3</span>              <span class="mf">10.00</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">11</span>     <span class="mi">4</span>              <span class="mf">10.10</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">12</span><span class="o">...</span>                   <span class="o">...</span>             <span class="o">...</span>
+<span class="linenos">13</span><span class="mi">2017</span> <span class="mi">361</span>            <span class="o">-</span><span class="mf">1.00</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">14</span>     <span class="mi">362</span>            <span class="o">-</span><span class="mf">1.00</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">15</span>     <span class="mi">363</span>            <span class="o">-</span><span class="mf">1.00</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">16</span>     <span class="mi">364</span>            <span class="o">-</span><span class="mf">1.00</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">17</span>     <span class="mi">365</span>            <span class="o">-</span><span class="mf">1.00</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">18</span>
+<span class="linenos">19</span><span class="nb">print</span><span class="p">(</span><span class="n">simulated</span><span class="p">)</span>
+<span class="linenos">20</span>       <span class="n">QOSIM_05BB001</span>  <span class="n">QOSIM_05BA001</span>
+<span class="linenos">21</span><span class="n">YEAR</span> <span class="n">JDAY</span>
+<span class="linenos">22</span><span class="mi">1980</span> <span class="mi">366</span>        <span class="mf">2.530770</span>       <span class="mf">1.006860</span>
+<span class="linenos">23</span><span class="mi">1981</span> <span class="mi">1</span>          <span class="mf">2.518999</span>       <span class="mf">1.001954</span>
+<span class="linenos">24</span>     <span class="mi">2</span>          <span class="mf">2.507289</span>       <span class="mf">0.997078</span>
+<span class="linenos">25</span>     <span class="mi">3</span>          <span class="mf">2.495637</span>       <span class="mf">0.992233</span>
+<span class="linenos">26</span>     <span class="mi">4</span>          <span class="mf">2.484073</span>       <span class="mf">0.987417</span>
+<span class="linenos">27</span><span class="o">...</span>                  <span class="o">...</span>            <span class="o">...</span>
+<span class="linenos">28</span><span class="mi">2017</span> <span class="mi">361</span>        <span class="mf">4.418050</span>       <span class="mf">1.380227</span>
+<span class="linenos">29</span>     <span class="mi">362</span>        <span class="mf">4.393084</span>       <span class="mf">1.372171</span>
+<span class="linenos">30</span>     <span class="mi">363</span>        <span class="mf">4.368303</span>       <span class="mf">1.364174</span>
+<span class="linenos">31</span>     <span class="mi">364</span>        <span class="mf">4.343699</span>       <span class="mf">1.356237</span>
+<span class="linenos">32</span>     <span class="mi">365</span>        <span class="mf">4.319275</span>       <span class="mf">1.348359</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="hll"><span class="linenos"> 1</span><span class="kn">from</span> <span class="nn">postprocessinglib.evaluation</span> <span class="kn">import</span> <span class="n">metrics</span>
+</span><span class="linenos"> 2</span>
+<span class="hll"><span class="linenos"> 3</span><span class="n">observed_from_1992_FEB</span><span class="p">,</span> <span class="n">simulated_from_1992_FEB</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">generate_dataframes</span><span class="p">(</span><span class="n">csvfpath</span><span class="o">=</span><span class="s2">&quot;MESH_output_streamflow.csv&quot;</span><span class="p">,</span>
+</span><span class="linenos"> 4</span>    <span class="n">num_min</span><span class="o">=</span><span class="mi">365</span><span class="p">,</span> <span class="n">start_date</span><span class="o">=</span><span class="s2">&quot;1992-02-29&quot;</span><span class="p">)</span>
+<span class="linenos"> 5</span>
+<span class="linenos"> 6</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="linenos"> 7</span><span class="sd">Notice how the index starts from the 29th of February i.e., 31 days in</span>
+<span class="linenos"> 8</span><span class="sd">January plus 29 in February equals 60)</span>
+<span class="linenos"> 9</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="linenos">10</span><span class="nb">print</span><span class="p">(</span><span class="n">observed_from_1992_FEB</span><span class="p">)</span>
+<span class="linenos">11</span>       <span class="n">QOMEAS_05BB001</span>  <span class="n">QOMEAS_05BA001</span>
+<span class="linenos">12</span><span class="n">YEAR</span> <span class="n">JDAY</span>
+<span class="linenos">13</span><span class="mi">1992</span> <span class="mi">60</span>              <span class="mf">7.37</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">14</span>     <span class="mi">61</span>              <span class="mf">7.36</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">15</span>     <span class="mi">62</span>              <span class="mf">7.56</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">16</span>     <span class="mi">63</span>              <span class="mf">8.01</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">17</span>     <span class="mi">64</span>              <span class="mf">8.21</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">18</span><span class="o">...</span>                   <span class="o">...</span>             <span class="o">...</span>
+<span class="linenos">19</span><span class="mi">2017</span> <span class="mi">361</span>            <span class="o">-</span><span class="mf">1.00</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">20</span>     <span class="mi">362</span>            <span class="o">-</span><span class="mf">1.00</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">21</span>     <span class="mi">363</span>            <span class="o">-</span><span class="mf">1.00</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">22</span>     <span class="mi">364</span>            <span class="o">-</span><span class="mf">1.00</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">23</span>     <span class="mi">365</span>            <span class="o">-</span><span class="mf">1.00</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">24</span>
+<span class="linenos">25</span><span class="nb">print</span><span class="p">(</span><span class="n">simulated_from_1992_FEB</span><span class="p">)</span>
+<span class="linenos">26</span>       <span class="n">QOSIM_05BB001</span>  <span class="n">QOSIM_05BA001</span>
+<span class="linenos">27</span><span class="n">YEAR</span> <span class="n">JDAY</span>
+<span class="linenos">28</span><span class="mi">1992</span> <span class="mi">60</span>         <span class="mf">4.960034</span>       <span class="mf">1.136079</span>
+<span class="linenos">29</span>     <span class="mi">61</span>         <span class="mf">4.930796</span>       <span class="mf">1.129144</span>
+<span class="linenos">30</span>     <span class="mi">62</span>         <span class="mf">4.901721</span>       <span class="mf">1.122249</span>
+<span class="linenos">31</span>     <span class="mi">63</span>         <span class="mf">4.872885</span>       <span class="mf">1.115409</span>
+<span class="linenos">32</span>     <span class="mi">64</span>         <span class="mf">4.844262</span>       <span class="mf">1.108626</span>
+<span class="linenos">33</span><span class="o">...</span>                  <span class="o">...</span>            <span class="o">...</span>
+<span class="linenos">34</span><span class="mi">2017</span> <span class="mi">361</span>        <span class="mf">4.418050</span>       <span class="mf">1.380227</span>
+<span class="linenos">35</span>     <span class="mi">362</span>        <span class="mf">4.393084</span>       <span class="mf">1.372171</span>
+<span class="linenos">36</span>     <span class="mi">363</span>        <span class="mf">4.368303</span>       <span class="mf">1.364174</span>
+<span class="linenos">37</span>     <span class="mi">364</span>        <span class="mf">4.343699</span>       <span class="mf">1.356237</span>
+<span class="linenos">38</span>     <span class="mi">365</span>        <span class="mf">4.319275</span>       <span class="mf">1.348359</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="hll"><span class="linenos"> 1</span><span class="kn">from</span> <span class="nn">postprocessinglib.evaluation</span> <span class="kn">import</span> <span class="n">metrics</span>
+</span><span class="linenos"> 2</span>
+<span class="hll"><span class="linenos"> 3</span><span class="n">observed_till_2000</span><span class="p">,</span> <span class="n">simulated_till_2000</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">generate_dataframes</span><span class="p">(</span><span class="n">csvfpath</span><span class="o">=</span><span class="s2">&quot;MESH_output_streamflow.csv&quot;</span><span class="p">,</span>
+</span><span class="linenos"> 4</span>    <span class="n">num_min</span><span class="o">=</span><span class="mi">365</span><span class="p">,</span> <span class="n">end_date</span><span class="o">=</span><span class="s2">&quot;2000-12-31&quot;</span><span class="p">)</span>
+<span class="linenos"> 5</span>
+<span class="linenos"> 6</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="linenos"> 7</span><span class="sd">Notice how the index ends at December 31st i.e., day 366)</span>
+<span class="linenos"> 8</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="linenos"> 9</span><span class="nb">print</span><span class="p">(</span><span class="n">observed_till_2000</span><span class="p">)</span>
+<span class="linenos">10</span>            <span class="n">QOMEAS_05BB001</span>     <span class="n">QOMEAS_05BA001</span>
+<span class="linenos">11</span><span class="n">YEAR</span> <span class="n">JDAY</span>
+<span class="linenos">12</span><span class="mi">1980</span> <span class="mi">366</span>            <span class="mf">10.20</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">13</span><span class="mi">1981</span> <span class="mi">1</span>               <span class="mf">9.85</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">14</span>     <span class="mi">2</span>              <span class="mf">10.20</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">15</span>     <span class="mi">3</span>              <span class="mf">10.00</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">16</span>     <span class="mi">4</span>              <span class="mf">10.10</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">17</span><span class="o">...</span>                   <span class="o">...</span>             <span class="o">...</span>
+<span class="linenos">18</span><span class="mi">2000</span> <span class="mi">362</span>            <span class="o">-</span><span class="mf">1.00</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">19</span>     <span class="mi">363</span>            <span class="o">-</span><span class="mf">1.00</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">20</span>     <span class="mi">364</span>            <span class="o">-</span><span class="mf">1.00</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">21</span>     <span class="mi">365</span>            <span class="o">-</span><span class="mf">1.00</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">22</span>     <span class="mi">366</span>            <span class="o">-</span><span class="mf">1.00</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">23</span>
+<span class="linenos">24</span><span class="nb">print</span><span class="p">(</span><span class="n">simulated_till_2000</span>
+<span class="linenos">25</span>        <span class="n">QOSIM_05BB001</span>  <span class="n">QOSIM_05BA001</span>
+<span class="linenos">26</span><span class="n">YEAR</span> <span class="n">JDAY</span>
+<span class="linenos">27</span><span class="mi">1980</span> <span class="mi">366</span>        <span class="mf">2.530770</span>       <span class="mf">1.006860</span>
+<span class="linenos">28</span><span class="mi">1981</span> <span class="mi">1</span>          <span class="mf">2.518999</span>       <span class="mf">1.001954</span>
+<span class="linenos">29</span>     <span class="mi">2</span>          <span class="mf">2.507289</span>       <span class="mf">0.997078</span>
+<span class="linenos">30</span>     <span class="mi">3</span>          <span class="mf">2.495637</span>       <span class="mf">0.992233</span>
+<span class="linenos">31</span>     <span class="mi">4</span>          <span class="mf">2.484073</span>       <span class="mf">0.987417</span>
+<span class="linenos">32</span><span class="o">...</span>                  <span class="o">...</span>            <span class="o">...</span>
+<span class="linenos">33</span><span class="mi">2000</span> <span class="mi">362</span>        <span class="mf">4.978491</span>       <span class="mf">1.455587</span>
+<span class="linenos">34</span>     <span class="mi">363</span>        <span class="mf">4.948421</span>       <span class="mf">1.446135</span>
+<span class="linenos">35</span>     <span class="mi">364</span>        <span class="mf">4.918590</span>       <span class="mf">1.436760</span>
+<span class="linenos">36</span>     <span class="mi">365</span>        <span class="mf">4.888982</span>       <span class="mf">1.427463</span>
+<span class="linenos">37</span>     <span class="mi">366</span>        <span class="mf">4.859608</span>       <span class="mf">1.418243</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="hll"><span class="linenos"> 1</span><span class="kn">from</span> <span class="nn">postprocessinglib.evaluation</span> <span class="kn">import</span> <span class="n">metrics</span>
+</span><span class="linenos"> 2</span>
+<span class="hll"><span class="linenos"> 3</span><span class="n">observed_January_2000</span><span class="p">,</span> <span class="n">simulated_January_2000</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">generate_dataframes</span><span class="p">(</span><span class="n">csvfpath</span><span class="o">=</span><span class="s2">&quot;MESH_output_streamflow.csv&quot;</span><span class="p">,</span>
+</span><span class="linenos"> 4</span>    <span class="n">num_min</span><span class="o">=</span><span class="mi">365</span><span class="p">,</span> <span class="n">start_date</span><span class="o">=</span> <span class="s2">&quot;2000-1-01&quot;</span><span class="p">,</span> <span class="n">end_date</span><span class="o">=</span><span class="s2">&quot;2000-1-31&quot;</span><span class="p">)</span>
+<span class="linenos"> 5</span>
+<span class="linenos"> 6</span><span class="nb">print</span><span class="p">(</span><span class="n">observed_January_2000</span><span class="p">)</span>
+<span class="linenos"> 7</span>           <span class="n">QOMEAS_05BB001</span>  <span class="n">QOMEAS_05BA001</span>
+<span class="linenos"> 8</span><span class="n">YEAR</span> <span class="n">JDAY</span>
+<span class="linenos"> 9</span><span class="mi">2000</span> <span class="mi">1</span>               <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">10</span>     <span class="mi">2</span>               <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">11</span>     <span class="mi">3</span>               <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">12</span>     <span class="mi">4</span>               <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">13</span>     <span class="mi">5</span>               <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">14</span>     <span class="mi">6</span>               <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">15</span>     <span class="mi">7</span>               <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">16</span>     <span class="mi">8</span>               <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">17</span>     <span class="mi">9</span>               <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">18</span>     <span class="mi">10</span>              <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">19</span>     <span class="mi">11</span>              <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">20</span>     <span class="mi">12</span>              <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">21</span>     <span class="mi">13</span>              <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">22</span>     <span class="mi">14</span>              <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">23</span>     <span class="mi">15</span>              <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">24</span>     <span class="mi">16</span>              <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">25</span>     <span class="mi">17</span>              <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">26</span>     <span class="mi">18</span>              <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">27</span>     <span class="mi">19</span>              <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">28</span>     <span class="mi">20</span>              <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">29</span>     <span class="mi">21</span>              <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">30</span>     <span class="mi">22</span>              <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">31</span>     <span class="mi">23</span>              <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">32</span>     <span class="mi">24</span>              <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">33</span>     <span class="mi">25</span>              <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">34</span>     <span class="mi">26</span>              <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">35</span>     <span class="mi">27</span>              <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">36</span>     <span class="mi">28</span>              <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">37</span>     <span class="mi">29</span>              <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">38</span>     <span class="mi">30</span>              <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">39</span>     <span class="mi">31</span>              <span class="o">-</span><span class="mf">1.0</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">40</span>
+<span class="linenos">41</span><span class="nb">print</span><span class="p">(</span><span class="n">simulated_January_2000</span><span class="p">)</span>
+<span class="linenos">42</span>           <span class="n">QOSIM_05BB001</span>  <span class="n">QOSIM_05BA001</span>
+<span class="linenos">43</span><span class="n">YEAR</span> <span class="n">JDAY</span>
+<span class="linenos">44</span><span class="mi">2000</span> <span class="mi">1</span>          <span class="mf">3.636044</span>       <span class="mf">0.986400</span>
+<span class="linenos">45</span>     <span class="mi">2</span>          <span class="mf">3.616069</span>       <span class="mf">0.980706</span>
+<span class="linenos">46</span>     <span class="mi">3</span>          <span class="mf">3.596241</span>       <span class="mf">0.975054</span>
+<span class="linenos">47</span>     <span class="mi">4</span>          <span class="mf">3.576548</span>       <span class="mf">0.969444</span>
+<span class="linenos">48</span>     <span class="mi">5</span>          <span class="mf">3.556993</span>       <span class="mf">0.963874</span>
+<span class="linenos">49</span>     <span class="mi">6</span>          <span class="mf">3.537582</span>       <span class="mf">0.958345</span>
+<span class="linenos">50</span>     <span class="mi">7</span>          <span class="mf">3.518296</span>       <span class="mf">0.952856</span>
+<span class="linenos">51</span>     <span class="mi">8</span>          <span class="mf">3.499155</span>       <span class="mf">0.947407</span>
+<span class="linenos">52</span>     <span class="mi">9</span>          <span class="mf">3.480136</span>       <span class="mf">0.941998</span>
+<span class="linenos">53</span>     <span class="mi">10</span>         <span class="mf">3.461254</span>       <span class="mf">0.936629</span>
+<span class="linenos">54</span>     <span class="mi">11</span>         <span class="mf">3.442506</span>       <span class="mf">0.931299</span>
+<span class="linenos">55</span>     <span class="mi">12</span>         <span class="mf">3.423884</span>       <span class="mf">0.926007</span>
+<span class="linenos">56</span>     <span class="mi">13</span>         <span class="mf">3.405396</span>       <span class="mf">0.920754</span>
+<span class="linenos">57</span>     <span class="mi">14</span>         <span class="mf">3.387026</span>       <span class="mf">0.915539</span>
+<span class="linenos">58</span>     <span class="mi">15</span>         <span class="mf">3.368795</span>       <span class="mf">0.910362</span>
+<span class="linenos">59</span>     <span class="mi">16</span>         <span class="mf">3.350679</span>       <span class="mf">0.905222</span>
+<span class="linenos">60</span>     <span class="mi">17</span>         <span class="mf">3.332695</span>       <span class="mf">0.900119</span>
+<span class="linenos">61</span>     <span class="mi">18</span>         <span class="mf">3.314837</span>       <span class="mf">0.895053</span>
+<span class="linenos">62</span>     <span class="mi">19</span>         <span class="mf">3.297090</span>       <span class="mf">0.890024</span>
+<span class="linenos">63</span>     <span class="mi">20</span>         <span class="mf">3.279476</span>       <span class="mf">0.885031</span>
+<span class="linenos">64</span>     <span class="mi">21</span>         <span class="mf">3.261972</span>       <span class="mf">0.880074</span>
+<span class="linenos">65</span>     <span class="mi">22</span>         <span class="mf">3.244606</span>       <span class="mf">0.875152</span>
+<span class="linenos">66</span>     <span class="mi">23</span>         <span class="mf">3.227338</span>       <span class="mf">0.870266</span>
+<span class="linenos">67</span>     <span class="mi">24</span>         <span class="mf">3.210198</span>       <span class="mf">0.865415</span>
+<span class="linenos">68</span>     <span class="mi">25</span>         <span class="mf">3.193166</span>       <span class="mf">0.860598</span>
+<span class="linenos">69</span>     <span class="mi">26</span>         <span class="mf">3.176266</span>       <span class="mf">0.855816</span>
+<span class="linenos">70</span>     <span class="mi">27</span>         <span class="mf">3.159466</span>       <span class="mf">0.851068</span>
+<span class="linenos">71</span>     <span class="mi">28</span>         <span class="mf">3.142789</span>       <span class="mf">0.846353</span>
+<span class="linenos">72</span>     <span class="mi">29</span>         <span class="mf">3.126214</span>       <span class="mf">0.841672</span>
+<span class="linenos">73</span>     <span class="mi">30</span>         <span class="mf">3.109759</span>       <span class="mf">0.837024</span>
+<span class="linenos">74</span>     <span class="mi">31</span>         <span class="mf">3.093412</span>       <span class="mf">0.832410</span>
 </pre></div>
 </div>
 </section>

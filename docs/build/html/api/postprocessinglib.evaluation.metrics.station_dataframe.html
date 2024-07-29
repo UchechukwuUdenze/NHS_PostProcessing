@@ -109,7 +109,7 @@
 <h1>station_dataframe<a class="headerlink" href="#station-dataframe" title="Link to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="postprocessinglib.evaluation.metrics.station_dataframe">
-<span class="sig-prename descclassname"><span class="pre">postprocessinglib.evaluation.metrics.</span></span><span class="sig-name descname"><span class="pre">station_dataframe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">observed_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulated_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_num</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Generator</span><span class="p"><span class="pre">[</span></span><span class="pre">DataFrame</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#postprocessinglib.evaluation.metrics.station_dataframe" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">postprocessinglib.evaluation.metrics.</span></span><span class="sig-name descname"><span class="pre">station_dataframe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">observed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulated</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_num</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#postprocessinglib.evaluation.metrics.station_dataframe" title="Link to this definition"></a></dt>
 <dd><p>Extracts a stations data from the observed and simulated</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -120,14 +120,61 @@
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The stations(s) observed and simulated data</p>
+<dd class="field-even"><p>The station(s) observed and simulated data</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Generator[pd.DataFrames]</p>
+<dd class="field-odd"><p>pd.DataFrames</p>
 </dd>
 </dl>
 </dd></dl>
 
+<p><a class="reference internal" href="../notebooks/Examples.html"><span class="doc">JUPYTER NOTEBOOK EXAMPLE</span></a></p>
+<section id="example">
+<h2>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h2>
+<p>Retrieve the various individual stations data</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="linenos"> 2</span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="hll"><span class="linenos"> 3</span><span class="kn">from</span> <span class="nn">postprocessinglib.evaluation</span> <span class="kn">import</span> <span class="n">metrics</span>
+</span><span class="linenos"> 4</span>
+<span class="linenos"> 5</span><span class="c1"># Create your index as an array</span>
+<span class="linenos"> 6</span><span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1981</span><span class="p">,</span> <span class="mi">1982</span><span class="p">,</span> <span class="mi">1983</span><span class="p">,</span> <span class="mi">1984</span><span class="p">,</span> <span class="mi">1985</span><span class="p">,</span> <span class="mi">1986</span><span class="p">,</span> <span class="mi">1987</span><span class="p">,</span> <span class="mi">1988</span><span class="p">,</span> <span class="mi">1989</span><span class="p">,</span> <span class="mi">1990</span><span class="p">])</span>
+<span class="linenos"> 7</span>
+<span class="linenos"> 8</span><span class="c1"># Create a test dataframe</span>
+<span class="linenos"> 9</span><span class="n">test_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">columns</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;obs1&quot;</span><span class="p">,</span> <span class="s2">&quot;sim1&quot;</span><span class="p">,</span> <span class="s2">&quot;obs2&quot;</span><span class="p">,</span> <span class="s2">&quot;sim2&quot;</span><span class="p">),</span> <span class="n">index</span> <span class="o">=</span> <span class="n">index</span><span class="p">)</span>
+<span class="linenos">10</span><span class="nb">print</span><span class="p">(</span><span class="n">test_df</span><span class="p">)</span>
+<span class="linenos">11</span>          <span class="n">obs1</span>      <span class="n">sim1</span>      <span class="n">obs2</span>      <span class="n">sim2</span>
+<span class="linenos">12</span><span class="mi">1981</span>  <span class="mf">0.405658</span>  <span class="mf">0.656620</span>  <span class="mf">0.463430</span>  <span class="mf">0.570444</span>
+<span class="linenos">13</span><span class="mi">1982</span>  <span class="mf">0.166756</span>  <span class="mf">0.567266</span>  <span class="mf">0.018316</span>  <span class="mf">0.165674</span>
+<span class="linenos">14</span><span class="mi">1983</span>  <span class="mf">0.831708</span>  <span class="mf">0.396591</span>  <span class="mf">0.522035</span>  <span class="mf">0.606923</span>
+<span class="linenos">15</span><span class="mi">1984</span>  <span class="mf">0.896720</span>  <span class="mf">0.864245</span>  <span class="mf">0.692322</span>  <span class="mf">0.786928</span>
+<span class="linenos">16</span><span class="mi">1985</span>  <span class="mf">0.631849</span>  <span class="mf">0.326800</span>  <span class="mf">0.334343</span>  <span class="mf">0.976953</span>
+<span class="linenos">17</span><span class="mi">1986</span>  <span class="mf">0.236162</span>  <span class="mf">0.967424</span>  <span class="mf">0.264937</span>  <span class="mf">0.333279</span>
+<span class="linenos">18</span><span class="mi">1987</span>  <span class="mf">0.547575</span>  <span class="mf">0.939817</span>  <span class="mf">0.329754</span>  <span class="mf">0.000407</span>
+<span class="linenos">19</span><span class="mi">1988</span>  <span class="mf">0.195756</span>  <span class="mf">0.636409</span>  <span class="mf">0.278995</span>  <span class="mf">0.967959</span>
+<span class="linenos">20</span><span class="mi">1989</span>  <span class="mf">0.006018</span>  <span class="mf">0.355942</span>  <span class="mf">0.158092</span>  <span class="mf">0.427026</span>
+<span class="linenos">21</span><span class="mi">1990</span>  <span class="mf">0.543909</span>  <span class="mf">0.067026</span>  <span class="mf">0.493195</span>  <span class="mf">0.925726</span>
+<span class="linenos">22</span>
+<span class="linenos">23</span><span class="c1"># Generate the observed and simulated Dataframes</span>
+<span class="linenos">24</span><span class="n">obs</span> <span class="o">=</span> <span class="n">test_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]]</span>
+<span class="linenos">25</span><span class="n">sim</span> <span class="o">=</span> <span class="n">test_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">]]</span>
+<span class="linenos">26</span>
+<span class="linenos">27</span><span class="c1"># Extract the stations</span>
+<span class="hll"><span class="linenos">28</span><span class="n">stations</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">station_dataframe</span><span class="p">(</span><span class="n">observed</span> <span class="o">=</span> <span class="n">obs</span><span class="p">,</span> <span class="n">simulated</span> <span class="o">=</span> <span class="n">sim</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</span><span class="linenos">29</span><span class="nb">print</span><span class="p">(</span><span class="n">stations</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="linenos">30</span>              <span class="n">obs1</span>      <span class="n">sim1</span>
+<span class="linenos">31</span>    <span class="mi">1981</span>  <span class="mf">0.405658</span>  <span class="mf">0.656620</span>
+<span class="linenos">32</span>    <span class="mi">1982</span>  <span class="mf">0.166756</span>  <span class="mf">0.567266</span>
+<span class="linenos">33</span>    <span class="mi">1983</span>  <span class="mf">0.831708</span>  <span class="mf">0.396591</span>
+<span class="linenos">34</span>    <span class="mi">1984</span>  <span class="mf">0.896720</span>  <span class="mf">0.864245</span>
+<span class="linenos">35</span>    <span class="mi">1985</span>  <span class="mf">0.631849</span>  <span class="mf">0.326800</span>
+<span class="linenos">36</span>    <span class="mi">1986</span>  <span class="mf">0.236162</span>  <span class="mf">0.967424</span>
+<span class="linenos">37</span>    <span class="mi">1987</span>  <span class="mf">0.547575</span>  <span class="mf">0.939817</span>
+<span class="linenos">38</span>    <span class="mi">1988</span>  <span class="mf">0.195756</span>  <span class="mf">0.636409</span>
+<span class="linenos">39</span>    <span class="mi">1989</span>  <span class="mf">0.006018</span>  <span class="mf">0.355942</span>
+<span class="linenos">40</span>    <span class="mi">1990</span>  <span class="mf">0.543909</span>  <span class="mf">0.067026</span>
+</pre></div>
+</div>
+</section>
 </section>
 
 

@@ -123,12 +123,57 @@
 <section id="returns">
 <h2>Returns:<a class="headerlink" href="#returns" title="Link to this heading"></a></h2>
 <dl class="simple">
-<dt>int:</dt><dd><p>the average time to the centre of mass of mass for the station</p>
+<dt>int:</dt><dd><p>the average time to the centre of mass for the station</p>
 </dd>
 </dl>
 </section>
 </dd></dl>
 
+<p><a class="reference internal" href="../notebooks/Examples.html"><span class="doc">JUPYTER NOTEBOOK EXAMPLE</span></a></p>
+<section id="example">
+<h2>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h2>
+<p>Calculate the Time to Centre of Mass</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="hll"><span class="linenos"> 1</span><span class="kn">from</span> <span class="nn">postprocessinglib.evaluation</span> <span class="kn">import</span> <span class="n">metrics</span>
+</span><span class="linenos"> 2</span>
+<span class="hll"><span class="linenos"> 3</span><span class="n">observed</span><span class="p">,</span> <span class="n">simulated</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">generate_dataframes</span><span class="p">(</span><span class="n">csvfpath</span><span class="o">=</span><span class="s2">&quot;MESH_output_streamflow.csv&quot;</span><span class="p">,</span> <span class="n">num_min</span><span class="o">=</span><span class="mi">365</span><span class="p">)</span>
+</span><span class="linenos"> 4</span><span class="nb">print</span><span class="p">(</span><span class="n">observed</span><span class="p">)</span>
+<span class="linenos"> 5</span>            <span class="n">QOMEAS_05BB001</span>  <span class="n">QOMEAS_05BA001</span>
+<span class="linenos"> 6</span><span class="n">YEAR</span> <span class="n">JDAY</span>
+<span class="linenos"> 7</span><span class="mi">1980</span> <span class="mi">366</span>            <span class="mf">10.20</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos"> 8</span><span class="mi">1981</span> <span class="mi">1</span>               <span class="mf">9.85</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos"> 9</span>     <span class="mi">2</span>              <span class="mf">10.20</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">10</span>     <span class="mi">3</span>              <span class="mf">10.00</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">11</span>     <span class="mi">4</span>              <span class="mf">10.10</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">12</span><span class="o">...</span>                   <span class="o">...</span>             <span class="o">...</span>
+<span class="linenos">13</span><span class="mi">2017</span> <span class="mi">361</span>            <span class="o">-</span><span class="mf">1.00</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">14</span>     <span class="mi">362</span>            <span class="o">-</span><span class="mf">1.00</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">15</span>     <span class="mi">363</span>            <span class="o">-</span><span class="mf">1.00</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">16</span>     <span class="mi">364</span>            <span class="o">-</span><span class="mf">1.00</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">17</span>     <span class="mi">365</span>            <span class="o">-</span><span class="mf">1.00</span>            <span class="o">-</span><span class="mf">1.0</span>
+<span class="linenos">18</span>
+<span class="linenos">19</span><span class="nb">print</span><span class="p">(</span><span class="n">simulated</span><span class="p">)</span>
+<span class="linenos">20</span>       <span class="n">QOSIM_05BB001</span>  <span class="n">QOSIM_05BA001</span>
+<span class="linenos">21</span><span class="n">YEAR</span> <span class="n">JDAY</span>
+<span class="linenos">22</span><span class="mi">1980</span> <span class="mi">366</span>        <span class="mf">2.530770</span>       <span class="mf">1.006860</span>
+<span class="linenos">23</span><span class="mi">1981</span> <span class="mi">1</span>          <span class="mf">2.518999</span>       <span class="mf">1.001954</span>
+<span class="linenos">24</span>     <span class="mi">2</span>          <span class="mf">2.507289</span>       <span class="mf">0.997078</span>
+<span class="linenos">25</span>     <span class="mi">3</span>          <span class="mf">2.495637</span>       <span class="mf">0.992233</span>
+<span class="linenos">26</span>     <span class="mi">4</span>          <span class="mf">2.484073</span>       <span class="mf">0.987417</span>
+<span class="linenos">27</span><span class="o">...</span>                  <span class="o">...</span>            <span class="o">...</span>
+<span class="linenos">28</span><span class="mi">2017</span> <span class="mi">361</span>        <span class="mf">4.418050</span>       <span class="mf">1.380227</span>
+<span class="linenos">29</span>     <span class="mi">362</span>        <span class="mf">4.393084</span>       <span class="mf">1.372171</span>
+<span class="linenos">30</span>     <span class="mi">363</span>        <span class="mf">4.368303</span>       <span class="mf">1.364174</span>
+<span class="linenos">31</span>     <span class="mi">364</span>        <span class="mf">4.343699</span>       <span class="mf">1.356237</span>
+<span class="linenos">32</span>     <span class="mi">365</span>        <span class="mf">4.319275</span>       <span class="mf">1.348359</span>
+<span class="linenos">33</span>
+<span class="linenos">34</span>
+<span class="linenos">35</span><span class="c1"># Calculating the time to peak</span>
+<span class="hll"><span class="linenos">36</span><span class="n">ttcom</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">time_to_centre_of_mass</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">observed</span><span class="p">,</span> <span class="n">num_stations</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span class="linenos">37</span><span class="nb">print</span><span class="p">(</span><span class="n">ttcom</span><span class="p">)</span>
+<span class="linenos">38</span>    <span class="p">[</span><span class="mf">193.911419943451</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
 </section>
 
 

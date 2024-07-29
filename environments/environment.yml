@@ -16,5 +16,6 @@ dependencies:
   - sphinx
   - sphinx-automodapi
   - nbsphinx
+  - sphinx_rtd_theme
   - nbsphinx-link
   - xarray
