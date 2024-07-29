@@ -30,7 +30,7 @@ def check_valid_dataframe(observed: pd.DataFrame, simulated: pd.DataFrame):
 def is_leap_year(year: int) -> bool:
     """ Determines if a year is a leap year
 
-    Paremeters:
+    Parameters:
     -----------
     year: int
             the year being checked
@@ -55,7 +55,7 @@ def datetime_to_index(datetime :str)-> tuple[int, int]:
     Returns:
     --------
     tuple: [int, int]
-        an index representig the year and jday index of the dataframe
+        an index representing the year and jday index of the dataframe
     """
     year, month, day = datetime.split("-")
     jday = 0
@@ -106,7 +106,7 @@ def filter_valid_data(df: pd.DataFrame, station_num: int = 0, station: str = "",
     station_num : int
             the number referring to the station values we are trying to modify
     remove_neg = True: bool 
-            indicates that the negative fields are the inavlid ones
+            indicates that the negative fields are the invalid ones
     remove_zero = True: bool 
             indicate that the zero fields are the invalid ones
     remove_NaN = True: bool 

@@ -5,7 +5,6 @@ reading and preparation of data to be evaluated.
 
 """
 
-from collections.abc import Generator
 import numpy as np
 import pandas as pd
 
@@ -46,7 +45,7 @@ def generate_dataframes(csv_fpath: str, num_min: int = 0, start_date :str = "",
     Returns
     -------
     tuple[pd.DataFrame, pd.DataFrame]
-        the observed datframe, the simulated dataframe
+        the observed dataframe, the simulated dataframe
 
     """
 
@@ -92,8 +91,8 @@ def generate_dataframes(csv_fpath: str, num_min: int = 0, start_date :str = "",
     return observed, simulated
 
 
-def station_dataframe(observed_df: pd.DataFrame, simulated_df: pd.DataFrame,
-               station_num: int) -> Generator[pd.DataFrame]:
+def station_dataframe(observed: pd.DataFrame, simulated: pd.DataFrame,
+               station_num: int) -> pd.DataFrame:
     """ Extracts a stations data from the observed and simulated 
 
     Parameters
@@ -107,20 +106,23 @@ def station_dataframe(observed_df: pd.DataFrame, simulated_df: pd.DataFrame,
 
     Returns
     -------
-    Generator[pd.DataFrames]:
-            The stations(s) observed and simulated data
+    pd.DataFrames:
+            The station(s) observed and simulated data
 
     """
 
     # validate inputs
-    preprocessing.validate_data(observed_df, simulated_df)
+    preprocessing.validate_data(observed, simulated)
+    print("okay")
 
-    if station_num < observed_df.columns.size:
+    Stations = []
+    if station_num <= observed.columns.size:
         for j in range(0, station_num):
-            station_df =  observed_df.copy()
+            station_df =  observed.copy()
             station_df.drop(station_df.iloc[:, 0:], inplace=True, axis=1)
-            station_df = pd.concat([station_df, observed_df.iloc[:, j], simulated_df.iloc[:, j]], axis = 1)
-            yield station_df.iloc[:]
+            station_df = pd.concat([station_df, observed.iloc[:, j], simulated.iloc[:, j]], axis = 1)
+            Stations.append(station_df)
+        return Stations
 
 
 def mse(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int) -> float:
@@ -503,7 +505,7 @@ def time_to_centre_of_mass(df: pd.DataFrame, num_stations: int)->float:
     Returns:
     --------
     int:
-        the average time to the centre of mass of mass for the station
+        the average time to the centre of mass for the station
     """
     TTCoM = []
     last_year = df.index[-1][0]
