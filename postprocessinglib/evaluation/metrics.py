@@ -28,7 +28,8 @@ def available_metrics() -> list[int]:
     return metrics
 
 
-def generate_dataframes(csv_fpath: str, num_min: int = 0) -> tuple[pd.DataFrame, pd.DataFrame]:
+def generate_dataframes(csv_fpath: str, num_min: int = 0, start_date :str = "",
+                        end_date: str = "") -> tuple[pd.DataFrame, pd.DataFrame]:
     """ Function to Generate the required dataframes
 
     Parameters
@@ -37,6 +38,10 @@ def generate_dataframes(csv_fpath: str, num_min: int = 0) -> tuple[pd.DataFrame,
             the path to the csv file. It can be relative or absolute
     num_min: int 
             number of days required to "warm up" the system
+    start_date: str 
+            The date at which you want to start calculating the metric [yyyy-mm-dd]
+    end_date: str
+            The date at which you want the calculations to end [yyyy-mm-dd]
 
     Returns
     -------
@@ -63,6 +68,24 @@ def generate_dataframes(csv_fpath: str, num_min: int = 0) -> tuple[pd.DataFrame,
         observed = pd.concat([observed, arr1], axis = 1)
         simulated = pd.concat([simulated, arr2], axis = 1)
 
+    # splice the dataframes according to the time frame
+    if not start_date and end_date:
+        # there's an end date but no start date
+        end_index = preprocessing.datetime_to_index(end_date)
+        simulated = simulated.loc[:end_index]
+        observed = observed.loc[:end_index]
+    elif not end_date and start_date:
+        # there's and end date but no start date
+        start_index = preprocessing.datetime_to_index(start_date)
+        simulated = simulated.loc[start_index:]
+        observed = observed.loc[start_index:]
+    elif start_date and end_date:
+        # there's a start and end date
+        start_index = preprocessing.datetime_to_index(start_date)
+        end_index = preprocessing.datetime_to_index(end_date)
+        simulated = simulated.loc[start_index:end_index]
+        observed = observed.loc[start_index:end_index]
+    
     # validate inputs
     preprocessing.validate_data(observed, simulated)
     
@@ -123,10 +146,10 @@ def mse(observed: pd.DataFrame, simulated: pd.DataFrame, num_stations: int) -> f
 
     MSE = []    
     for j in range(0, num_stations):
-        # Remove the invalid values from that station 
-        valid_observed = preprocessing.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
-        
-        summation = np.sum((abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))**2)
+        # Remove the invalid values from that station
+        valid_observed = preprocessing.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)        
+    
+        summation = np.sum((abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))**2)        
         mse = summation/len(valid_observed)  #dividing summation by total number of values to obtain average    
         MSE.append(mse)
     
