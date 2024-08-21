@@ -7,7 +7,7 @@ This is a python Library to enable the National Hydrological Services carry out 
 
 ### Prerequisites
 
-As a first step you need a Python environment with all required dependencies. The recommended way is to use Anaconda and to create a new environment using our predefined environment files in [environments/](https://github.com/Udenze-Uchechukwu/NHS_PostProcessing/tree/main/environments).
+As a first step you need a Python environment with all required dependencies. The recommended way is to use Anaconda and to create a new environment using our predefined environment files in [environments](https://github.com/Udenze-Uchechukwu/NHS_PostProcessing/tree/main/environments).
 
 Use: 
 ```
@@ -44,4 +44,4 @@ This is a work in progress and I am very open to suggestions and ideas
 
 ## Contact
 
-For questions, inquiries regarding the usasge of these repositories feel free to use the [discussion](https://github.com/Udenze-Uchechukwu/NHS_PostProcessing/discussions) board or reach me by email Uchechukwu.Udenze@ec.gc.ca if its urgents or requires special attantion. For bug reports and feature requests, please open an [issue](https://github.com/Udenze-Uchechukwu/NHS_PostProcessing/issues) on the GitHub page
+For questions, inquiries regarding the usasge of these repositories feel free to use the [discussion](https://github.com/Udenze-Uchechukwu/NHS_PostProcessing/discussions) board or reach me by email Uchechukwu.Udenze@ec.gc.ca if its urgents or requires special attention. For bug reports and feature requests, please open an [issue](https://github.com/Udenze-Uchechukwu/NHS_PostProcessing/issues) on the GitHub page

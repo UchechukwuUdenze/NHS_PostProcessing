@@ -5,7 +5,7 @@ generate_dataframes
 
 .. autofunction:: generate_dataframes
 
-`JUPYTER NOTEBOOK EXAMPLE <../notebooks/Examples.ipynb>`_
+`JUPYTER NOTEBOOK EXAMPLE <../../../../check.ipynb>`_
 
 Example
 ^^^^^^^
@@ -49,7 +49,7 @@ Generate the observed and simulated dataframes from the csv file
          365        4.319275       1.348359
 
 .. code-block:: python
-    :emphasize-lines: 1,3
+    :emphasize-lines: 1,3,4
     :linenos:
     
     from postprocessinglib.evaluation import metrics
@@ -92,7 +92,7 @@ Generate the observed and simulated dataframes from the csv file
          365        4.319275       1.348359
 
 .. code-block:: python
-    :emphasize-lines: 1,3
+    :emphasize-lines: 1,3,4
     :linenos:
     
     from postprocessinglib.evaluation import metrics
@@ -135,7 +135,7 @@ Generate the observed and simulated dataframes from the csv file
 
 
 .. code-block:: python
-    :emphasize-lines: 1,3
+    :emphasize-lines: 1,3,4
     :linenos:
     
     from postprocessinglib.evaluation import metrics

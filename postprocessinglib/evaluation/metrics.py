@@ -27,7 +27,7 @@ def available_metrics() -> list[int]:
     return metrics
 
 
-def generate_dataframes(csv_fpath: str, num_min: int = 0, start_date :str = "",
+def generate_dataframes(csv_fpath: str, warm_up: int = 0, start_date :str = "",
                         end_date: str = "") -> tuple[pd.DataFrame, pd.DataFrame]:
     """ Function to Generate the required dataframes
 
@@ -35,7 +35,7 @@ def generate_dataframes(csv_fpath: str, num_min: int = 0, start_date :str = "",
     ----------
     csv_fpath : string
             the path to the csv file. It can be relative or absolute
-    num_min: int 
+    warm_up: int 
             number of days required to "warm up" the system
     start_date: str 
             The date at which you want to start calculating the metric [yyyy-mm-dd]
@@ -58,12 +58,12 @@ def generate_dataframes(csv_fpath: str, num_min: int = 0, start_date :str = "",
         df.drop(columns=df.columns[-1], inplace = True) 
 
     # Take off the warm up time
-    simulated = observed = df[num_min:].copy()
+    simulated = observed = df[warm_up:].copy()
     simulated.drop(simulated.iloc[:, 0:], inplace=True, axis=1)
     observed.drop(observed.iloc[:, 0:], inplace=True, axis=1)
     for j in range(0, len(df.columns), 2):
-        arr1 = df.iloc[num_min:, j]
-        arr2 = df.iloc[num_min:, j+1]
+        arr1 = df.iloc[warm_up:, j]
+        arr2 = df.iloc[warm_up:, j+1]
         observed = pd.concat([observed, arr1], axis = 1)
         simulated = pd.concat([simulated, arr2], axis = 1)
 

@@ -5,7 +5,7 @@ available_metrics
 
 .. autofunction:: available_metrics
 
-`JUPYTER NOTEBOOK EXAMPLE <../notebooks/Examples.ipynb>`_
+`JUPYTER NOTEBOOK EXAMPLE <../../../../check.ipynb>`_
 
 Example
 ^^^^^^^

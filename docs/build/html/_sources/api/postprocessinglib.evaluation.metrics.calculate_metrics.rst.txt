@@ -27,7 +27,7 @@ Calculation of a list of metrics
     'KGE 2012': [0.3130173067471582, -0.1483398188302718]}
 
 .. code-block:: python
-    :emphasize-lines: 1
+    :emphasize-lines: 2
     :linenos:
 
     # You can type in "all" as well to calculate all metrics

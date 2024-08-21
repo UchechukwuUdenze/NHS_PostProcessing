@@ -20,6 +20,7 @@
         <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -109,13 +110,13 @@
 <h1>generate_dataframes<a class="headerlink" href="#generate-dataframes" title="Link to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="postprocessinglib.evaluation.metrics.generate_dataframes">
-<span class="sig-prename descclassname"><span class="pre">postprocessinglib.evaluation.metrics.</span></span><span class="sig-name descname"><span class="pre">generate_dataframes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csv_fpath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_min</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#postprocessinglib.evaluation.metrics.generate_dataframes" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">postprocessinglib.evaluation.metrics.</span></span><span class="sig-name descname"><span class="pre">generate_dataframes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csv_fpath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warm_up</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#postprocessinglib.evaluation.metrics.generate_dataframes" title="Link to this definition"></a></dt>
 <dd><p>Function to Generate the required dataframes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>csv_fpath</strong> (<em>string</em>) – the path to the csv file. It can be relative or absolute</p></li>
-<li><p><strong>num_min</strong> (<em>int</em>) – number of days required to “warm up” the system</p></li>
+<li><p><strong>warm_up</strong> (<em>int</em>) – number of days required to “warm up” the system</p></li>
 <li><p><strong>start_date</strong> (<em>str</em>) – The date at which you want to start calculating the metric [yyyy-mm-dd]</p></li>
 <li><p><strong>end_date</strong> (<em>str</em>) – The date at which you want the calculations to end [yyyy-mm-dd]</p></li>
 </ul>
@@ -129,7 +130,7 @@
 </dl>
 </dd></dl>
 
-<p><a class="reference internal" href="../notebooks/Examples.html"><span class="doc">JUPYTER NOTEBOOK EXAMPLE</span></a></p>
+<p><a class="reference external" href="../../../../check.ipynb">JUPYTER NOTEBOOK EXAMPLE</a></p>
 <section id="example">
 <h2>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h2>
 <p>Generate the observed and simulated dataframes from the csv file</p>
@@ -170,8 +171,8 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="hll"><span class="linenos"> 1</span><span class="kn">from</span> <span class="nn">postprocessinglib.evaluation</span> <span class="kn">import</span> <span class="n">metrics</span>
 </span><span class="linenos"> 2</span>
 <span class="hll"><span class="linenos"> 3</span><span class="n">observed_from_1992_FEB</span><span class="p">,</span> <span class="n">simulated_from_1992_FEB</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">generate_dataframes</span><span class="p">(</span><span class="n">csvfpath</span><span class="o">=</span><span class="s2">&quot;MESH_output_streamflow.csv&quot;</span><span class="p">,</span>
-</span><span class="linenos"> 4</span>    <span class="n">num_min</span><span class="o">=</span><span class="mi">365</span><span class="p">,</span> <span class="n">start_date</span><span class="o">=</span><span class="s2">&quot;1992-02-29&quot;</span><span class="p">)</span>
-<span class="linenos"> 5</span>
+</span><span class="hll"><span class="linenos"> 4</span>    <span class="n">num_min</span><span class="o">=</span><span class="mi">365</span><span class="p">,</span> <span class="n">start_date</span><span class="o">=</span><span class="s2">&quot;1992-02-29&quot;</span><span class="p">)</span>
+</span><span class="linenos"> 5</span>
 <span class="linenos"> 6</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="linenos"> 7</span><span class="sd">Notice how the index starts from the 29th of February i.e., 31 days in</span>
 <span class="linenos"> 8</span><span class="sd">January plus 29 in February equals 60)</span>
@@ -210,8 +211,8 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="hll"><span class="linenos"> 1</span><span class="kn">from</span> <span class="nn">postprocessinglib.evaluation</span> <span class="kn">import</span> <span class="n">metrics</span>
 </span><span class="linenos"> 2</span>
 <span class="hll"><span class="linenos"> 3</span><span class="n">observed_till_2000</span><span class="p">,</span> <span class="n">simulated_till_2000</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">generate_dataframes</span><span class="p">(</span><span class="n">csvfpath</span><span class="o">=</span><span class="s2">&quot;MESH_output_streamflow.csv&quot;</span><span class="p">,</span>
-</span><span class="linenos"> 4</span>    <span class="n">num_min</span><span class="o">=</span><span class="mi">365</span><span class="p">,</span> <span class="n">end_date</span><span class="o">=</span><span class="s2">&quot;2000-12-31&quot;</span><span class="p">)</span>
-<span class="linenos"> 5</span>
+</span><span class="hll"><span class="linenos"> 4</span>    <span class="n">num_min</span><span class="o">=</span><span class="mi">365</span><span class="p">,</span> <span class="n">end_date</span><span class="o">=</span><span class="s2">&quot;2000-12-31&quot;</span><span class="p">)</span>
+</span><span class="linenos"> 5</span>
 <span class="linenos"> 6</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="linenos"> 7</span><span class="sd">Notice how the index ends at December 31st i.e., day 366)</span>
 <span class="linenos"> 8</span><span class="sd">&quot;&quot;&quot;</span>
@@ -249,8 +250,8 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="hll"><span class="linenos"> 1</span><span class="kn">from</span> <span class="nn">postprocessinglib.evaluation</span> <span class="kn">import</span> <span class="n">metrics</span>
 </span><span class="linenos"> 2</span>
 <span class="hll"><span class="linenos"> 3</span><span class="n">observed_January_2000</span><span class="p">,</span> <span class="n">simulated_January_2000</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">generate_dataframes</span><span class="p">(</span><span class="n">csvfpath</span><span class="o">=</span><span class="s2">&quot;MESH_output_streamflow.csv&quot;</span><span class="p">,</span>
-</span><span class="linenos"> 4</span>    <span class="n">num_min</span><span class="o">=</span><span class="mi">365</span><span class="p">,</span> <span class="n">start_date</span><span class="o">=</span> <span class="s2">&quot;2000-1-01&quot;</span><span class="p">,</span> <span class="n">end_date</span><span class="o">=</span><span class="s2">&quot;2000-1-31&quot;</span><span class="p">)</span>
-<span class="linenos"> 5</span>
+</span><span class="hll"><span class="linenos"> 4</span>    <span class="n">num_min</span><span class="o">=</span><span class="mi">365</span><span class="p">,</span> <span class="n">start_date</span><span class="o">=</span> <span class="s2">&quot;2000-1-01&quot;</span><span class="p">,</span> <span class="n">end_date</span><span class="o">=</span><span class="s2">&quot;2000-1-31&quot;</span><span class="p">)</span>
+</span><span class="linenos"> 5</span>
 <span class="linenos"> 6</span><span class="nb">print</span><span class="p">(</span><span class="n">observed_January_2000</span><span class="p">)</span>
 <span class="linenos"> 7</span>           <span class="n">QOMEAS_05BB001</span>  <span class="n">QOMEAS_05BA001</span>
 <span class="linenos"> 8</span><span class="n">YEAR</span> <span class="n">JDAY</span>

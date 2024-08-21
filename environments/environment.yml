@@ -5,17 +5,19 @@ channels:
 dependencies:
   - python=3.11
   - numpy=1.26
-  - pytest
   - jupyter
   - matplotlib
   - netcdf4
   - pandas
+  - xarray
+  - scipy
+  # these are to be removed in the final iteration.
   - pandoc
   - nose2
-  - scipy
+  - pytest
   - sphinx
   - sphinx-automodapi
   - nbsphinx
   - sphinx_rtd_theme
   - nbsphinx-link
-  - xarray
+  - ipywidgets

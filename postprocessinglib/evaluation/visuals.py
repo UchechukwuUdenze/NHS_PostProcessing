@@ -10,7 +10,7 @@ Some of them also allow the addition of metruics to be placed beside the plots
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import postprocessinglib.evaluation.metrics as metr
+from postprocessinglib.evaluation import metrics
 
 # path = "MESH_output_streamflow.csv"
 # df = pd.read_csv(path, skipinitialspace = True)
@@ -20,7 +20,7 @@ import postprocessinglib.evaluation.metrics as metr
 # station_1 = df.iloc[:, [1, 2, 3]]
 
 def plot(dataframe: pd.DataFrame, legend: tuple[str, str] = ('Simulated Data', 'Observed Data'), 
-         metrics: list[str] = None, num_min: int = 0, grid: bool = False, title: str = None, 
+         metrices: list[str] = None, num_min: int = 0, grid: bool = False, title: str = None, 
          labels: tuple[str, str] = None, linestyles: tuple[str, str] = ('r-', 'b-'), padding: bool = False ,
          fig_size: tuple[float, float] = (10,6), metrics_adjust: tuple[float, float] = (-0.35, 0.75),
          plot_adjust: float = 0.15):
@@ -118,22 +118,20 @@ def plot(dataframe: pd.DataFrame, legend: tuple[str, str] = ('Simulated Data', '
     plt.tight_layout()
 
     # Placing Metrics on the Plot if requested
-    if metrics:
+    if metrices:
 
         obs_metric = dataframe.iloc[:, [0, 1]]
         sim_metric = dataframe.iloc[:, [0, 2]]
 
 
         formatted_selected_metrics = 'Metrics for this station: \n'
-        if metrics == 'all':
-            for key, value in metr.calculate_all_metrics(observed=obs_metric, simulated=sim_metric, 
+        if metrices == 'all':
+            for key, value in metrics.calculate_all_metrics(observed=obs_metric, simulated=sim_metric, 
                                                          num_stations=1, num_min=num_min).items():
                 formatted_selected_metrics += key + ' : ' + str(value[0]) + '\n'
         else: 
-            assert isinstance(metrics, list)
-            for metric in metrics:
-                assert metric.upper() in metr.available_metrics
-            for key, value in metr.calculate_metrics(observed=obs_metric, simulated=sim_metric, metrices=metrics,
+            assert isinstance(metrices, list)
+            for key, value in metrics.calculate_metrics(observed=obs_metric, simulated=sim_metric, metrices=metrics,
                                    num_stations=1, num_min=num_min).items():
                 formatted_selected_metrics += key + ' : ' + str(value[0]) + '\n'
 
