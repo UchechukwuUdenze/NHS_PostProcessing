@@ -5,8 +5,7 @@ calculate_all_metrics
 
 .. autofunction:: calculate_all_metrics
 
-`JUPYTER NOTEBOOK EXAMPLE <../notebooks/Examples.ipynb>`_
-
+`JUPYTER NOTEBOOK TUTORIAL <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks>`_
 Example
 ^^^^^^^
 Calculation of all available metrics

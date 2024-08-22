@@ -113,7 +113,6 @@ def station_dataframe(observed: pd.DataFrame, simulated: pd.DataFrame,
 
     # validate inputs
     preprocessing.validate_data(observed, simulated)
-    print("okay")
 
     Stations = []
     if station_num <= observed.columns.size:
@@ -574,7 +573,7 @@ def SpringPulseOnset(df: pd.DataFrame, num_stations: int)->int:
                 yearly_spod.append(onset_day)
             first += valid_values
             year += 1          
-        print("\n")
+        # print("\n")
         spod = np.mean(yearly_spod)
         SPOD.append(spod)
     return SPOD

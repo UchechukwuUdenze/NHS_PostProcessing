@@ -5,7 +5,7 @@ available_metrics
 
 .. autofunction:: available_metrics
 
-`JUPYTER NOTEBOOK EXAMPLE <../../../../check.ipynb>`_
+`JUPYTER NOTEBOOK TUTORIAL <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks>`_
 
 Example
 ^^^^^^^

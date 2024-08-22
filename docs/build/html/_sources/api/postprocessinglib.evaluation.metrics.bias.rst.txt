@@ -5,8 +5,7 @@ bias
 
 .. autofunction:: bias
 
-`JUPYTER NOTEBOOK EXAMPLE <../notebooks/Examples.ipynb>`_
-
+`JUPYTER NOTEBOOK TUTORIAL <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks>`_
 Example
 ^^^^^^^
 Calculate the Percentage Bias

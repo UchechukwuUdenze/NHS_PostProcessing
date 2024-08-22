@@ -5,7 +5,8 @@ generate_dataframes
 
 .. autofunction:: generate_dataframes
 
-`JUPYTER NOTEBOOK EXAMPLE <../../../../check.ipynb>`_
+`JUPYTER NOTEBOOK TUTORIAL <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks>`_
+
 
 Example
 ^^^^^^^
