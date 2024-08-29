@@ -52,7 +52,7 @@ def mse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
     if not stations:
         for j in range(0, observed.columns.size):
             # Remove the invalid values from that station
-            valid_observed = hlp.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)        
+            valid_observed = hlp.filter_valid_data(observed, station_num = j)        
         
             summation = np.sum((abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))**2)        
             mse = summation/len(valid_observed)  #dividing summation by total number of values to obtain average    
@@ -63,7 +63,7 @@ def mse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
             j -= 1
 
             # Remove the invalid values from that station
-            valid_observed = hlp.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)        
+            valid_observed = hlp.filter_valid_data(observed, station_num = j)        
         
             summation = np.sum((abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))**2)        
             mse = summation/len(valid_observed)  #dividing summation by total number of values to obtain average    
@@ -98,7 +98,7 @@ def rmse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
     if not stations:
         for j in range(0, observed.columns.size):
             # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
+            valid_observed = hlp.filter_valid_data(observed, station_num = j)
             
             summation = np.sum((abs((valid_observed.iloc[:, j]) - simulated.iloc[:, j]))**2)
             rmse = np.sqrt(summation/len(valid_observed)) #dividing summation by total number of values to obtain average    
@@ -109,7 +109,7 @@ def rmse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
             j -= 1
 
             # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
+            valid_observed = hlp.filter_valid_data(observed, station_num = j)
             
             summation = np.sum((abs((valid_observed.iloc[:, j]) - simulated.iloc[:, j]))**2)
             rmse = np.sqrt(summation/len(valid_observed)) #dividing summation by total number of values to obtain average    
@@ -144,7 +144,7 @@ def mae(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
     if not stations:
         for j in range(0, observed.columns.size): 
             # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
+            valid_observed = hlp.filter_valid_data(observed, station_num = j)
             
             summation = np.sum(abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))
             mae = summation/len(valid_observed)  #dividing summation by total number of values to obtain average   
@@ -155,7 +155,7 @@ def mae(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
             j -= 1
 
             # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
+            valid_observed = hlp.filter_valid_data(observed, station_num = j)
             
             summation = np.sum(abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))
             mae = summation/len(valid_observed)  #dividing summation by total number of values to obtain average   
@@ -190,7 +190,7 @@ def nse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
     if not stations:
         for j in range(0, observed.columns.size):  
             # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
+            valid_observed = hlp.filter_valid_data(observed, station_num = j)
             
             num_valid = len(valid_observed.iloc[:, j])
             observed_mean = np.sum(valid_observed.iloc[:, j])
@@ -207,7 +207,7 @@ def nse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
             j -= 1
 
             # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
+            valid_observed = hlp.filter_valid_data(observed, station_num = j)
             
             num_valid = len(valid_observed.iloc[:, j])
             observed_mean = np.sum(valid_observed.iloc[:, j])
@@ -247,7 +247,7 @@ def lognse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=
     if not stations:
         for j in range(0, observed.columns.size):  
             # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
+            valid_observed = hlp.filter_valid_data(observed, station_num = j)
             
             num_valid = len(valid_observed.iloc[:, j])
             observed_mean = np.sum(np.log(valid_observed.iloc[:, j]))
@@ -264,7 +264,7 @@ def lognse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=
             j -= 1
 
             # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
+            valid_observed = hlp.filter_valid_data(observed, station_num = j)
             
             num_valid = len(valid_observed.iloc[:, j])
             observed_mean = np.sum(np.log(valid_observed.iloc[:, j]))
@@ -309,7 +309,7 @@ def kge(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[],
     if not stations:
         for j in range(0, observed.columns.size): 
             # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
+            valid_observed = hlp.filter_valid_data(observed, station_num = j)
             
             num_valid = len(valid_observed.iloc[:, j])
             mean_observed = np.sum(valid_observed.iloc[:, j]) 
@@ -341,7 +341,7 @@ def kge(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[],
             j -= 1
 
             # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
+            valid_observed = hlp.filter_valid_data(observed, station_num = j)
             
             num_valid = len(valid_observed.iloc[:, j])
             mean_observed = np.sum(valid_observed.iloc[:, j]) 
@@ -401,7 +401,7 @@ def kge_2012(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int
     if not stations:
         for j in range(0, observed.columns.size):
             # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
+            valid_observed = hlp.filter_valid_data(observed, station_num = j)
             
             num_valid = len(valid_observed.iloc[:, j])
             mean_observed = np.sum(valid_observed.iloc[:, j]) 
@@ -433,7 +433,7 @@ def kge_2012(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int
             j -= 1
 
             # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
+            valid_observed = hlp.filter_valid_data(observed, station_num = j)
             
             num_valid = len(valid_observed.iloc[:, j])
             mean_observed = np.sum(valid_observed.iloc[:, j]) 
@@ -489,7 +489,7 @@ def bias(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
     if not stations:
         for j in range(0, observed.columns.size):   
             # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
+            valid_observed = hlp.filter_valid_data(observed, station_num = j)
             
             bias = np.sum(simulated.iloc[:, j] - valid_observed.iloc[:, j])/np.sum(abs(valid_observed.iloc[:, j])) * 100
             BIAS.append(bias)
@@ -499,7 +499,7 @@ def bias(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
             j -= 1
 
             # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed.iloc[:], station_num = j, remove_neg = True)
+            valid_observed = hlp.filter_valid_data(observed, station_num = j)
             
             bias = np.sum(simulated.iloc[:, j] - valid_observed.iloc[:, j])/np.sum(abs(valid_observed.iloc[:, j])) * 100
             BIAS.append(bias)
@@ -541,8 +541,8 @@ def time_to_peak(df: pd.DataFrame, stations: list[int]=[])->float:
                 
                 valid_values = np.sum(np.fromiter((df.index[i].year == year for i in range(first, num_of_days+first)), int))
                 
-                if valid_values > 200 and np.sum(df.iloc[first:num_of_days+first, j]) > 0.0:
-                    peak_day = np.argmax(df.iloc[first:num_of_days+first, j]) + 1
+                if valid_values > 200 and np.nansum(df.iloc[first:num_of_days+first, j]) > 0.0:
+                    peak_day = np.nanargmax(df.iloc[first:num_of_days+first, j]) + 1
                     yearly_ttp.append(peak_day)
                 first += valid_values
                 year += 1
@@ -564,8 +564,8 @@ def time_to_peak(df: pd.DataFrame, stations: list[int]=[])->float:
                 
                 valid_values = np.sum(np.fromiter((df.index[i].year == year for i in range(first, num_of_days+first)), int))
                 
-                if valid_values > 200 and np.sum(df.iloc[first:num_of_days+first, j]) > 0.0:
-                    peak_day = np.argmax(df.iloc[first:num_of_days+first, j]) + 1
+                if valid_values > 200 and np.nansum(df.iloc[first:num_of_days+first, j]) > 0.0:
+                    peak_day = np.nanargmax(df.iloc[first:num_of_days+first, j]) + 1
                     yearly_ttp.append(peak_day)
                 first += valid_values
                 year += 1
@@ -606,9 +606,9 @@ def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[])->float:
 
                 valid_values = np.sum(np.fromiter((df.index[i].year == year for i in range(first, num_of_days+first)), int))
                 
-                if valid_values > 200 and np.sum(df.iloc[first:num_of_days+first, j]) > 0.0:
+                if valid_values > 200 and np.nansum(df.iloc[first:num_of_days+first, j]) > 0.0:
                     CoM = np.sum(np.arange(1, num_of_days+1) * df.iloc[first:num_of_days+first, j])
-                    CoM = CoM / np.sum(df.iloc[first:num_of_days+first, j])
+                    CoM = CoM / np.nansum(df.iloc[first:num_of_days+first, j])
                     yearly_ttcom.append(CoM)
                 first += valid_values
                 year += 1
@@ -630,9 +630,9 @@ def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[])->float:
 
                 valid_values = np.sum(np.fromiter((df.index[i].year == year for i in range(first, num_of_days+first)), int))
                 
-                if valid_values > 200 and np.sum(df.iloc[first:num_of_days+first, j]) > 0.0:
+                if valid_values > 200 and np.nansum(df.iloc[first:num_of_days+first, j]) > 0.0:
                     CoM = np.sum(np.arange(1, num_of_days+1) * df.iloc[first:num_of_days+first, j])
-                    CoM = CoM / np.sum(df.iloc[first:num_of_days+first, j])
+                    CoM = CoM / np.nansum(df.iloc[first:num_of_days+first, j])
                     yearly_ttcom.append(CoM)
                 first += valid_values
                 year += 1
@@ -673,8 +673,8 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
 
                 valid_values = np.sum(np.fromiter((df.index[i].year == year for i in range(first, num_of_days+first)), int))
 
-                if valid_values > 200 and np.sum(df.iloc[first:num_of_days+first, j]) > 0.0:
-                    mean = np.mean(df.iloc[first:num_of_days+first, j])
+                if valid_values > 200 and np.nansum(df.iloc[first:num_of_days+first, j]) > 0.0:
+                    mean = np.nanmean(df.iloc[first:num_of_days+first, j])
                     minimum_cumulative = 1.0E38         # Some Arbitrarily large number
                     cumulative = 0
                     onset_day = 0
@@ -704,8 +704,8 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
 
                 valid_values = np.sum(np.fromiter((df.index[i].year == year for i in range(first, num_of_days+first)), int))
 
-                if valid_values > 200 and np.sum(df.iloc[first:num_of_days+first, j]) > 0.0:
-                    mean = np.mean(df.iloc[first:num_of_days+first, j])
+                if valid_values > 200 and np.nansum(df.iloc[first:num_of_days+first, j]) > 0.0:
+                    mean = np.nanmean(df.iloc[first:num_of_days+first, j])
                     minimum_cumulative = 1.0E38         # Some Arbitrarily large number
                     cumulative = 0
                     onset_day = 0

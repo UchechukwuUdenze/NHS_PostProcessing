@@ -119,9 +119,7 @@ def validate_data(observed: pd.DataFrame, simulated: pd.DataFrame):
         raise RuntimeError("observed or simulated data is incomplete")
 
 
-def filter_valid_data(df: pd.DataFrame, station_num: int = 0, station: str = "",
-                  remove_neg: bool = False, remove_zero: bool = False, remove_NaN: bool = False,
-                  remove_inf: bool = False) -> pd.DataFrame:
+def filter_valid_data(df: pd.DataFrame, station_num: int = 0, station: str = "") -> pd.DataFrame:
     """ Removes the invalid values from a dataframe
 
     Parameters
@@ -130,42 +128,31 @@ def filter_valid_data(df: pd.DataFrame, station_num: int = 0, station: str = "",
             the dataframe which you want to remove invalid values from
     station_num : int
             the number referring to the station values we are trying to modify
-    remove_neg = True: bool 
-            indicates that the negative fields are the invalid ones
-    remove_zero = True: bool 
-            indicate that the zero fields are the invalid ones
-    remove_NaN = True: bool 
-            indicate that the empty fields are the invalid ones
-    remove_inf = True: bool
-            indicate that the inf fields are the invalid ones
+    station: str = ""
+            the column name representing the station from which you want to 
+            remove invalid values from
 
     Returns
     -------
     pd.DataFrame: 
-            the modified input dataframe 
-
+            the modified input dataframe with rows containing NaN, zero, negative
+            and inf values removed.
     """
 
     if not station and station_num < 0 and station_num >= df.shape[1] :
-        raise ValueError("You must have either a valid station number or station name")
+        raise ValueError("You must have either a valid station number or station name")                                                                            
+    
+    # Replaces infinities with zeros
+    df = df.replace([np.inf, -np.inf], np.nan)
+    # Replaces nan with zeros
+    df = df.replace(np.nan, 0)
     
     if not station:
-        if remove_neg:
-            df = df.drop(df[df.iloc[:, station_num] <= 0.0].index)
-        elif remove_zero:
-            df = df.drop(df[df.iloc[:, station_num] == 0.0].index)
-        elif remove_NaN:
-            df = df.dropna()
-        elif remove_inf:
-            df = df.drop(df[df.iloc[:, station_num] == np.inf].index)        
+        # drop zeros and negatives
+        df = df.drop(df[df.iloc[:, station_num] <= 0.0].index)                
         return df
-
-    if remove_neg:
-        df = df.drop(df[df[station] < 0.0].index)
-    elif remove_zero:
-        df = df.drop(df[df[station] == 0.0].index)
-    elif remove_NaN:
-        df = df.drop(df[df[station] == np.nan].index)
-    elif remove_inf:
-        df = df.drop(df[df[station] == np.inf].index)        
-    return df
+    
+    # drop zeros and negatives
+    df = df.drop(df[df[station] <= 0.0].index)
+    return df        
+    

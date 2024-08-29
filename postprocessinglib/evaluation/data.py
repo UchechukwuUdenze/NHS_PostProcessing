@@ -336,9 +336,12 @@ def generate_dataframes(csv_fpath: str, warm_up: int = 0, start_date :str = "", 
     df.index = pd.to_datetime([i for i in range(len(df.index))], unit='D',origin=pd.Timestamp(start_day))    
 
     DATAFRAMES = {}
-    DATAFRAMES["DF"] = df[warm_up:]
+    # replace all invalid values with NaN
+    # df = df.replace([-1, 0], np.nan)
+
+
     # Take off the warm up time
-    # df = df.replace(-1, np.nan)
+    DATAFRAMES["DF"] = df[warm_up:]    
     simulated = observed = df[warm_up:].copy()
     simulated.drop(simulated.iloc[:, 0:], inplace=True, axis=1)
     observed.drop(observed.iloc[:, 0:], inplace=True, axis=1)
