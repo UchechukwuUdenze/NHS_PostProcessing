@@ -1,11 +1,12 @@
 """
-The preprocessing module contains all of the functions used alongside the metrics to filter, limit and validate the data 
+The helper module contains all of the functions used alongside the metrics to filter, limit and validate the data 
 before it gets evaluated.
 
 """
 
 import numpy as np
 import pandas as pd
+from datetime import datetime
 
 from postprocessinglib.utilities.errors import AllInvalidError
 
@@ -75,6 +76,30 @@ def datetime_to_index(datetime :str)-> tuple[int, int]:
     jday += int(day)        
     return(int(year), jday)
 
+def MultiIndex_to_datetime(index: tuple) -> str:
+    """ Convert the MultiIndex value to a datetime value for use in the dataframe
+
+    Parameters:
+    -----------
+    index: tuple[int, int]
+            an index representig the year and jday index of the dataframe
+
+    Returns:
+    --------
+    str:
+        a string of the date in the format "yyyy-mm-dd"
+    """
+    year = str(index[0])
+    jday = str(index[1])
+     
+    # adjusting day num
+    jday.rjust(3 + len(jday), '0')
+     
+    # converting to date
+    res = datetime.strptime(year + "-" + jday, "%Y-%j").strftime("%Y-%m-%d")
+     
+    # printing result
+    return str(res)
 
 def validate_data(observed: pd.DataFrame, simulated: pd.DataFrame):
     """ Ensures that a set of observed and simulated dataframes are valid
@@ -130,7 +155,7 @@ def filter_valid_data(df: pd.DataFrame, station_num: int = 0, station: str = "",
         elif remove_zero:
             df = df.drop(df[df.iloc[:, station_num] == 0.0].index)
         elif remove_NaN:
-            df = df.drop(df[df.iloc[:, station_num] == np.nan].index)
+            df = df.dropna()
         elif remove_inf:
             df = df.drop(df[df.iloc[:, station_num] == np.inf].index)        
         return df
