@@ -7,7 +7,7 @@ before it gets evaluated.
 import numpy as np
 import pandas as pd
 
-from postprocessinglib.utilities import helper as hlp
+from postprocessinglib.utilities import helper_functions as hlp
 
 def station_dataframe(observed: pd.DataFrame, simulated: pd.DataFrame,
                station_num: int) -> pd.DataFrame:

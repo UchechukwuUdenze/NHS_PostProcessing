@@ -1,6 +1,6 @@
 filter_valid_data
 =================
 
-.. currentmodule:: postprocessinglib.evaluation.preprocessing
+.. currentmodule:: postprocessinglib.utilities.helper_functions
 
 .. autofunction:: filter_valid_data

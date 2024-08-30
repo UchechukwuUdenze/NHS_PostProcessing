@@ -1,4 +1,4 @@
 Preprocessing
 =============
 
-.. automodapi:: postprocessinglib.evaluation.preprocessing
+.. automodapi:: postprocessinglib.utilities.helper_functions

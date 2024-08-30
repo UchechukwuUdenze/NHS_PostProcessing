@@ -1,6 +1,6 @@
 datetime_to_index
 =================
 
-.. currentmodule:: postprocessinglib.evaluation.preprocessing
+.. currentmodule:: postprocessinglib.utilities.helper_functions
 
 .. autofunction:: datetime_to_index

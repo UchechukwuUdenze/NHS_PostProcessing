@@ -20,9 +20,10 @@ Note
    :caption: Contents:
    
    QuickStart
+   Preprocessing
+   Data
    Metrics
    Visualization
-   Preprocessing
    Analysis
    Contribute
 

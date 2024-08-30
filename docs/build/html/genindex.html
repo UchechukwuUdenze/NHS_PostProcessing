@@ -19,7 +19,6 @@
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" /> 
@@ -47,9 +46,10 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="QuickStart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Data.html">Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Metrics.html">Metrics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Visualization.html">Visualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Preprocessing.html">Preprocessing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Analysis.html">Analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribution</a></li>
 </ul>
@@ -98,6 +98,8 @@
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
  | <a href="#V"><strong>V</strong></a>
+ | <a href="#W"><strong>W</strong></a>
+ | <a href="#Y"><strong>Y</strong></a>
  
 </div>
 <h2 id="A">A</h2>
@@ -125,7 +127,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/postprocessinglib.evaluation.metrics.calculate_metrics.html#postprocessinglib.evaluation.metrics.calculate_metrics">calculate_metrics() (in module postprocessinglib.evaluation.metrics)</a>
 </li>
-      <li><a href="api/postprocessinglib.evaluation.preprocessing.check_valid_dataframe.html#postprocessinglib.evaluation.preprocessing.check_valid_dataframe">check_valid_dataframe() (in module postprocessinglib.evaluation.preprocessing)</a>
+      <li><a href="api/postprocessinglib.utilities.helper_functions.check_valid_dataframe.html#postprocessinglib.utilities.helper_functions.check_valid_dataframe">check_valid_dataframe() (in module postprocessinglib.utilities.helper_functions)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -133,7 +135,11 @@
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/postprocessinglib.evaluation.preprocessing.datetime_to_index.html#postprocessinglib.evaluation.preprocessing.datetime_to_index">datetime_to_index() (in module postprocessinglib.evaluation.preprocessing)</a>
+      <li><a href="api/postprocessinglib.evaluation.data.daily_aggregate.html#postprocessinglib.evaluation.data.daily_aggregate">daily_aggregate() (in module postprocessinglib.evaluation.data)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/postprocessinglib.utilities.helper_functions.datetime_to_index.html#postprocessinglib.utilities.helper_functions.datetime_to_index">datetime_to_index() (in module postprocessinglib.utilities.helper_functions)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -141,7 +147,7 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/postprocessinglib.evaluation.preprocessing.filter_valid_data.html#postprocessinglib.evaluation.preprocessing.filter_valid_data">filter_valid_data() (in module postprocessinglib.evaluation.preprocessing)</a>
+      <li><a href="api/postprocessinglib.utilities.helper_functions.filter_valid_data.html#postprocessinglib.utilities.helper_functions.filter_valid_data">filter_valid_data() (in module postprocessinglib.utilities.helper_functions)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -149,7 +155,7 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/postprocessinglib.evaluation.metrics.generate_dataframes.html#postprocessinglib.evaluation.metrics.generate_dataframes">generate_dataframes() (in module postprocessinglib.evaluation.metrics)</a>
+      <li><a href="api/postprocessinglib.evaluation.data.generate_dataframes.html#postprocessinglib.evaluation.data.generate_dataframes">generate_dataframes() (in module postprocessinglib.evaluation.data)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -165,7 +171,7 @@
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/postprocessinglib.evaluation.preprocessing.is_leap_year.html#postprocessinglib.evaluation.preprocessing.is_leap_year">is_leap_year() (in module postprocessinglib.evaluation.preprocessing)</a>
+      <li><a href="api/postprocessinglib.utilities.helper_functions.is_leap_year.html#postprocessinglib.utilities.helper_functions.is_leap_year">is_leap_year() (in module postprocessinglib.utilities.helper_functions)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -199,16 +205,22 @@
     module
 
       <ul>
+        <li><a href="Data.html#module-postprocessinglib.evaluation.data">postprocessinglib.evaluation.data</a>
+</li>
         <li><a href="Metrics.html#module-postprocessinglib.evaluation.metrics">postprocessinglib.evaluation.metrics</a>
 </li>
-        <li><a href="Preprocessing.html#module-postprocessinglib.evaluation.preprocessing">postprocessinglib.evaluation.preprocessing</a>
-</li>
         <li><a href="Visualization.html#module-postprocessinglib.evaluation.visuals">postprocessinglib.evaluation.visuals</a>
+</li>
+        <li><a href="Preprocessing.html#module-postprocessinglib.utilities.helper_functions">postprocessinglib.utilities.helper_functions</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/postprocessinglib.evaluation.data.monthly_aggregate.html#postprocessinglib.evaluation.data.monthly_aggregate">monthly_aggregate() (in module postprocessinglib.evaluation.data)</a>
+</li>
       <li><a href="api/postprocessinglib.evaluation.metrics.mse.html#postprocessinglib.evaluation.metrics.mse">mse() (in module postprocessinglib.evaluation.metrics)</a>
+</li>
+      <li><a href="api/postprocessinglib.utilities.helper_functions.MultiIndex_to_datetime.html#postprocessinglib.utilities.helper_functions.MultiIndex_to_datetime">MultiIndex_to_datetime() (in module postprocessinglib.utilities.helper_functions)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -227,6 +239,13 @@
       <li><a href="api/postprocessinglib.evaluation.visuals.plot.html#postprocessinglib.evaluation.visuals.plot">plot() (in module postprocessinglib.evaluation.visuals)</a>
 </li>
       <li>
+    postprocessinglib.evaluation.data
+
+      <ul>
+        <li><a href="Data.html#module-postprocessinglib.evaluation.data">module</a>
+</li>
+      </ul></li>
+      <li>
     postprocessinglib.evaluation.metrics
 
       <ul>
@@ -236,17 +255,17 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li>
-    postprocessinglib.evaluation.preprocessing
-
-      <ul>
-        <li><a href="Preprocessing.html#module-postprocessinglib.evaluation.preprocessing">module</a>
-</li>
-      </ul></li>
-      <li>
     postprocessinglib.evaluation.visuals
 
       <ul>
         <li><a href="Visualization.html#module-postprocessinglib.evaluation.visuals">module</a>
+</li>
+      </ul></li>
+      <li>
+    postprocessinglib.utilities.helper_functions
+
+      <ul>
+        <li><a href="Preprocessing.html#module-postprocessinglib.utilities.helper_functions">module</a>
 </li>
       </ul></li>
   </ul></td>
@@ -265,11 +284,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/postprocessinglib.evaluation.visuals.scatter.html#postprocessinglib.evaluation.visuals.scatter">scatter() (in module postprocessinglib.evaluation.visuals)</a>
 </li>
+      <li><a href="api/postprocessinglib.evaluation.data.seasonal_period.html#postprocessinglib.evaluation.data.seasonal_period">seasonal_period() (in module postprocessinglib.evaluation.data)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/postprocessinglib.evaluation.metrics.SpringPulseOnset.html#postprocessinglib.evaluation.metrics.SpringPulseOnset">SpringPulseOnset() (in module postprocessinglib.evaluation.metrics)</a>
 </li>
-      <li><a href="api/postprocessinglib.evaluation.metrics.station_dataframe.html#postprocessinglib.evaluation.metrics.station_dataframe">station_dataframe() (in module postprocessinglib.evaluation.metrics)</a>
+      <li><a href="api/postprocessinglib.evaluation.data.station_dataframe.html#postprocessinglib.evaluation.data.station_dataframe">station_dataframe() (in module postprocessinglib.evaluation.data)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -289,7 +310,23 @@
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/postprocessinglib.evaluation.preprocessing.validate_data.html#postprocessinglib.evaluation.preprocessing.validate_data">validate_data() (in module postprocessinglib.evaluation.preprocessing)</a>
+      <li><a href="api/postprocessinglib.utilities.helper_functions.validate_data.html#postprocessinglib.utilities.helper_functions.validate_data">validate_data() (in module postprocessinglib.utilities.helper_functions)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="W">W</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/postprocessinglib.evaluation.data.weekly_aggregate.html#postprocessinglib.evaluation.data.weekly_aggregate">weekly_aggregate() (in module postprocessinglib.evaluation.data)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Y">Y</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/postprocessinglib.evaluation.data.yearly_aggregate.html#postprocessinglib.evaluation.data.yearly_aggregate">yearly_aggregate() (in module postprocessinglib.evaluation.data)</a>
 </li>
   </ul></td>
 </tr></table>

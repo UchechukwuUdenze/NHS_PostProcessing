@@ -20,11 +20,12 @@
         <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="time_to_peak" href="postprocessinglib.evaluation.metrics.time_to_peak.html" />
-    <link rel="prev" title="station_dataframe" href="postprocessinglib.evaluation.metrics.station_dataframe.html" /> 
+    <link rel="prev" title="rmse" href="postprocessinglib.evaluation.metrics.rmse.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -49,6 +50,8 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../QuickStart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Data.html">Data</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../Metrics.html">Metrics</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../Metrics.html#module-postprocessinglib.evaluation.metrics">postprocessinglib.evaluation.metrics Module</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="../Metrics.html#functions">Functions</a><ul class="current">
@@ -57,7 +60,6 @@
 <li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.bias.html">bias</a></li>
 <li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.calculate_all_metrics.html">calculate_all_metrics</a></li>
 <li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.calculate_metrics.html">calculate_metrics</a></li>
-<li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.generate_dataframes.html">generate_dataframes</a></li>
 <li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.kge.html">kge</a></li>
 <li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.kge_2012.html">kge_2012</a></li>
 <li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.lognse.html">lognse</a></li>
@@ -65,7 +67,6 @@
 <li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.mse.html">mse</a></li>
 <li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.nse.html">nse</a></li>
 <li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.rmse.html">rmse</a></li>
-<li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.station_dataframe.html">station_dataframe</a></li>
 <li class="toctree-l4 current"><a class="current reference internal" href="#">time_to_centre_of_mass</a></li>
 <li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.time_to_peak.html">time_to_peak</a></li>
 </ul>
@@ -75,7 +76,6 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../Visualization.html">Visualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Preprocessing.html">Preprocessing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Analysis.html">Analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Contribute.html">Contribution</a></li>
 </ul>
@@ -109,14 +109,15 @@
 <h1>time_to_centre_of_mass<a class="headerlink" href="#time-to-centre-of-mass" title="Link to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="postprocessinglib.evaluation.metrics.time_to_centre_of_mass">
-<span class="sig-prename descclassname"><span class="pre">postprocessinglib.evaluation.metrics.</span></span><span class="sig-name descname"><span class="pre">time_to_centre_of_mass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_stations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#postprocessinglib.evaluation.metrics.time_to_centre_of_mass" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">postprocessinglib.evaluation.metrics.</span></span><span class="sig-name descname"><span class="pre">time_to_centre_of_mass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#postprocessinglib.evaluation.metrics.time_to_centre_of_mass" title="Link to this definition"></a></dt>
 <dd><p>Calculates the time it takes to obtain 50% of the stream flow in a given year</p>
 <section id="parameters">
 <h2>Parameters:<a class="headerlink" href="#parameters" title="Link to this heading"></a></h2>
 <dl class="simple">
 <dt>df: pd.DataFrame</dt><dd><p>the observed or simulated dataframe</p>
 </dd>
-<dt>num_stations: int</dt><dd><p>number of stations in the data</p>
+<dt>stations: list[int]</dt><dd><p>numbers pointing to the location of the stations in the list of stations.
+Values can be any number from 1 to number of stations in the data</p>
 </dd>
 </dl>
 </section>
@@ -180,7 +181,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="postprocessinglib.evaluation.metrics.station_dataframe.html" class="btn btn-neutral float-left" title="station_dataframe" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="postprocessinglib.evaluation.metrics.rmse.html" class="btn btn-neutral float-left" title="rmse" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="postprocessinglib.evaluation.metrics.time_to_peak.html" class="btn btn-neutral float-right" title="time_to_peak" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
