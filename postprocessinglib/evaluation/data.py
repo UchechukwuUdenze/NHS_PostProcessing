@@ -624,18 +624,21 @@ def generate_dataframes(csv_fpath: str, warm_up: int = 0, start_date :str = "", 
         # there's an end date but no start date
         simulated = simulated.loc[:end_date]
         observed = observed.loc[:end_date]
+        DATAFRAMES["DF"] = DATAFRAMES["DF"][:end_date]
     elif not end_date and start_date:
         # there's and end date but no start date
         simulated = simulated.loc[start_date:]
         observed = observed.loc[start_date:]
+        DATAFRAMES["DF"] = DATAFRAMES["DF"][start_date:]
     elif start_date and end_date:
         # there's a start and end date
         simulated = simulated.loc[start_date:end_date]
         observed = observed.loc[start_date:end_date]
+        DATAFRAMES["DF"] = DATAFRAMES["DF"][start_date:end_date]
     
     # validate inputs
     hlp.validate_data(observed, simulated)
-
+    
     DATAFRAMES["DF_SIMULATED"] = simulated
     DATAFRAMES["DF_OBSERVED"] = observed
 
