@@ -20,7 +20,6 @@
         <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -127,45 +126,43 @@ Values can be any number from 1 to number of stations in the data</p></li>
 <dd class="field-odd"><p>float</p>
 </dd>
 </dl>
-</dd></dl>
-
-<p><a class="reference external" href="https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks">JUPYTER NOTEBOOK TUTORIAL</a></p>
-<section id="example">
-<h2>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h2>
+<p class="rubric">Example</p>
 <p>Calculate the Mean Square Error</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="linenos"> 2</span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="hll"><span class="linenos"> 3</span><span class="kn">from</span> <span class="nn">postprocessinglib.evaluation</span> <span class="kn">import</span> <span class="n">metrics</span>
-</span><span class="linenos"> 4</span>
-<span class="linenos"> 5</span><span class="c1"># Create your index as an array</span>
-<span class="linenos"> 6</span><span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1981</span><span class="p">,</span> <span class="mi">1982</span><span class="p">,</span> <span class="mi">1983</span><span class="p">,</span> <span class="mi">1984</span><span class="p">,</span> <span class="mi">1985</span><span class="p">,</span> <span class="mi">1986</span><span class="p">,</span> <span class="mi">1987</span><span class="p">,</span> <span class="mi">1988</span><span class="p">,</span> <span class="mi">1989</span><span class="p">,</span> <span class="mi">1990</span><span class="p">])</span>
-<span class="linenos"> 7</span>
-<span class="linenos"> 8</span><span class="c1"># Create a test dataframe</span>
-<span class="linenos"> 9</span><span class="n">test_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">columns</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;obs1&quot;</span><span class="p">,</span> <span class="s2">&quot;sim1&quot;</span><span class="p">,</span> <span class="s2">&quot;obs2&quot;</span><span class="p">,</span> <span class="s2">&quot;sim2&quot;</span><span class="p">),</span> <span class="n">index</span> <span class="o">=</span> <span class="n">index</span><span class="p">)</span>
-<span class="linenos">10</span><span class="nb">print</span><span class="p">(</span><span class="n">test_df</span><span class="p">)</span>
-<span class="linenos">11</span>          <span class="n">obs1</span>      <span class="n">sim1</span>      <span class="n">obs2</span>      <span class="n">sim2</span>
-<span class="linenos">12</span><span class="mi">1981</span>  <span class="mf">0.869720</span>  <span class="mf">0.914777</span>  <span class="mf">0.701577</span>  <span class="mf">0.034410</span>
-<span class="linenos">13</span><span class="mi">1982</span>  <span class="mf">0.126930</span>  <span class="mf">0.150236</span>  <span class="mf">0.217605</span>  <span class="mf">0.283580</span>
-<span class="linenos">14</span><span class="mi">1983</span>  <span class="mf">0.082436</span>  <span class="mf">0.066993</span>  <span class="mf">0.281314</span>  <span class="mf">0.706240</span>
-<span class="linenos">15</span><span class="mi">1984</span>  <span class="mf">0.865263</span>  <span class="mf">0.720315</span>  <span class="mf">0.445746</span>  <span class="mf">0.902906</span>
-<span class="linenos">16</span><span class="mi">1985</span>  <span class="mf">0.042514</span>  <span class="mf">0.702998</span>  <span class="mf">0.451351</span>  <span class="mf">0.421407</span>
-<span class="linenos">17</span><span class="mi">1986</span>  <span class="mf">0.400267</span>  <span class="mf">0.756454</span>  <span class="mf">0.084404</span>  <span class="mf">0.720665</span>
-<span class="linenos">18</span><span class="mi">1987</span>  <span class="mf">0.352093</span>  <span class="mf">0.178805</span>  <span class="mf">0.197526</span>  <span class="mf">0.300795</span>
-<span class="linenos">19</span><span class="mi">1988</span>  <span class="mf">0.154050</span>  <span class="mf">0.027170</span>  <span class="mf">0.020469</span>  <span class="mf">0.621782</span>
-<span class="linenos">20</span><span class="mi">1989</span>  <span class="mf">0.153899</span>  <span class="mf">0.492885</span>  <span class="mf">0.870073</span>  <span class="mf">0.013124</span>
-<span class="linenos">21</span><span class="mi">1990</span>  <span class="mf">0.255068</span>  <span class="mf">0.559826</span>  <span class="mf">0.244888</span>  <span class="mf">0.579176</span>
-<span class="linenos">22</span>
-<span class="linenos">23</span><span class="c1"># Generate the observed and simulated Dataframes</span>
-<span class="linenos">24</span><span class="n">obs</span> <span class="o">=</span> <span class="n">test_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]]</span>
-<span class="linenos">25</span><span class="n">sim</span> <span class="o">=</span> <span class="n">test_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">]]</span>
-<span class="linenos">26</span>
-<span class="linenos">27</span><span class="c1"># Calculating the mean square error</span>
-<span class="hll"><span class="linenos">28</span><span class="n">mse</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">mse</span><span class="p">(</span><span class="n">observed</span> <span class="o">=</span> <span class="n">obs</span><span class="p">,</span> <span class="n">simulated</span> <span class="o">=</span> <span class="n">sim</span><span class="p">,</span> <span class="n">num_stations</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
-</span><span class="linenos">29</span><span class="nb">print</span><span class="p">(</span><span class="n">mse</span><span class="p">)</span>
-<span class="linenos">30</span>    <span class="p">[</span><span class="mf">0.08408454314573567</span><span class="p">,</span> <span class="mf">0.24630978725134473</span><span class="p">]</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">postprocessinglib.evaluation</span> <span class="kn">import</span> <span class="n">metrics</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create your index as an array</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1981</span><span class="p">,</span> <span class="mi">1982</span><span class="p">,</span> <span class="mi">1983</span><span class="p">,</span> <span class="mi">1984</span><span class="p">,</span> <span class="mi">1985</span><span class="p">,</span> <span class="mi">1986</span><span class="p">,</span> <span class="mi">1987</span><span class="p">,</span> <span class="mi">1988</span><span class="p">,</span> <span class="mi">1989</span><span class="p">,</span> <span class="mi">1990</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="o">.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a test dataframe</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">columns</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;obs1&quot;</span><span class="p">,</span> <span class="s2">&quot;sim1&quot;</span><span class="p">,</span> <span class="s2">&quot;obs2&quot;</span><span class="p">,</span> <span class="s2">&quot;sim2&quot;</span><span class="p">),</span> <span class="n">index</span> <span class="o">=</span> <span class="n">index</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">test_df</span><span class="p">)</span>
+<span class="go">          obs1      sim1      obs2      sim2</span>
+<span class="go">1981  0.869720  0.914777  0.701577  0.034410</span>
+<span class="go">1982  0.126930  0.150236  0.217605  0.283580</span>
+<span class="go">1983  0.082436  0.066993  0.281314  0.706240</span>
+<span class="go">1984  0.865263  0.720315  0.445746  0.902906</span>
+<span class="go">1985  0.042514  0.702998  0.451351  0.421407</span>
+<span class="go">1986  0.400267  0.756454  0.084404  0.720665</span>
+<span class="go">1987  0.352093  0.178805  0.197526  0.300795</span>
+<span class="go">1988  0.154050  0.027170  0.020469  0.621782</span>
+<span class="go">1989  0.153899  0.492885  0.870073  0.013124</span>
+<span class="go">1990  0.255068  0.559826  0.244888  0.579176</span>
 </pre></div>
 </div>
-</section>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate the observed and simulated Dataframes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obs</span> <span class="o">=</span> <span class="n">test_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span> <span class="o">=</span> <span class="n">test_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="o">.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Calculate</span> <span class="n">the</span> <span class="n">Mean</span> <span class="n">Square</span> <span class="n">Error</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mse</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">mse</span><span class="p">(</span><span class="n">observed</span> <span class="o">=</span> <span class="n">obs</span><span class="p">,</span> <span class="n">simulated</span> <span class="o">=</span> <span class="n">sim</span><span class="p">,</span> <span class="n">num_stations</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">mse</span><span class="p">)</span>
+<span class="go">    [0.08408454314573567, 0.24630978725134473]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<p><a class="reference external" href="https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Example.ipynb">JUPYTER NOTEBOOK Examples</a></p>
 </section>
 
 

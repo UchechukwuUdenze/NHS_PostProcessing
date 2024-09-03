@@ -18,6 +18,14 @@ def available_metrics() -> list[int]:
     List[str]
         List of implemented metric names.
 
+    Example
+    -------
+    
+    >>> from postprocessinglib.evaluation import metrics
+    >>> print(metrics.available_metrics())
+        ['MSE', 'RMSE', 'MAE', 'NSE', 'NegNSE', 'LogNSE', 'NegLogNSE', 'KGE', 'NegKGE',
+        'KGE 2012', 'BIAS', 'AbsBIAS', 'TTP', 'TTCoM', 'SPOD']
+
     """
     metrics = [
         "MSE", "RMSE", "MAE", "NSE", "NegNSE", "LogNSE", "NegLogNSE",
@@ -43,6 +51,40 @@ def mse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
     -------
     float:
         the mean square value of the data
+
+    Example
+    -------
+    Calculate the Mean Square Error
+        
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from postprocessinglib.evaluation import metrics
+    >>> # Create your index as an array
+    >>> index = np.array([1981, 1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990])
+    >>> .
+    >>> # Create a test dataframe
+    >>> test_df = pd.DataFrame(data = np.random.rand(10, 4), columns = ("obs1", "sim1", "obs2", "sim2"), index = index)
+    >>> print(test_df)
+              obs1      sim1      obs2      sim2
+    1981  0.869720  0.914777  0.701577  0.034410
+    1982  0.126930  0.150236  0.217605  0.283580
+    1983  0.082436  0.066993  0.281314  0.706240
+    1984  0.865263  0.720315  0.445746  0.902906
+    1985  0.042514  0.702998  0.451351  0.421407
+    1986  0.400267  0.756454  0.084404  0.720665
+    1987  0.352093  0.178805  0.197526  0.300795
+    1988  0.154050  0.027170  0.020469  0.621782
+    1989  0.153899  0.492885  0.870073  0.013124
+    1990  0.255068  0.559826  0.244888  0.579176
+
+    >>> # Generate the observed and simulated Dataframes
+    >>> obs = test_df.iloc[:, [0, 2]]
+    >>> sim = test_df.iloc[:, [1, 3]]
+    >>> .
+    >>> Calculate the Mean Square Error
+    >>> mse = metrics.mse(observed = obs, simulated = sim, num_stations = 2)
+    >>> print(mse)
+        [0.08408454314573567, 0.24630978725134473]
 
     """     
     # validate inputs
@@ -90,6 +132,40 @@ def rmse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
     float:
         the root mean square value of the data
 
+    Example
+    -------
+    Calculate the Root Mean Square Error
+        
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from postprocessinglib.evaluation import metrics
+    >>> # Create your index as an array
+    >>> index = np.array([1981, 1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990])
+    >>> .
+    >>> # Create a test dataframe
+    >>> test_df = pd.DataFrame(data = np.random.rand(10, 4), columns = ("obs1", "sim1", "obs2", "sim2"), index = index)
+    >>> print(test_df)
+              obs1      sim1      obs2      sim2
+    1981  0.966878  0.348580  0.053977  0.043133
+    1982  0.188252  0.739990  0.941848  0.580866
+    1983  0.430902  0.292824  0.963190  0.798885
+    1984  0.718644  0.098746  0.031072  0.446317
+    1985  0.586581  0.479616  0.541689  0.639898
+    1986  0.380978  0.193639  0.737498  0.025509
+    1987  0.072452  0.095210  0.188173  0.357554
+    1988  0.833037  0.542694  0.913704  0.963027
+    1989  0.434239  0.817284  0.425448  0.865841
+    1990  0.698412  0.484796  0.693588  0.981778
+
+    >>> # Generate the observed and simulated Dataframes
+    >>> obs = test_df.iloc[:, [0, 2]]
+    >>> sim = test_df.iloc[:, [1, 3]]
+    >>> .
+    >>> Calculate the Root Mean Square Error
+    >>> rmse = metrics.rmse(observed = obs, simulated = sim, num_stations = 2)
+    >>> print(rmse)
+        [0.375999284970641, 0.33978586675651484]
+
     """   
     # validate inputs
     hlp.validate_data(observed, simulated)
@@ -136,6 +212,40 @@ def mae(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
     float:
         the mean average value of the data
 
+    Example
+    -------
+    Calculate the Mean Average Error
+        
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from postprocessinglib.evaluation import metrics
+    >>> # Create your index as an array
+    >>> index = np.array([1981, 1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990])
+    >>> .
+    >>> # Create a test dataframe
+    >>> test_df = pd.DataFrame(data = np.random.rand(10, 4), columns = ("obs1", "sim1", "obs2", "sim2"), index = index)
+    >>> print(test_df)
+              obs1      sim1      obs2      sim2
+    1981  0.966878  0.348580  0.053977  0.043133
+    1982  0.188252  0.739990  0.941848  0.580866
+    1983  0.430902  0.292824  0.963190  0.798885
+    1984  0.718644  0.098746  0.031072  0.446317
+    1985  0.586581  0.479616  0.541689  0.639898
+    1986  0.380978  0.193639  0.737498  0.025509
+    1987  0.072452  0.095210  0.188173  0.357554
+    1988  0.833037  0.542694  0.913704  0.963027
+    1989  0.434239  0.817284  0.425448  0.865841
+    1990  0.698412  0.484796  0.693588  0.981778
+
+    >>> # Generate the observed and simulated Dataframes
+    >>> obs = test_df.iloc[:, [0, 2]]
+    >>> sim = test_df.iloc[:, [1, 3]]
+    >>> .
+    >>> Calculate the Mean Average Error
+    >>> mae = metrics.mae(observed = obs, simulated = sim, num_stations = 2)
+    >>> print(mae)
+        [0.3132076084592758, 0.2708857712262245]
+
     """
     # validate inputs
     hlp.validate_data(observed, simulated)
@@ -181,6 +291,40 @@ def nse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
     -------
     float:
         the Nash-Sutcliffe Efficiency of the data
+
+    Example
+    -------
+    Calculate the Nash-Sutcliffe Efficiency
+        
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from postprocessinglib.evaluation import metrics
+    >>> # Create your index as an array
+    >>> index = np.array([1981, 1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990])
+    >>> .
+    >>> # Create a test dataframe
+    >>> test_df = pd.DataFrame(data = np.random.rand(10, 4), columns = ("obs1", "sim1", "obs2", "sim2"), index = index)
+    >>> print(test_df)
+              obs1      sim1      obs2      sim2
+    1981  0.966878  0.348580  0.053977  0.043133
+    1982  0.188252  0.739990  0.941848  0.580866
+    1983  0.430902  0.292824  0.963190  0.798885
+    1984  0.718644  0.098746  0.031072  0.446317
+    1985  0.586581  0.479616  0.541689  0.639898
+    1986  0.380978  0.193639  0.737498  0.025509
+    1987  0.072452  0.095210  0.188173  0.357554
+    1988  0.833037  0.542694  0.913704  0.963027
+    1989  0.434239  0.817284  0.425448  0.865841
+    1990  0.698412  0.484796  0.693588  0.981778
+
+    >>> # Generate the observed and simulated Dataframes
+    >>> obs = test_df.iloc[:, [0, 2]]
+    >>> sim = test_df.iloc[:, [1, 3]]
+    >>> .
+    >>> Calculate the Nash-Sutcliffe Efficiency 
+    >>> nse = metrics.nse(observed = obs, simulated = sim)
+    >>> print(nse)
+        [-0.9712872212067771, 0.016690558297001723]
 
     """       
     # validate inputs
@@ -238,6 +382,40 @@ def lognse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=
     -------
     float:
         the Logarithmic Nash-Sutcliffe Efficiency of the data
+
+    Example
+    -------
+    Calculate the Logarithmic Value of Nash-Sutcliffe Efficiency
+        
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from postprocessinglib.evaluation import metrics
+    >>> # Create your index as an array
+    >>> index = np.array([1981, 1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990])
+    >>> .
+    >>> # Create a test dataframe
+    >>> test_df = pd.DataFrame(data = np.random.rand(10, 4), columns = ("obs1", "sim1", "obs2", "sim2"), index = index)
+    >>> print(test_df)
+              obs1      sim1      obs2      sim2
+    1981  0.966878  0.348580  0.053977  0.043133
+    1982  0.188252  0.739990  0.941848  0.580866
+    1983  0.430902  0.292824  0.963190  0.798885
+    1984  0.718644  0.098746  0.031072  0.446317
+    1985  0.586581  0.479616  0.541689  0.639898
+    1986  0.380978  0.193639  0.737498  0.025509
+    1987  0.072452  0.095210  0.188173  0.357554
+    1988  0.833037  0.542694  0.913704  0.963027
+    1989  0.434239  0.817284  0.425448  0.865841
+    1990  0.698412  0.484796  0.693588  0.981778
+
+    >>> # Generate the observed and simulated Dataframes
+    >>> obs = test_df.iloc[:, [0, 2]]
+    >>> sim = test_df.iloc[:, [1, 3]]
+    >>> .
+    >>> Calculate the Log of Nash-Sutcliffe Efficiency 
+    >>> lognse = metrics.lognse(observed = obs, simulated = sim)
+    >>> print(lognse)
+        [-0.4922908746789514, -0.42279642867104616]
 
     """       
     # validate inputs
@@ -300,6 +478,40 @@ def kge(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[],
     -------
     float:
         the Kling-Gupta Efficiency of the data
+
+    Example
+    -------
+    Calculate the Kling-Gupta Efficiency
+        
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from postprocessinglib.evaluation import metrics
+    >>> # Create your index as an array
+    >>> index = np.array([1981, 1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990])
+    >>> .
+    >>> # Create a test dataframe
+    >>> test_df = pd.DataFrame(data = np.random.rand(10, 4), columns = ("obs1", "sim1", "obs2", "sim2"), index = index)
+    >>> print(test_df)
+              obs1      sim1      obs2      sim2
+    1981  0.966878  0.348580  0.053977  0.043133
+    1982  0.188252  0.739990  0.941848  0.580866
+    1983  0.430902  0.292824  0.963190  0.798885
+    1984  0.718644  0.098746  0.031072  0.446317
+    1985  0.586581  0.479616  0.541689  0.639898
+    1986  0.380978  0.193639  0.737498  0.025509
+    1987  0.072452  0.095210  0.188173  0.357554
+    1988  0.833037  0.542694  0.913704  0.963027
+    1989  0.434239  0.817284  0.425448  0.865841
+    1990  0.698412  0.484796  0.693588  0.981778
+
+    >>> # Generate the observed and simulated Dataframes
+    >>> obs = test_df.iloc[:, [0, 2]]
+    >>> sim = test_df.iloc[:, [1, 3]]
+    >>> .
+    >>> Calculate the Kling-Gupta Efficiency 
+    >>> kge = metrics.kge(observed = obs, simulated = sim)
+    >>> print(kge)
+        [-0.021079725045971553, 0.49289907473609706]
 
     """
     # validate inputs
@@ -393,6 +605,40 @@ def kge_2012(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int
     float:
         the Kling-Gupta Efficiency of the data
 
+    Example
+    -------
+    Calculate the Kling-Gupta Efficiency
+        
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from postprocessinglib.evaluation import metrics
+    >>> # Create your index as an array
+    >>> index = np.array([1981, 1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990])
+    >>> .
+    >>> # Create a test dataframe
+    >>> test_df = pd.DataFrame(data = np.random.rand(10, 4), columns = ("obs1", "sim1", "obs2", "sim2"), index = index)
+    >>> print(test_df)
+              obs1      sim1      obs2      sim2
+    1981  0.966878  0.348580  0.053977  0.043133
+    1982  0.188252  0.739990  0.941848  0.580866
+    1983  0.430902  0.292824  0.963190  0.798885
+    1984  0.718644  0.098746  0.031072  0.446317
+    1985  0.586581  0.479616  0.541689  0.639898
+    1986  0.380978  0.193639  0.737498  0.025509
+    1987  0.072452  0.095210  0.188173  0.357554
+    1988  0.833037  0.542694  0.913704  0.963027
+    1989  0.434239  0.817284  0.425448  0.865841
+    1990  0.698412  0.484796  0.693588  0.981778
+
+    >>> # Generate the observed and simulated Dataframes
+    >>> obs = test_df.iloc[:, [0, 2]]
+    >>> sim = test_df.iloc[:, [1, 3]]
+    >>> .
+    >>> Calculate the Kling-Gupta Efficiency 
+    >>> kge_2012 = metrics.kge_2012(observed = obs, simulated = sim)
+    >>> print(kge_2012)
+        [-0.02566742728790561, 0.48944337578498387]
+
     """
     # validate inputs
     hlp.validate_data(observed, simulated)
@@ -481,6 +727,40 @@ def bias(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
     float:
         the Percentage Bias of the data
 
+    Example
+    -------
+    Calculate the Percentage Bias
+    
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from postprocessinglib.evaluation import metrics
+    >>> # Create your index as an array
+    >>> index = np.array([1981, 1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990])
+    >>> .
+    >>> # Create a test dataframe
+    >>> test_df = pd.DataFrame(data = np.random.rand(10, 4), columns = ("obs1", "sim1", "obs2", "sim2"), index = index)
+    >>> print(test_df)
+              obs1      sim1      obs2      sim2
+    1981  0.966878  0.348580  0.053977  0.043133
+    1982  0.188252  0.739990  0.941848  0.580866
+    1983  0.430902  0.292824  0.963190  0.798885
+    1984  0.718644  0.098746  0.031072  0.446317
+    1985  0.586581  0.479616  0.541689  0.639898
+    1986  0.380978  0.193639  0.737498  0.025509
+    1987  0.072452  0.095210  0.188173  0.357554
+    1988  0.833037  0.542694  0.913704  0.963027
+    1989  0.434239  0.817284  0.425448  0.865841
+    1990  0.698412  0.484796  0.693588  0.981778
+
+    >>> # Generate the observed and simulated Dataframes
+    >>> obs = test_df.iloc[:, [0, 2]]
+    >>> sim = test_df.iloc[:, [1, 3]]
+    >>> .
+    >>> # Calculate the percentage Bias
+    >>> bias = metrics.bias(observed = obs, simulated = sim)
+    >>> print(bias)
+        [-22.91730092227065, 3.872738708994304]
+
     """    
     # validate inputs
     hlp.validate_data(observed, simulated)
@@ -511,8 +791,8 @@ def time_to_peak(df: pd.DataFrame, stations: list[int]=[])->float:
     """ Calculates the time to peak of a given series of data whether observed 
         or simulated
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     df: pd.DataFrame
             the observed or simulated dataframe
 
@@ -520,10 +800,53 @@ def time_to_peak(df: pd.DataFrame, stations: list[int]=[])->float:
             numbers pointing to the location of the stations in the list of stations.
             Values can be any number from 1 to number of stations in the data
 
-    Returns:
-    --------
+    Returns
+    -------
     int:
         the average time to peak value of the given data
+
+    Example
+    -------
+    Calculation of the Time to Peak
+
+    >>> from postprocessinglib.evaluation import metrics
+    >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365)
+    >>> observed = DATAFRAMES["DF_OBSERVED"] 
+    >>> simulated = DATAFRAMES["DF_SIMULATED"]
+    >>> print(observed)
+                QOMEAS_05BB001  QOMEAS_05BA001
+    YEAR JDAY
+    1980 366            10.20            -1.0
+    1981 1               9.85            -1.0
+         2              10.20            -1.0
+         3              10.00            -1.0
+         4              10.10            -1.0
+    ...                   ...             ...
+    2017 361            -1.00            -1.0
+         362            -1.00            -1.0
+         363            -1.00            -1.0
+         364            -1.00            -1.0
+         365            -1.00            -1.0
+    >>> .
+    >>> print(simulated)
+           QOSIM_05BB001  QOSIM_05BA001
+    YEAR JDAY
+    1980 366        2.530770       1.006860
+    1981 1          2.518999       1.001954
+         2          2.507289       0.997078
+         3          2.495637       0.992233
+         4          2.484073       0.987417
+    ...                  ...            ...
+    2017 361        4.418050       1.380227
+         362        4.393084       1.372171
+         363        4.368303       1.364174
+         364        4.343699       1.356237
+         365        4.319275       1.348359
+
+    >>> # Calculating the time to peak
+    >>> ttp = metrics.time_to_peak(df=observed)
+    >>> print(ttp)
+        [167.375, 170.77777777777777]    
     
     """
     TTP = []
@@ -577,8 +900,8 @@ def time_to_peak(df: pd.DataFrame, stations: list[int]=[])->float:
 def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[])->float:
     """ Calculates the time it takes to obtain 50% of the stream flow in a given year
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     df: pd.DataFrame
             the observed or simulated dataframe
 
@@ -586,10 +909,54 @@ def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[])->float:
             numbers pointing to the location of the stations in the list of stations.
             Values can be any number from 1 to number of stations in the data
 
-    Returns:
-    --------
+    Returns
+    -------
     int:
         the average time to the centre of mass for the station
+
+    Example
+    -------
+    Calculation of the time to center of mass
+
+    >>> from postprocessinglib.evaluation import metrics
+    >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365)
+    >>> observed = DATAFRAMES["DF_OBSERVED"] 
+    >>> simulated = DATAFRAMES["DF_SIMULATED"]
+    >>> print(observed)
+                QOMEAS_05BB001  QOMEAS_05BA001
+    YEAR JDAY
+    1980 366            10.20            -1.0
+    1981 1               9.85            -1.0
+         2              10.20            -1.0
+         3              10.00            -1.0
+         4              10.10            -1.0
+    ...                   ...             ...
+    2017 361            -1.00            -1.0
+         362            -1.00            -1.0
+         363            -1.00            -1.0
+         364            -1.00            -1.0
+         365            -1.00            -1.0
+    >>> .
+    >>> print(simulated)
+           QOSIM_05BB001  QOSIM_05BA001
+    YEAR JDAY
+    1980 366        2.530770       1.006860
+    1981 1          2.518999       1.001954
+         2          2.507289       0.997078
+         3          2.495637       0.992233
+         4          2.484073       0.987417
+    ...                  ...            ...
+    2017 361        4.418050       1.380227
+         362        4.393084       1.372171
+         363        4.368303       1.364174
+         364        4.343699       1.356237
+         365        4.319275       1.348359
+
+    >>> # Calculating the time to center of mass
+    >>> ttcom = metrics.time_to_centre_of_mass(df=observed)
+    >>> print(ttcom)
+        [193.911419943451, 203.2721509619546]
+
     """
     TTCoM = []
     last_year = df.index[-1].year
@@ -644,8 +1011,8 @@ def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[])->float:
 def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
     """ Calculates when spring start i.e., the beginning of snowmelt
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     df: pd.DataFrame
             the observed or simulated dataframe
 
@@ -653,10 +1020,54 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
             numbers pointing to the location of the stations in the list of stations.
             Values can be any number from 1 to number of stations in the data
 
-    Returns:
-    --------
+    Returns
+    -------
     int:
         the average time it takes till when snowmelt begins 
+
+    Example
+    -------
+    Calculation of the SpringPulseOnset
+
+    >>> from postprocessinglib.evaluation import metrics
+    >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365)
+    >>> observed = DATAFRAMES["DF_OBSERVED"] 
+    >>> simulated = DATAFRAMES["DF_SIMULATED"]
+    >>> print(observed)
+                QOMEAS_05BB001  QOMEAS_05BA001
+    YEAR JDAY
+    1980 366            10.20            -1.0
+    1981 1               9.85            -1.0
+         2              10.20            -1.0
+         3              10.00            -1.0
+         4              10.10            -1.0
+    ...                   ...             ...
+    2017 361            -1.00            -1.0
+         362            -1.00            -1.0
+         363            -1.00            -1.0
+         364            -1.00            -1.0
+         365            -1.00            -1.0
+    >>> .
+    >>> print(simulated)
+           QOSIM_05BB001  QOSIM_05BA001
+    YEAR JDAY
+    1980 366        2.530770       1.006860
+    1981 1          2.518999       1.001954
+         2          2.507289       0.997078
+         3          2.495637       0.992233
+         4          2.484073       0.987417
+    ...                  ...            ...
+    2017 361        4.418050       1.380227
+         362        4.393084       1.372171
+         363        4.368303       1.364174
+         364        4.343699       1.356237
+         365        4.319275       1.348359
+
+    >>> # Calculating the spring pulse onset day
+    >>> spod = metrics.SpringPulseOnset(df=simulated)
+    >>> print(spod)
+        [136.19444444444446, 142.94444444444446]
+
     """
     SPOD = []
     last_year = df.index[-1].year
@@ -741,7 +1152,20 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame,
     -------
     dict{str: float}
             A dictionary containing every metric that can be evaluated and
-            its result 
+            its result
+
+    Example
+    -------
+    Calculation of all available metrics
+
+    >>> from postprocessinglib.evaluation import metrics
+    >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365)
+    >>> print(metrics.calculate_all_metrics(observed=DATAFRAMES["DF_OBSERVED"], simulated=DATAFRAMES["DF_SIMULATED"]))
+        {'MSE': [1889.8829356273197], 'RMSE': [43.47278384952268], 'MAE': [25.140806861503677], 'NSE': [0.0994826408059557],
+        'NegNSE': [-0.0994826408059557], 'LogNSE': [-0.33425398964890385], 'NegLogNSE': [0.33425398964890385], 'KGE': [0.4391875106526365],
+        'NegKGE': [-0.4391875106526365], 'KGE 2012': [0.3130173067471582], 'BIAS': [-34.59860016110435], 'AbsBIAS': [34.59860016110435],
+        'TTP_obs': [154.8], 'TTP_sim': [180.84], 'TTCoM_obs': [184.87057921300135], 'TTCoM_sim': [190.60358617846887], 'SPOD_obs': [72.0],
+        'SPOD_sim': [76.12]} 
             
     """
     # validate inputs
@@ -799,7 +1223,18 @@ def calculate_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, metrices:
     -------
     dict{str: float}
             A dictionary containing each metric to be evaluated and its result 
-            
+
+    Example
+    -------
+    Calculation of a list of metrics
+
+    >>> from postprocessinglib.evaluation import metrics
+    >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365)
+    >>> list_of_metrices = ["MSE", "NSE", "KGE 2012"]
+    >>> print(metrics.calculate_metrics(observed=DATAFRAMES["DF_OBSERVED"], simulated=DATAFRAMES["DF_SIMULATED"], metrics=list_of_metrics))
+        {'MSE': [1889.8829356273197, 665.8655715367416], 'NSE': [0.0994826408059557, -3.582905524779485],
+        'KGE 2012': [0.3130173067471582, -0.1483398188302718]} 
+               
     """
     # validate inputs
     hlp.validate_data(observed, simulated)

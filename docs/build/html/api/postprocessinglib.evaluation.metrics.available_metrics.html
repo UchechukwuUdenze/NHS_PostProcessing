@@ -20,7 +20,6 @@
         <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -119,23 +118,16 @@
 <dd class="field-even"><p>List[str]</p>
 </dd>
 </dl>
-</dd></dl>
-
-<p><a class="reference external" href="https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks">JUPYTER NOTEBOOK TUTORIAL</a></p>
-<section id="example">
-<h2>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h2>
-<blockquote>
-<div><p>View the list of available metrics</p>
-</div></blockquote>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="hll"><span class="linenos">1</span><span class="kn">from</span> <span class="nn">postprocessinglib.evaluation</span> <span class="kn">import</span> <span class="n">metrics</span>
-</span><span class="linenos">2</span>
-<span class="hll"><span class="linenos">3</span><span class="nb">print</span><span class="p">(</span><span class="n">metrics</span><span class="o">.</span><span class="n">available_metrics</span><span class="p">())</span>
-</span><span class="linenos">4</span>
-<span class="linenos">5</span>    <span class="p">[</span><span class="s1">&#39;MSE&#39;</span><span class="p">,</span> <span class="s1">&#39;RMSE&#39;</span><span class="p">,</span> <span class="s1">&#39;MAE&#39;</span><span class="p">,</span> <span class="s1">&#39;NSE&#39;</span><span class="p">,</span> <span class="s1">&#39;NegNSE&#39;</span><span class="p">,</span> <span class="s1">&#39;LogNSE&#39;</span><span class="p">,</span> <span class="s1">&#39;NegLogNSE&#39;</span><span class="p">,</span> <span class="s1">&#39;KGE&#39;</span><span class="p">,</span> <span class="s1">&#39;NegKGE&#39;</span><span class="p">,</span>
-<span class="linenos">6</span>    <span class="s1">&#39;KGE 2012&#39;</span><span class="p">,</span> <span class="s1">&#39;BIAS&#39;</span><span class="p">,</span> <span class="s1">&#39;AbsBIAS&#39;</span><span class="p">,</span> <span class="s1">&#39;TTP&#39;</span><span class="p">,</span> <span class="s1">&#39;TTCoM&#39;</span><span class="p">,</span> <span class="s1">&#39;SPOD&#39;</span><span class="p">]</span>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">postprocessinglib.evaluation</span> <span class="kn">import</span> <span class="n">metrics</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">metrics</span><span class="o">.</span><span class="n">available_metrics</span><span class="p">())</span>
+<span class="go">    [&#39;MSE&#39;, &#39;RMSE&#39;, &#39;MAE&#39;, &#39;NSE&#39;, &#39;NegNSE&#39;, &#39;LogNSE&#39;, &#39;NegLogNSE&#39;, &#39;KGE&#39;, &#39;NegKGE&#39;,</span>
+<span class="go">    &#39;KGE 2012&#39;, &#39;BIAS&#39;, &#39;AbsBIAS&#39;, &#39;TTP&#39;, &#39;TTCoM&#39;, &#39;SPOD&#39;]</span>
 </pre></div>
 </div>
-</section>
+</dd></dl>
+
+<p><a class="reference external" href="https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Example.ipynb">JUPYTER NOTEBOOK Examples</a></p>
 </section>
 
 
