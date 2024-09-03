@@ -1198,9 +1198,13 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame,
     # Check for a specified format, else print to screen
     if format:
         if format == "txt":
-            print("txt format in the works")
-        elif format == "pdf":
-            print("pdf format is in the works")
+            file = open("./metrics_out.txt", "w")
+            for key, value in results.items():
+                file.write(f"{key}: {value}\n")
+            file.close()
+            print("See metrics_out.txt file in directory")
+        else:
+            print("unknown or uncoded format - " + format)
     else:
         return results
 
@@ -1291,8 +1295,12 @@ def calculate_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, metrices:
     # Check for a specified format, else print to screen
     if format:
         if format == "txt":
-            print("txt format in the works")
-        elif format == "pdf":
-            print("pdf format is in the works")
+            file = open("./metrics_out.txt", "w")
+            for key, value in values.items():
+                file.write(f"{key}: {value}\n")
+            file.close()
+            print("See metrics_out.txt file in directory")
+        else:
+            print("unknown or uncoded format - " + format)
     else:
         return values
