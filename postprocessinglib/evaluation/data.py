@@ -576,16 +576,16 @@ def generate_dataframes(csv_fpath: str, warm_up: int = 0, start_date :str = "", 
     -------
     dict{str: pd.dataframe}
             A dictionary containing each Dataframe requested. Its default content is:
-            DF = merged dataframe
-            DF_SIMULATED = all simulated data
-            DF_OBSERVED = all observed data
+            - DF = merged dataframe
+            - DF_SIMULATED = all simulated data
+            - DF_OBSERVED = all observed data
             
             Depending on which you requested it can also contain:
-            DF_DAILY = dataframe aggregated by days of the year
-            DF_WEEKLY = dataframe aggregated by the weeks of the year
-            DF_MONTHLY = dataframe aggregated by months of the year
-            DF_YEARLY = dataframe aggregated by all the years in the data
-            DF_CUSTOM = dataframe truncated as per the seasonal period parameters
+            - DF_DAILY = dataframe aggregated by days of the year
+            - DF_WEEKLY = dataframe aggregated by the weeks of the year
+            - DF_MONTHLY = dataframe aggregated by months of the year
+            - DF_YEARLY = dataframe aggregated by all the years in the data
+            - DF_CUSTOM = dataframe truncated as per the seasonal period parameters
 
     See jupyter notebook file linked below for usage instances
             
@@ -604,8 +604,9 @@ def generate_dataframes(csv_fpath: str, warm_up: int = 0, start_date :str = "", 
     df.index = pd.to_datetime([i for i in range(len(df.index))], unit='D',origin=pd.Timestamp(start_day))    
 
     DATAFRAMES = {}
+
     # replace all invalid values with NaN
-    # df = df.replace([-1, 0], np.nan)
+    df = df.replace([-1, 0], np.nan)
 
 
     # Take off the warm up time

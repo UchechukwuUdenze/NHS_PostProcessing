@@ -5,4 +5,4 @@ station_dataframe
 
 .. autofunction:: station_dataframe
 
-`JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Example.ipynb>`_
+`JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
