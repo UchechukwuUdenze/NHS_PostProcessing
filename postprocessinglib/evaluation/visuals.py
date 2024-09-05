@@ -67,7 +67,45 @@ def plot(dataframe: pd.DataFrame, legend: tuple[str, str] = ('Simulated Data', '
     Returns
     -------
     fig : Matplotlib figure instance
-        A matplotlib figure handle is returned, which can be viewed with the matplotlib.pyplot.show() command.
+    
+    Examples
+    --------
+    Visualization of a station's data using a 2D plot
+
+    >>> from postprocessinglib.evaluation import metrics, visuals, data
+    >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365, start_date = "1981-01-01", end_date = "1990-12-31",)
+    >>> observed = DATAFRAMES["DF_OBSERVED"] 
+    >>> simulated = DATAFRAMES["DF_SIMULATED"]
+    >>> merged_df = DATAFRAMES["DF"]
+    >>> .
+    >>> Stations = data.station_dataframe(observed=observed, simulated=simulated)
+    >>> .
+    >>> # plot of the first station in the dataframe within the time period
+    >>> visuals.plot(dataframe = Stations[0],
+                    title='Hydrograph of the daily time series from 1981-1990',
+                    linestyles=['r-', 'b-'],
+                    labels=['Datetime', 'Streamflow'],
+                    metrices=['RMSE', 'MAE', 'KGE'],
+                    plot_adjust = 0.15,
+                    grid=True
+                    )
+    .. image:: ~/docs/source/Figures/plot_1981_to_1990.png
+
+    >>> sim_monthly = data.monthly_aggregate(df=simulated)
+    >>> obs_monthly = data.monthly_aggregate(df=observed)
+    >>> Stations_by_monthly = data.station_dataframe(observed=obs_monthly, simulated=sim_monthly)
+    >>> .
+    >>> # plot of the second station in the dataframe within the time period aggregated monthly by mean(default)
+    >>> visuals.plot(dataframe = Stations_by_monthly[1],
+                    title='Hydrograph of the time series aggregated monthly from 1981-1990',
+                    linestyles=['r-', 'b-'],
+                    labels=['Datetime', 'Streamflow'],
+                    metrices=['RMSE', 'MSE', 'PBIAS'],
+                    plot_adjust = 0.15,
+                    grid=True
+                    )
+    .. image:: ~/docs/source/Figures/plot_monthly_1981_to_1990.png
+
          
     """
     fig = plt.figure(figsize=fig_size, facecolor='w', edgecolor='k')

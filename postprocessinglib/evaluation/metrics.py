@@ -809,7 +809,7 @@ def time_to_peak(df: pd.DataFrame, stations: list[int]=[])->float:
     -------
     Calculation of the Time to Peak
 
-    >>> from postprocessinglib.evaluation import metrics
+    >>> from postprocessinglib.evaluation import metrics, data
     >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365)
     >>> observed = DATAFRAMES["DF_OBSERVED"] 
     >>> simulated = DATAFRAMES["DF_SIMULATED"]
@@ -918,7 +918,7 @@ def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[])->float:
     -------
     Calculation of the time to center of mass
 
-    >>> from postprocessinglib.evaluation import metrics
+    >>> from postprocessinglib.evaluation import metrics, data
     >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365)
     >>> observed = DATAFRAMES["DF_OBSERVED"] 
     >>> simulated = DATAFRAMES["DF_SIMULATED"]
@@ -1029,7 +1029,7 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
     -------
     Calculation of the SpringPulseOnset
 
-    >>> from postprocessinglib.evaluation import metrics
+    >>> from postprocessinglib.evaluation import metrics, data
     >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365)
     >>> observed = DATAFRAMES["DF_OBSERVED"] 
     >>> simulated = DATAFRAMES["DF_SIMULATED"]
@@ -1158,7 +1158,7 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame,
     -------
     Calculation of all available metrics
 
-    >>> from postprocessinglib.evaluation import metrics
+    >>> from postprocessinglib.evaluation import metrics, data
     >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365)
     >>> print(metrics.calculate_all_metrics(observed=DATAFRAMES["DF_OBSERVED"], simulated=DATAFRAMES["DF_SIMULATED"]))
         {'MSE': [1889.8829356273197], 'RMSE': [43.47278384952268], 'MAE': [25.140806861503677], 'NSE': [0.0994826408059557],
@@ -1232,7 +1232,7 @@ def calculate_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, metrices:
     -------
     Calculation of a list of metrics
 
-    >>> from postprocessinglib.evaluation import metrics
+    >>> from postprocessinglib.evaluation import metrics, data
     >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365)
     >>> list_of_metrices = ["MSE", "NSE", "KGE 2012"]
     >>> print(metrics.calculate_metrics(observed=DATAFRAMES["DF_OBSERVED"], simulated=DATAFRAMES["DF_SIMULATED"], metrics=list_of_metrics))
