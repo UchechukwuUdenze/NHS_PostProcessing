@@ -12,13 +12,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from postprocessinglib.evaluation import metrics
 
-# path = "MESH_output_streamflow.csv"
-# df = pd.read_csv(path, skipinitialspace = True)
-# df.drop(columns=df.columns[-1], inplace = True)
-# predicted = df.iloc[:, [1, 3, 5]]
-# actual = df.iloc[:, [1, 2, 4]]
-# station_1 = df.iloc[:, [1, 2, 3]]
-
 def plot(dataframe: pd.DataFrame, legend: tuple[str, str] = ('Simulated Data', 'Observed Data'), 
          metrices: list[str] = None, num_min: int = 0, grid: bool = False, title: str = None, 
          labels: tuple[str, str] = None, linestyles: tuple[str, str] = ('r-', 'b-'), padding: bool = False ,
@@ -81,9 +74,9 @@ def plot(dataframe: pd.DataFrame, legend: tuple[str, str] = ('Simulated Data', '
     ax = fig.add_subplot(111)
 
     # Setting Variable for the simulated data, observed data, and time stamps
-    obs = dataframe.iloc[:, 1].values
-    sim = dataframe.iloc[:, 2].values
-    time = dataframe.index.values
+    obs = dataframe.iloc[:, [0]]
+    sim = dataframe.iloc[:, [1]]
+    time = dataframe.index
 
     # Plotting the Data
     plt.plot(time, obs, linestyles[1], label=legend[1], linewidth = 1.25)
@@ -119,20 +112,13 @@ def plot(dataframe: pd.DataFrame, legend: tuple[str, str] = ('Simulated Data', '
 
     # Placing Metrics on the Plot if requested
     if metrices:
-
-        obs_metric = dataframe.iloc[:, [0, 1]]
-        sim_metric = dataframe.iloc[:, [0, 2]]
-
-
         formatted_selected_metrics = 'Metrics for this station: \n'
         if metrices == 'all':
-            for key, value in metrics.calculate_all_metrics(observed=obs_metric, simulated=sim_metric, 
-                                                         num_stations=1, num_min=num_min).items():
+            for key, value in metrics.calculate_all_metrics(observed=obs, simulated=sim).items():
                 formatted_selected_metrics += key + ' : ' + str(value[0]) + '\n'
         else: 
             assert isinstance(metrices, list)
-            for key, value in metrics.calculate_metrics(observed=obs_metric, simulated=sim_metric, metrices=metrics,
-                                   num_stations=1, num_min=num_min).items():
+            for key, value in metrics.calculate_metrics(observed=obs, simulated=sim, metrices=metrices).items():
                 formatted_selected_metrics += key + ' : ' + str(value[0]) + '\n'
 
         font = {'family': 'sans-serif',
@@ -143,20 +129,10 @@ def plot(dataframe: pd.DataFrame, legend: tuple[str, str] = ('Simulated Data', '
 
         plt.subplots_adjust(left=plot_adjust)
 
-    return fig
+    # return fig
 
 def histogram():
     return
 
 def scatter():
     return
-
-# plot(dataframe=station_1, 
-#      title='Hydrograph of Entire Time Series of Station 1',
-#      linestyles=['r-', 'k-'],
-#      labels=['Datetime', 'Streamflow'],
-#     #  metrics=['RMSE', 'NSE', 'KGE'],
-#      # metrics = 'all',
-#      plot_adjust = 0.15,
-#      grid=True)
-# plt.show()
