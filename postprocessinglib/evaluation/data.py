@@ -520,7 +520,7 @@ def yearly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
     
     return yearly_aggr  
 
-def generate_dataframes(csv_fpath: str, warm_up: int = 0, start_date :str = "", end_date: str = "",
+def generate_dataframes(csv_fpath: str='', sim_fpath: str='', obs_fpath: str='', warm_up: int = 0, start_date :str = "", end_date: str = "",
                         daily_agg:bool=False, da_method:str="", weekly_agg:bool=False, wa_method:str="",
                         monthly_agg:bool=False, ma_method:str="", yearly_agg:bool=False, ya_method:str="",
                         seasonal_p:bool=False, sp_dperiod:tuple[str, str]=[], sp_time_range:tuple[str, str]=None) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -530,6 +530,10 @@ def generate_dataframes(csv_fpath: str, warm_up: int = 0, start_date :str = "", 
     ----------
     csv_fpath : string
             the path to the csv file. It can be relative or absolute
+    sim_fpath: str
+        The filepath to the simulated csv of data.
+    obs_fpath: str
+        The filepath to the observed csv of the data.
     num_min: int 
             number of days required to "warm up" the system
     start_date: str 
@@ -591,34 +595,62 @@ def generate_dataframes(csv_fpath: str, warm_up: int = 0, start_date :str = "", 
             
     """
 
-    if csv_fpath is not None:
-        # read the csv into a dataframe making sure to account for unnecessary spaces.
-        df = pd.read_csv(csv_fpath, skipinitialspace = True, index_col = ["YEAR", "JDAY"])
-    
-    # if there are any extra columns at the end of the csv file, remove them
-    if len(df.columns) % 2 != 0:
-        df.drop(columns=df.columns[-1], inplace = True)
-
-    # Convert the year and jday index to datetime indexing
-    start_day = hlp.MultiIndex_to_datetime(df.index[0])
-    df.index = pd.to_datetime([i for i in range(len(df.index))], unit='D',origin=pd.Timestamp(start_day))    
-
     DATAFRAMES = {}
+    if csv_fpath:
+        # read the combined csv file into a dataframe
+        df = pd.read_csv(csv_fpath, skipinitialspace = True, index_col = [0, 1])
+        # if there are any extra columns at the end of the csv file, remove them
+        if len(df.columns) % 2 != 0:
+            df.drop(columns=df.columns[-1], inplace = True)        
+        # Convert the year and jday index to datetime indexing
+        start_day = hlp.MultiIndex_to_datetime(df.index[0])
+        df.index = pd.to_datetime([i for i in range(len(df.index))], unit='D',origin=pd.Timestamp(start_day))
+        # replace all invalid values with NaN
+        df = df.replace([-1, 0], np.nan)   
+        
+        # Take off the warm up time
+        DATAFRAMES["DF"] = df[warm_up:]    
+        simulated = observed = df[warm_up:].copy()
+        simulated.drop(simulated.iloc[:, 0:], inplace=True, axis=1)
+        observed.drop(observed.iloc[:, 0:], inplace=True, axis=1)
+        for j in range(0, len(df.columns), 2):
+            arr1 = df.iloc[warm_up:, j]
+            arr2 = df.iloc[warm_up:, j+1]
+            observed = pd.concat([observed, arr1], axis = 1)
+            simulated = pd.concat([simulated, arr2], axis = 1)
 
-    # replace all invalid values with NaN
-    df = df.replace([-1, 0], np.nan)
+    elif sim_fpath and obs_fpath:
+        # read the simulated and observed csv files into dataframes
+        sim_df = pd.read_csv(sim_fpath, skipinitialspace = True, index_col=[0, 1])
+        obs_df = pd.read_csv(obs_fpath, skipinitialspace = True, index_col=[0, 1])
 
+        # Convert the year and jday index to datetime indexing
+        # simulated
+        start_day = hlp.MultiIndex_to_datetime(sim_df.index[0])
+        sim_df.index = pd.to_datetime([i for i in range(len(sim_df.index))], unit='D',origin=pd.Timestamp(start_day))
+        
+        
+        # observed
+        start_day = hlp.MultiIndex_to_datetime(obs_df.index[0])
+        obs_df.index = pd.to_datetime([i for i in range(len(obs_df.index))], unit='D',origin=pd.Timestamp(start_day))
 
-    # Take off the warm up time
-    DATAFRAMES["DF"] = df[warm_up:]    
-    simulated = observed = df[warm_up:].copy()
-    simulated.drop(simulated.iloc[:, 0:], inplace=True, axis=1)
-    observed.drop(observed.iloc[:, 0:], inplace=True, axis=1)
-    for j in range(0, len(df.columns), 2):
-        arr1 = df.iloc[warm_up:, j]
-        arr2 = df.iloc[warm_up:, j+1]
-        observed = pd.concat([observed, arr1], axis = 1)
-        simulated = pd.concat([simulated, arr2], axis = 1)
+        # replace all invalid values with NaN
+        sim_df = sim_df.replace([-1, 0], np.nan)
+        obs_df = obs_df.replace([-1, 0], np.nan)
+        df = pd.DataFrame(index = obs_df.index)
+        for j in range(0, len(obs_df.columns)):
+            arr1 = obs_df.iloc[:, j]
+            arr2 = sim_df.iloc[:, j]
+            df = pd.concat([df, arr1, arr2], axis = 1)
+
+        # Take off the warm up time
+        simulated = sim_df[warm_up:]
+        observed = obs_df[warm_up:]                
+        DATAFRAMES["DF"] = df[warm_up:] 
+
+    else:
+        raise RuntimeError('either sim_fpath and obs_fpath or csv_fpath are required inputs.')
+       
 
     # splice the dataframes according to the time frame
     if not start_date and end_date:
