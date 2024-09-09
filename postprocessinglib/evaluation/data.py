@@ -64,8 +64,9 @@ def station_dataframe(observed: pd.DataFrame, simulated: pd.DataFrame,
     2017-12-29            -1.0       1.364174
     2017-12-30            -1.0       1.356237
     2017-12-31            -1.0       1.348359
-
     [13515 rows x 2 columns]
+
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
 
     """
 
@@ -152,6 +153,8 @@ def seasonal_period(df: pd.DataFrame, daily_period: tuple[str, str],
     1985-01-29           11.70       2.708047            -1.0       0.801287
     1985-01-30           11.60       2.694749            -1.0       0.797410
     1985-01-31           11.60       2.681550            -1.0       0.793556
+
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
     
     """
     # Making a copy to avoid changing the original df
@@ -235,6 +238,8 @@ def daily_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
     2017-12-30           -1.00       4.343699            -1.0       1.356237
     2017-12-31           -1.00       4.319275            -1.0       1.348359
 
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+
     """
     # Check that there is a chosen method else return error
     if not method:
@@ -312,6 +317,8 @@ def weekly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
     2017/50           -1.00       4.677985            -1.0       1.464212
     2017/51           -1.00       4.494041            -1.0       1.404762
     2017/52           -1.00       4.319275            -1.0       1.348359
+
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
 
     """
     # Check that there is a chosen method else return error
@@ -391,6 +398,8 @@ def monthly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
     2017/10           -1.00       6.123822            -1.0       1.938875
     2017/11           -1.00       5.164804            -1.0       1.621027
     2017/12           -1.00       4.319275            -1.0       1.348359
+
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
 
     """
     # Check that there is a chosen method else return error
@@ -497,6 +506,8 @@ def yearly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
     2016         -366.00    9989.779678         -366.00    4269.909376
     2017         -365.00    8801.897128         -365.00    4226.258100
 
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+
     """
     # Check that there is a chosen method else return error
     if not method:
@@ -591,7 +602,9 @@ def generate_dataframes(csv_fpath: str='', sim_fpath: str='', obs_fpath: str='',
             - DF_YEARLY = dataframe aggregated by all the years in the data
             - DF_CUSTOM = dataframe truncated as per the seasonal period parameters
 
-    See jupyter notebook file linked below for usage instances
+    Example
+    -------
+    See linked jupyter `notebook file <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_ for usage instances
             
     """
 

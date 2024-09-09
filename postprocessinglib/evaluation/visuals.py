@@ -89,7 +89,8 @@ def plot(dataframe: pd.DataFrame, legend: tuple[str, str] = ('Simulated Data', '
                     plot_adjust = 0.15,
                     grid=True
                     )
-    .. image:: ~/docs/source/Figures/plot_1981_to_1990.png
+
+    .. image:: ../Figures/plot_1981_to_1990.png
 
     >>> sim_monthly = data.monthly_aggregate(df=simulated)
     >>> obs_monthly = data.monthly_aggregate(df=observed)
@@ -104,8 +105,10 @@ def plot(dataframe: pd.DataFrame, legend: tuple[str, str] = ('Simulated Data', '
                     plot_adjust = 0.15,
                     grid=True
                     )
-    .. image:: ~/docs/source/Figures/plot_monthly_1981_to_1990.png
 
+    .. image:: ../Figures/plot_monthly_1981_to_1990.png
+
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
          
     """
     fig = plt.figure(figsize=fig_size, facecolor='w', edgecolor='k')
@@ -166,7 +169,6 @@ def plot(dataframe: pd.DataFrame, legend: tuple[str, str] = ('Simulated Data', '
                  transform=ax.transAxes, fontdict=font)
 
         plt.subplots_adjust(left=plot_adjust)
-
     # return fig
 
 def histogram():

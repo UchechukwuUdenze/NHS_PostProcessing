@@ -26,6 +26,8 @@ def available_metrics() -> list[int]:
         ['MSE', 'RMSE', 'MAE', 'NSE', 'NegNSE', 'LogNSE', 'NegLogNSE', 'KGE', 'NegKGE',
         'KGE 2012', 'BIAS', 'AbsBIAS', 'TTP', 'TTCoM', 'SPOD']
 
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+
     """
     metrics = [
         "MSE", "RMSE", "MAE", "NSE", "NegNSE", "LogNSE", "NegLogNSE",
@@ -85,6 +87,8 @@ def mse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
     >>> mse = metrics.mse(observed = obs, simulated = sim, num_stations = 2)
     >>> print(mse)
         [0.08408454314573567, 0.24630978725134473]
+
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
 
     """     
     # validate inputs
@@ -166,6 +170,8 @@ def rmse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
     >>> print(rmse)
         [0.375999284970641, 0.33978586675651484]
 
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+
     """   
     # validate inputs
     hlp.validate_data(observed, simulated)
@@ -246,6 +252,8 @@ def mae(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
     >>> print(mae)
         [0.3132076084592758, 0.2708857712262245]
 
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+
     """
     # validate inputs
     hlp.validate_data(observed, simulated)
@@ -325,6 +333,8 @@ def nse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
     >>> nse = metrics.nse(observed = obs, simulated = sim)
     >>> print(nse)
         [-0.9712872212067771, 0.016690558297001723]
+
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
 
     """       
     # validate inputs
@@ -416,6 +426,8 @@ def lognse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=
     >>> lognse = metrics.lognse(observed = obs, simulated = sim)
     >>> print(lognse)
         [-0.4922908746789514, -0.42279642867104616]
+
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
 
     """       
     # validate inputs
@@ -512,6 +524,8 @@ def kge(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[],
     >>> kge = metrics.kge(observed = obs, simulated = sim)
     >>> print(kge)
         [-0.021079725045971553, 0.49289907473609706]
+    
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
 
     """
     # validate inputs
@@ -639,6 +653,8 @@ def kge_2012(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int
     >>> print(kge_2012)
         [-0.02566742728790561, 0.48944337578498387]
 
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+
     """
     # validate inputs
     hlp.validate_data(observed, simulated)
@@ -761,6 +777,8 @@ def bias(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
     >>> print(bias)
         [-22.91730092227065, 3.872738708994304]
 
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+
     """    
     # validate inputs
     hlp.validate_data(observed, simulated)
@@ -846,7 +864,9 @@ def time_to_peak(df: pd.DataFrame, stations: list[int]=[])->float:
     >>> # Calculating the time to peak
     >>> ttp = metrics.time_to_peak(df=observed)
     >>> print(ttp)
-        [167.375, 170.77777777777777]    
+        [167.375, 170.77777777777777]   
+
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_ 
     
     """
     TTP = []
@@ -956,6 +976,8 @@ def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[])->float:
     >>> ttcom = metrics.time_to_centre_of_mass(df=observed)
     >>> print(ttcom)
         [193.911419943451, 203.2721509619546]
+
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
 
     """
     TTCoM = []
@@ -1068,6 +1090,8 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
     >>> print(spod)
         [136.19444444444446, 142.94444444444446]
 
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+
     """
     SPOD = []
     last_year = df.index[-1].year
@@ -1166,6 +1190,8 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame,
         'NegKGE': [-0.4391875106526365], 'KGE 2012': [0.3130173067471582], 'BIAS': [-34.59860016110435], 'AbsBIAS': [34.59860016110435],
         'TTP_obs': [154.8], 'TTP_sim': [180.84], 'TTCoM_obs': [184.87057921300135], 'TTCoM_sim': [190.60358617846887], 'SPOD_obs': [72.0],
         'SPOD_sim': [76.12]} 
+
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
             
     """
     # validate inputs
@@ -1238,6 +1264,8 @@ def calculate_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, metrices:
     >>> print(metrics.calculate_metrics(observed=DATAFRAMES["DF_OBSERVED"], simulated=DATAFRAMES["DF_SIMULATED"], metrics=list_of_metrics))
         {'MSE': [1889.8829356273197, 665.8655715367416], 'NSE': [0.0994826408059557, -3.582905524779485],
         'KGE 2012': [0.3130173067471582, -0.1483398188302718]} 
+
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
                
     """
     # validate inputs

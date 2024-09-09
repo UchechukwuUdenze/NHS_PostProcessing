@@ -128,7 +128,7 @@
 </dl>
 <p class="rubric">Example</p>
 <p>Calculation of a list of metrics</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">postprocessinglib.evaluation</span> <span class="kn">import</span> <span class="n">metrics</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">postprocessinglib.evaluation</span> <span class="kn">import</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">data</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">DATAFRAMES</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">generate_dataframes</span><span class="p">(</span><span class="n">csv_fpath</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">warm_up</span><span class="o">=</span><span class="mi">365</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">list_of_metrices</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;MSE&quot;</span><span class="p">,</span> <span class="s2">&quot;NSE&quot;</span><span class="p">,</span> <span class="s2">&quot;KGE 2012&quot;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">metrics</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">(</span><span class="n">observed</span><span class="o">=</span><span class="n">DATAFRAMES</span><span class="p">[</span><span class="s2">&quot;DF_OBSERVED&quot;</span><span class="p">],</span> <span class="n">simulated</span><span class="o">=</span><span class="n">DATAFRAMES</span><span class="p">[</span><span class="s2">&quot;DF_SIMULATED&quot;</span><span class="p">],</span> <span class="n">metrics</span><span class="o">=</span><span class="n">list_of_metrics</span><span class="p">))</span>
@@ -136,9 +136,9 @@
 <span class="go">    &#39;KGE 2012&#39;: [0.3130173067471582, -0.1483398188302718]}</span>
 </pre></div>
 </div>
+<p><a class="reference external" href="https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb">JUPYTER NOTEBOOK Examples</a></p>
 </dd></dl>
 
-<p><a class="reference external" href="https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb">JUPYTER NOTEBOOK Examples</a></p>
 </section>
 
 
