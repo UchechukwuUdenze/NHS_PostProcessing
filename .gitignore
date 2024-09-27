@@ -5,4 +5,3 @@ build/
 __pychache__/
 tests/
 .ipynb_checkpoints
-MESH_output_streamflow.csv
