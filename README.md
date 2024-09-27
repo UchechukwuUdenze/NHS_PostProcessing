@@ -1,3 +1,5 @@
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?urlpath=https%3A%2F%2Fgithub.com%2FUchechukwuUdenze%2FNHS_PostProcessing%2Fblob%2Fmain%2Fdocs%2Fsource%2Fnotebooks%2FExamples.ipynb)
+
 ## Introduction
 
 This is a python Library to enable the National Hydrological Services carry out post processing operations quickly and efficiently by providing them with the exact features and packages that are required.
