@@ -3,3 +3,6 @@ sphinx_rtd_theme
 sphinx_automodapi
 nbsphinx
 nbsphinx_link
+shapely
+geopandas
+shapely

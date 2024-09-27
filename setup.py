@@ -29,7 +29,9 @@ setup(
         'pandas',
         'xarray',
         'netcdf4',
-        'matplotlib'
+        'matplotlib',
+        'geopandas',
+        'shapely'
     ],
     test_suite='tests',
 )

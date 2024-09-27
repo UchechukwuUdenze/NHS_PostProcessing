@@ -534,18 +534,21 @@ def yearly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
 def generate_dataframes(csv_fpath: str='', sim_fpath: str='', obs_fpath: str='', warm_up: int = 0, start_date :str = "", end_date: str = "",
                         daily_agg:bool=False, da_method:str="", weekly_agg:bool=False, wa_method:str="",
                         monthly_agg:bool=False, ma_method:str="", yearly_agg:bool=False, ya_method:str="",
-                        seasonal_p:bool=False, sp_dperiod:tuple[str, str]=[], sp_time_range:tuple[str, str]=None) -> tuple[pd.DataFrame, pd.DataFrame]:
+                        seasonal_p:bool=False, sp_dperiod:tuple[str, str]=[], sp_subset:tuple[str, str]=None) -> tuple[pd.DataFrame, pd.DataFrame]:
     """ Function to Generate the required dataframes
 
     Parameters
     ----------
     csv_fpath : string
-            the path to the csv file. It can be relative or absolute
+            the path to the csv file. It can be relative or absolute. If given, sim_fpath and obs_fpath
+            must be None.
     sim_fpath: str
-        The filepath to the simulated csv of data.
+        The filepath to the simulated csv of data. If given obs_fpath must also be given and csv_fpath
+        must be None. 
     obs_fpath: str
-        The filepath to the observed csv of the data.
-    num_min: int 
+        The filepath to the observed csv of the data. If given sim_fpath must also be given and csv_fpath
+        must be None.
+    warm_up: int 
             number of days required to "warm up" the system
     start_date: str 
             The date at which you want to start calculating the metric in the
@@ -584,7 +587,7 @@ def generate_dataframes(csv_fpath: str='', sim_fpath: str='', obs_fpath: str='',
     sp_dperiod: tuple(str, str)
             A list of length two with strings representing the start and end dates of the seasonal period (e.g.
             (01-01, 01-31) for Jan 1 to Jan 31.
-    sp_time_range: tuple(str, str)
+    sp_subset: tuple(str, str)
             A tuple of string values representing the start and end dates of the time range. Format is YYYY-MM-DD.
 
     Returns
@@ -720,9 +723,9 @@ def generate_dataframes(csv_fpath: str='', sim_fpath: str='', obs_fpath: str='',
     # 5. Seasonal Period
     if seasonal_p and sp_dperiod == []:
         raise RuntimeError("You cannot calculate a seasonal period without a daily period")
-    elif seasonal_p and sp_dperiod and sp_time_range:
+    elif seasonal_p and sp_dperiod and sp_subset:
         DATAFRAMES["DF_CUSTOM"] = seasonal_period(df = DATAFRAMES["DF"], daily_period=sp_dperiod,
-                                                  time_range=sp_time_range)    
+                                                  time_range=sp_subset)    
     elif seasonal_p and sp_dperiod:
         DATAFRAMES["DF_CUSTOM"] = seasonal_period(df = DATAFRAMES["DF"], daily_period=sp_dperiod)
     
