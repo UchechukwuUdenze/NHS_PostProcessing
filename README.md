@@ -1,5 +1,7 @@
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/HEAD)
 
+==When using the binder link, navigate to docs, source and then notebooks==
+
 
 ## Introduction
 
