@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 from shapely.geometry import Point
 
 from postprocessinglib.evaluation import metrics
+from postprocessinglib.utilities import helper_functions as hlp
 
 def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd.DataFrame = None,
          legend: tuple[str, str] = ('Simulated Data', 'Observed Data'), metrices: list[str] = None,
@@ -45,10 +46,6 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
         Adds Metrics to the left side of the plot. Any metric from the postprocessing.metrics library
         can be added to the plot as the abbreviation of the function. The entries must be in a list.
         (e.g. ['PBIAS', 'MSE', 'KGE']).
-
-    num_min: int 
-        number of days required to "warm up" the system. Its only important when wanting to display
-        the metrics on the plot 
 
     grid: bool
         If True, adds a grid to the plot.
@@ -190,7 +187,125 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
                  transform=ax.transAxes, fontdict=font)
 
         plt.subplots_adjust(left=plot_adjust)
-    # return fig
+
+def plot_seasonal(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd.DataFrame = None,
+         legend: tuple[str, str] = ('Simulated Data', 'Observed Data'), grid: bool = False, title: str = None,
+         labels: tuple[str, str] = None, linestyles: tuple[str, str] = ('r-', 'b-'), padding: bool = False ,
+         fig_size: tuple[float, float] = (10,6)):
+    """ Create a comparison time series line plot of simulated and observed time series data
+
+    Parameters
+    ----------
+    merged_df : pd.DataFrame
+        the dataframe containing the series of observed and simulated values. It must have a datetime
+        index and only two columns where the left column is the Measured/observed data and the right is
+        the Simulated data. If it is present, the obs_df and sim_df must be None.
+    
+    obs_df : pd.DataFrame
+        A DataFrame conataning a single row of measured data. It must have a datetime index. if it is
+        present it is accompanied by the sim_df and the merged_df must be None.
+
+    sim_df : pd.DataFrame
+        A DataFrame conataning a single row of predicted/simulated data. It must have a datetime index. if it is
+        present it is accompanied by the obs_df and the merged_df must be None.
+
+     legend: tuple[str, str]
+        Adds a Legend in the 'best' location determined by matplotlib.
+
+    grid: bool
+        If True, adds a grid to the plot.
+
+    title: str
+        If given, adds a title to the plot.
+
+    labels: tuple[str, str]
+        List of two str type inputs specifying x-axis labels and y-axis labels, respectively.
+
+    linestyles: tuple[str, str]
+        List of two string type inputs thet will change the linestyle of the simulated and
+        recorded data, respectively.
+
+    padding: bool
+        If true, will set the padding to zero for the lines in the line plot.
+
+    fig_size: tuple[float, float]
+        Tuple of length two that specifies the horizontal and vertical lengths of the plot in
+        inches, respectively.
+
+    Returns
+    -------
+    fig : Matplotlib figure instance
+    
+    Examples
+    --------
+    Visualization of a station's data using a 2D plot
+    """
+
+    fig = plt.figure(figsize=fig_size, facecolor='w', edgecolor='k')
+    ax = fig.add_subplot(111)
+
+    if merged_df is not None and sim_df is None and obs_df is None:
+        # Selecting the Variable for the simulated data, observed data, and time stamps
+        copy = merged_df.copy()
+        copy.index = copy.index.strftime("%Y-%m-%d")
+        copy.index = pd.MultiIndex.from_tuples([hlp.datetime_to_index(copy.index[i]) for i in range(0, len(copy.index))],
+                                               names=('year', 'jday'))
+        copy = copy.groupby(level = 'jday').mean()
+
+        obs = copy.iloc[:, [0]]
+        sim = copy.iloc[:, [1]]
+        time = copy.index
+    elif sim_df is not None and obs_df is not None and merged_df is None:
+        # Selecting the Variable for the simulated data, observed data, and time stamps
+        obs_copy = obs_df.copy()
+        obs_copy.index = obs_copy.index.strftime("%Y-%m-%d")
+        obs_copy.index = pd.MultiIndex.from_tuples([hlp.datetime_to_index(obs_copy.index[i]) for i in range(0, len(obs_copy.index))],
+                                               names=('year', 'jday'))
+        obs_copy = obs_copy.groupby(level = 'jday').mean()
+
+        sim_copy = sim_df.copy()
+        sim_copy.index = sim_copy.index.strftime("%Y-%m-%d")
+        sim_copy.index = pd.MultiIndex.from_tuples([hlp.datetime_to_index(sim_copy.index[i]) for i in range(0, len(sim_copy.index))],
+                                               names=('year', 'jday'))
+        sim_copy = sim_copy.groupby(level = 'jday').mean()
+
+        obs = obs_copy
+        sim = sim_copy
+        time = obs.index
+    else:
+        raise RuntimeError('either sim_df and obs_df or merged_df are required inputs.')
+
+    # Plotting the Data
+    plt.plot(time, obs, linestyles[1], label=legend[1], linewidth = 1.5)
+    plt.plot(time, sim, linestyles[0], label=legend[0], linewidth = 1.25)
+    plt.legend(fontsize=15)
+
+    # Adjusting the plot if user wants tight x axis limits
+    if padding:
+        plt.xlim(time[0], time[-1])
+
+    plt.xticks(fontsize=15, rotation=45)
+    plt.yticks(fontsize=15)
+
+    # Placing Labels if requested
+    if labels:
+        # Plotting Labels
+        plt.xlabel(labels[0], fontsize=18)
+        plt.ylabel(labels[1], fontsize=18)
+    if title:
+        title_dict = {'family': 'sans-serif',
+                      'color': 'black',
+                      'weight': 'normal',
+                      'size': 20,
+                      }
+        ax.set_title(label=title, fontdict=title_dict, pad=25)
+
+    # Placing a grid if requested
+    if grid:
+        plt.grid(True)
+
+    # Fixes issues with parts of plot being cut off
+    plt.tight_layout()
 
 def histogram():
     return
