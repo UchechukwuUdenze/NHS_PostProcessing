@@ -98,7 +98,7 @@ def station_dataframe(observed: pd.DataFrame, simulated: pd.DataFrame,
 # (median, mean, min, max, sum, instantaenous values options)
 
 def seasonal_period(df: pd.DataFrame, daily_period: tuple[str, str],
-                              time_range: tuple[str, str]=None) -> pd.DataFrame:
+                              subset: tuple[str, str]=None) -> pd.DataFrame:
     """Creates a dataframe with a specified seasonal period
 
     Parameters
@@ -108,7 +108,7 @@ def seasonal_period(df: pd.DataFrame, daily_period: tuple[str, str],
     daily_period: tuple(str, str)
         A list of length two with strings representing the start and end dates of the seasonal period (e.g.
         (01-01, 01-31) for Jan 1 to Jan 31.
-    time_range: tuple(str, str)
+    subset: tuple(str, str)
         A tuple of string values representing the start and end dates of the time range. Format is YYYY-MM-DD.
 
     Returns
@@ -139,7 +139,7 @@ def seasonal_period(df: pd.DataFrame, daily_period: tuple[str, str],
     
     >>> # Extract the time period
     >>> seasonal_p = data.seasonal_period(df=merged_df, daily_period=('01-01', '01-31'),
-                            time_range = ('1981-01-01', '1985-12-31'))
+                            subset = ('1981-01-01', '1985-12-31'))
     >>> print(seasonal_p)
                 QOMEAS_05BB001  QOSIM_05BB001  QOMEAS_05BA001  QOSIM_05BA001
     1981-01-01            9.85       2.518999            -1.0       1.001954
@@ -160,9 +160,9 @@ def seasonal_period(df: pd.DataFrame, daily_period: tuple[str, str],
     # Making a copy to avoid changing the original df
     df_copy = df.copy()
 
-    if time_range:
+    if subset:
         # Setting the time range
-        df_copy = df_copy.loc[time_range[0]: time_range[1]]
+        df_copy = df_copy.loc[subset[0]: subset[1]]
     
     # Setting a placeholder for the datetime string values
     df_copy.insert(loc=0, column='placeholder', value=df_copy.index.strftime('%m-%d'))
@@ -725,7 +725,7 @@ def generate_dataframes(csv_fpath: str='', sim_fpath: str='', obs_fpath: str='',
         raise RuntimeError("You cannot calculate a seasonal period without a daily period")
     elif seasonal_p and sp_dperiod and sp_subset:
         DATAFRAMES["DF_CUSTOM"] = seasonal_period(df = DATAFRAMES["DF"], daily_period=sp_dperiod,
-                                                  time_range=sp_subset)    
+                                                  subset=sp_subset)    
     elif seasonal_p and sp_dperiod:
         DATAFRAMES["DF_CUSTOM"] = seasonal_period(df = DATAFRAMES["DF"], daily_period=sp_dperiod)
     
