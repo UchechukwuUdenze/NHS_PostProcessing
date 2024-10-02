@@ -1158,8 +1158,8 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
     return SPOD
 
 
-def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame,
-                          stations: list[int]=[], format: str="") -> dict[str: float]:
+def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[],
+                          format: str="", out: str='metrics_out') -> dict[str: float]:
     """Calculate all metrics.
 
     Parameters
@@ -1171,6 +1171,13 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame,
     stations: list[int]
             numbers pointing to the location of the stations in the list of stations.
             Values can be any number from 1 to number of stations in the data
+    format: str
+            used to indicate that you want the output to be saved to a output file who's
+            name is specified by the 'out' parameter
+    out: str
+            used in tandem with the 'format' parameter to specify the name of the output file.
+            it is 'metrics_out.{format}' by default
+
 
     Returns
     -------
@@ -1224,7 +1231,7 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame,
     # Check for a specified format, else print to screen
     if format:
         if format == "txt":
-            file = open("./metrics_out.txt", "w")
+            file = open(out+"."+format, "w")
             for key, value in results.items():
                 file.write(f"{key}: {value}\n")
             file.close()
@@ -1235,7 +1242,7 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame,
         return results
 
 def calculate_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, metrices: list[str],
-                      stations: list[int]=[], format: str="") -> dict[str, float]:
+                      stations: list[int]=[], format: str="", out: str='metrics_out') -> dict[str, float]:
     """Calculate the requested metrics.
 
     Parameters
@@ -1246,8 +1253,15 @@ def calculate_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, metrices:
             Simulated values[1: Day of the year; 2: Streamflow Values]
     metrices: List[str]
             List of metrics to be calculated
-    num_min: int 
-            number of days required to "warm up" the system
+    stations: list[int]
+            numbers pointing to the location of the stations in the list of stations.
+            Values can be any number from 1 to number of stations in the data
+    format: str
+            used to indicate that you want the output to be saved to a output file who's
+            name is specified by the 'out' parameter
+    out: str
+            used in tandem with the 'format' parameter to specify the name of the output file.
+            it is 'metrics_out.{format}' by default
 
     Returns
     -------
@@ -1323,7 +1337,7 @@ def calculate_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, metrices:
     # Check for a specified format, else print to screen
     if format:
         if format == "txt":
-            file = open("./metrics_out.txt", "w")
+            file = open(out+"."+format, "w")
             for key, value in values.items():
                 file.write(f"{key}: {value}\n")
             file.close()
