@@ -18,8 +18,8 @@ from postprocessinglib.utilities import helper_functions as hlp
 
 def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd.DataFrame = None,
          legend: tuple[str, str] = ('Simulated Data', 'Observed Data'), metrices: list[str] = None,
-         grid: bool = False, title: str = None, labels: tuple[str, str] = None,
-         linestyles: tuple[str, str] = ('r-', 'b-'), padding: bool = False ,
+         grid: bool = False, title: str = None, labels: tuple[str, str] = None, padding: bool = False ,
+         linestyles: tuple[str, str] = ('r-', 'b-'), linewidth: tuple[float, float] = (1.5, 1.25),
          fig_size: tuple[float, float] = (10,6), metrics_adjust: tuple[float, float] = (-0.35, 0.75),
          plot_adjust: float = 0.15):
     """ Create a comparison time series line plot of simulated and observed time series data
@@ -59,6 +59,10 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
     linestyles: tuple[str, str]
         List of two string type inputs thet will change the linestyle of the simulated and
         recorded data, respectively.
+
+    linewidth: tuple[float, float]
+        Tuple of length two tat specifies he thickness of the lines for both the Simulated and 
+        Observed data 
 
     padding: bool
         If true, will set the padding to zero for the lines in the line plot.
@@ -138,8 +142,8 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
         raise RuntimeError('either sim_df and obs_df or merged_df are required inputs.')
 
     # Plotting the Data
-    plt.plot(time, obs, linestyles[1], label=legend[1], linewidth = 1.5)
-    plt.plot(time, sim, linestyles[0], label=legend[0], linewidth = 1.25)
+    plt.plot(time, obs, linestyles[1], label=legend[1], linewidth = linewidth[1])
+    plt.plot(time, sim, linestyles[0], label=legend[0], linewidth = linewidth[0])
     plt.legend(fontsize=15)
 
     # Adjusting the plot if user wants tight x axis limits
@@ -366,7 +370,10 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
         plot. 
 
     best_fit: bool
-        If True, adds a best linear regression line on the graph with the equation for the line in the legend.  
+        If True, adds a best linear regression line on the graph with the equation for the line in the legend. 
+
+    line45: bool
+        IF True, adds a 45 degree line to the plot and the legend. 
 
     shapefile_path : str
         Tha path to a shapefile on top of which you will be plotting the scatter plot
@@ -409,6 +416,7 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
                grid = True,
                labels = ("Simulated Data", "Observed Data"),
                markerstyle = 'b.',
+               line45 = True,
                title = "Scatterplot of January 1981"
                )
 
@@ -467,6 +475,7 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
             # Plotting the best fit line with the equation as a legend in latex
             plt.plot(x_new, y_new, 'r', label="${}$".format(equation))
 
+        
         if line45:
             max = np.max([sim.max(), obs.max()])
             plt.plot(np.arange(0, int(max) + 1), np.arange(0, int(max) + 1), 'r--', label='45$^\u00b0$ Line')
