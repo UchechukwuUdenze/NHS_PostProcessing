@@ -143,8 +143,23 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
         raise RuntimeError('either sim_df and obs_df or merged_df are required inputs.')
 
     # Plotting the Data
-    if not isinstance(time, datetime.datetime):
-        time = np.asarray(time, dtype='float')
+    if not isinstance(time, pd.DatetimeIndex):
+        # if the index is not a datetime, then it was converted during aggregation to
+        # either a string (most likely) or an int or float
+        if (isinstance(time[0], int)) or (isinstance(time[0], float)):
+            pass
+        else:
+            if '/' in time[0]:
+                # daily
+                time = [pd.Timestamp(datetime.datetime.strptime(time[i], '%Y/%d').date()) for i in range (0, len(time))]
+            elif '.' in time[0]:
+                # weekly
+                time = [pd.Timestamp(datetime.datetime.strptime(time[i], '%Y.%U').date()) for i in range (0, len(time))]
+            elif '-' in time[0]:
+                # monthly
+                time = [pd.Timestamp(datetime.datetime.strptime(time[i], '%Y-%m').date()) for i in range (0, len(time))]
+            else: # yearly
+                time = np.asarray(time, dtype='float')
     plt.plot(time, obs, linestyles[1], label=legend[1], linewidth = linewidth[1])
     plt.plot(time, sim, linestyles[0], label=legend[0], linewidth = linewidth[0])
     plt.legend(fontsize=15)
