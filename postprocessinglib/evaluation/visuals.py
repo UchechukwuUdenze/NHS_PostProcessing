@@ -311,7 +311,7 @@ def histogram():
     return
 
 def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = None,
-         fig_size: tuple[float, float] = (10,6), best_fit :bool=False,
+         fig_size: tuple[float, float] = (10,6), best_fit: bool=False, line45: bool=False,
 
          merged_df: pd.DataFrame = None, obs_df: pd.DataFrame =  None, sim_df: pd.DataFrame = None,
          metrices: list[str] = None, markerstyle: str = 'ko',
@@ -467,6 +467,12 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
             # Plotting the best fit line with the equation as a legend in latex
             plt.plot(x_new, y_new, 'r', label="${}$".format(equation))
 
+        if line45:
+            max = np.max([sim.max(), obs.max()])
+            plt.plot(np.arange(0, int(max) + 1), np.arange(0, int(max) + 1), 'r--', label='45$^\u00b0$ Line')
+
+        
+        if best_fit or line45:
             plt.legend(fontsize=12)
 
         # Placing Metrics on the Plot if requested
@@ -489,7 +495,6 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
             plt.subplots_adjust(left=plot_adjust)
     else:
         metr = metrics.calculate_metrics(observed=observed, simulated=simulated, metrices=[metric])
-        shapefile = shapefile_path.replace("\\", "\\\\")
         data = {
             'latitude': y_axis.values,
             'longitude': x_axis.values,
@@ -502,7 +507,7 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
         gdf_points = gpd.GeoDataFrame(df, geometry=geometry)
         
         # Read the shapefile using GeoPandas
-        gdf_shapefile = gpd.read_file(shapefile)
+        gdf_shapefile = gpd.read_file(shapefile_path)
         
         fig= plt.figure(figsize=fig_size, dpi =150, frameon=True)
         ax = fig.add_axes([0,0.,.4,.1])
