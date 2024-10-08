@@ -11,6 +11,7 @@ import pandas as pd
 import geopandas as gpd
 import numpy as np
 import matplotlib.pyplot as plt
+import datetime
 from shapely.geometry import Point
 
 from postprocessinglib.evaluation import metrics
@@ -142,6 +143,8 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
         raise RuntimeError('either sim_df and obs_df or merged_df are required inputs.')
 
     # Plotting the Data
+    if not isinstance(time, datetime.datetime):
+        time = np.asarray(time, dtype='float')
     plt.plot(time, obs, linestyles[1], label=legend[1], linewidth = linewidth[1])
     plt.plot(time, sim, linestyles[0], label=legend[0], linewidth = linewidth[0])
     plt.legend(fontsize=15)

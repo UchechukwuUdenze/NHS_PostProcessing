@@ -249,17 +249,17 @@ def daily_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
         df_copy = df.copy()
 
         if method == "sum":
-            daily_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%m/%d")).sum()
+            daily_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%j")).sum()
         if method == "mean":
-            daily_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%m/%d")).mean()
+            daily_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%j")).mean()
         if method == "median":
-            daily_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%m/%d")).median()
+            daily_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%j")).median()
         if method == "min":
-            daily_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%m/%d")).min()
+            daily_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%j")).min()
         if method == "max":
-            daily_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%m/%d")).max()
+            daily_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%j")).max()
         if method == "inst":
-            daily_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%m/%d")).last() 
+            daily_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%j")).last() 
     
     return daily_aggr
 
@@ -329,17 +329,17 @@ def weekly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
         df_copy = df.copy()
 
         if method == "sum":
-            weekly_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%W")).sum()
+            weekly_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%U")).sum()
         if method == "mean":
-            weekly_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%W")).mean()
+            weekly_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%U")).mean()
         if method == "median":
-            weekly_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%W")).median()
+            weekly_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%U")).median()
         if method == "min":
-            weekly_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%W")).min()
+            weekly_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%U")).min()
         if method == "max":
-            weekly_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%W")).max()
+            weekly_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%U")).max()
         if method == "inst":
-            weekly_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%W")).last()    
+            weekly_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%U")).last()    
     
     return weekly_aggr
 
