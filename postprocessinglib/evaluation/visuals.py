@@ -22,7 +22,7 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
          grid: bool = False, title: str = None, labels: tuple[str, str] = None, padding: bool = False ,
          linestyles: tuple[str, str] = ('r-', 'b-'), linewidth: tuple[float, float] = (1.5, 1.25),
          fig_size: tuple[float, float] = (10,6), metrics_adjust: tuple[float, float] = (1.05, 0.5),
-         plot_adjust: float = 0.15):
+         plot_adjust: float = 0.15, save: bool=False):
     """ Create a comparison time series line plot of simulated and observed time series data
 
     Parameters
@@ -127,13 +127,13 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
          
     """
-    fig = plt.figure(figsize=fig_size, facecolor='w', edgecolor='k')
-    ax = fig.add_subplot(111)
-
     if merged_df is not None and sim_df is None and obs_df is None:
         # Setting Variable for the simulated data, observed data, and time stamps
         obs = merged_df.iloc[:, [0]]
         sim = merged_df.iloc[:, [1]]
+        for j in range(2, len(merged_df.columns), 2):
+            obs = pd.concat([obs, merged_df.iloc[:, j]], axis = 1)
+            sim = pd.concat([sim, merged_df.iloc[:, j+1]], axis = 1)
         time = merged_df.index
     elif sim_df is not None and obs_df is not None and merged_df is None:
         obs = obs_df
@@ -141,8 +141,10 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
         time = obs_df.index
     else:
         raise RuntimeError('either sim_df and obs_df or merged_df are required inputs.')
-
-    # Plotting the Data
+    
+    
+    # TODO: Add the new lines here
+    # Convert time index to float or int if not datetime
     if not isinstance(time, pd.DatetimeIndex):
         # if the index is not a datetime, then it was converted during aggregation to
         # either a string (most likely) or an int or float
@@ -164,57 +166,125 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
                 time = [pd.Timestamp(datetime.datetime.strptime(week, '%Y-%m').date()) for week in time]
             else: # yearly
                 time = np.asarray(time, dtype='float')
-            
-    plt.plot(time, obs, linestyles[1], label=legend[1], linewidth = linewidth[1])
-    plt.plot(time, sim, linestyles[0], label=legend[0], linewidth = linewidth[0])
-    plt.legend(fontsize=15)
 
-    # Adjusting the plot if user wants tight x axis limits
-    if padding:
-        plt.xlim(time[0], time[-1])
+    if len(obs.columns) <= 5:
+        for i in range (0, len(obs.columns)):
+            # Plotting the Data     
+            fig = plt.figure(figsize=fig_size, facecolor='w', edgecolor='k')
+            ax = fig.add_subplot(111)                       
+            plt.plot(time, obs[obs.columns[i]], linestyles[1], label=legend[1], linewidth = linewidth[1])
+            plt.plot(time, sim[sim.columns[i]], linestyles[0], label=legend[0], linewidth = linewidth[0])
+            plt.legend(fontsize=15)
 
-    plt.xticks(fontsize=15, rotation=45)
-    plt.yticks(fontsize=15)
+            # Adjusting the plot if user wants tight x axis limits
+            if padding:
+                plt.xlim(time[0], time[-1])
 
-    # Placing Labels if requested
-    if labels:
-        # Plotting Labels
-        plt.xlabel(labels[0], fontsize=18)
-        plt.ylabel(labels[1], fontsize=18)
-    if title:
-        title_dict = {'family': 'sans-serif',
-                      'color': 'black',
-                      'weight': 'normal',
-                      'size': 20,
-                      }
-        ax.set_title(label=title, fontdict=title_dict, pad=25)
+            plt.xticks(fontsize=15, rotation=45)
+            plt.yticks(fontsize=15)
 
-    # Placing a grid if requested
-    if grid:
-        plt.grid(True)
+            # Placing Labels if requested
+            if labels:
+                # Plotting Labels
+                plt.xlabel(labels[0], fontsize=18)
+                plt.ylabel(labels[1], fontsize=18)
+            if title:
+                title_dict = {'family': 'sans-serif',
+                            'color': 'black',
+                            'weight': 'normal',
+                            'size': 20,
+                            }
+                ax.set_title(label=title, fontdict=title_dict, pad=25)
 
-    # Fixes issues with parts of plot being cut off
-    plt.tight_layout()
+            # Placing a grid if requested
+            if grid:
+                plt.grid(True)
 
-    # Placing Metrics on the Plot if requested
-    if metrices:
-        formatted_selected_metrics = 'Metrics:\n'
-        if metrices == 'all':
-            for key, value in metrics.calculate_all_metrics(observed=obs, simulated=sim).items():
-                formatted_selected_metrics += key + ' : ' + str(value[0]) + '\n'
-        else: 
-            assert isinstance(metrices, list)
-            for key, value in metrics.calculate_metrics(observed=obs, simulated=sim, metrices=metrices).items():
-                formatted_selected_metrics += key + ' : ' + str(value[0]) + '\n'
+            # Fixes issues with parts of plot being cut off
+            plt.tight_layout()
 
-        font = {'family': 'sans-serif',
-                'weight': 'normal',
-                'size': 12}
-        plt.text(metrics_adjust[0], metrics_adjust[1], formatted_selected_metrics, ha='left',
-                 va='center', transform=ax.transAxes, fontdict=font, mouseover = True,
-                 bbox = dict(boxstyle = "round, pad = 0.5,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
+            # Placing Metrics on the Plot if requested
+            if metrices:
+                formatted_selected_metrics = 'Metrics:\n'
+                if metrices == 'all':
+                    for key, value in metrics.calculate_all_metrics(observed=obs, simulated=sim).items():
+                        formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
+                else: 
+                    assert isinstance(metrices, list)
+                    for key, value in metrics.calculate_metrics(observed=obs, simulated=sim, metrices=metrices).items():
+                        formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
 
-        plt.subplots_adjust(left=plot_adjust)
+                font = {'family': 'sans-serif',
+                        'weight': 'normal',
+                        'size': 12}
+                plt.text(metrics_adjust[0], metrics_adjust[1], formatted_selected_metrics, ha='left',
+                        va='center', transform=ax.transAxes, fontdict=font, mouseover = True,
+                        bbox = dict(boxstyle = "round, pad = 0.5,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
+
+                plt.subplots_adjust(right = 0.95-plot_adjust)
+
+                # save to file if requested 
+                if save:
+                   plt.savefig(f"plot_{i+1}.png")
+    else:
+        for i in range (0, len(obs.columns)):
+            # Plotting the Data     
+            fig = plt.figure(figsize=fig_size, facecolor='w', edgecolor='k')
+            ax = fig.add_subplot(111)                       
+            plt.plot(time, obs[obs.columns[i]], linestyles[1], label=legend[1], linewidth = linewidth[1])
+            plt.plot(time, sim[sim.columns[i]], linestyles[0], label=legend[0], linewidth = linewidth[0])
+            plt.legend(fontsize=15)
+
+            # Adjusting the plot if user wants tight x axis limits
+            if padding:
+                plt.xlim(time[0], time[-1])
+
+            plt.xticks(fontsize=15, rotation=45)
+            plt.yticks(fontsize=15)
+
+            # Placing Labels if requested
+            if labels:
+                # Plotting Labels
+                plt.xlabel(labels[0], fontsize=18)
+                plt.ylabel(labels[1], fontsize=18)
+            if title:
+                title_dict = {'family': 'sans-serif',
+                            'color': 'black',
+                            'weight': 'normal',
+                            'size': 20,
+                            }
+                ax.set_title(label=title, fontdict=title_dict, pad=25)
+
+            # Placing a grid if requested
+            if grid:
+                plt.grid(True)
+
+            # Fixes issues with parts of plot being cut off
+            plt.tight_layout()
+
+            # Placing Metrics on the Plot if requested
+            if metrices:
+                formatted_selected_metrics = 'Metrics:\n'
+                if metrices == 'all':
+                    for key, value in metrics.calculate_all_metrics(observed=obs, simulated=sim).items():
+                        formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
+                else: 
+                    assert isinstance(metrices, list)
+                    for key, value in metrics.calculate_metrics(observed=obs, simulated=sim, metrices=metrices).items():
+                        formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
+
+                font = {'family': 'sans-serif',
+                        'weight': 'normal',
+                        'size': 12}
+                plt.text(metrics_adjust[0], metrics_adjust[1], formatted_selected_metrics, ha='left',
+                        va='center', transform=ax.transAxes, fontdict=font, mouseover = True,
+                        bbox = dict(boxstyle = "round, pad = 0.5,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
+
+                plt.subplots_adjust(right = 0.95-plot_adjust)
+                plt.savefig(f"plot_{i+1}.png")
+                plt.close(fig)
+
+
 
 def plot_seasonal(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd.DataFrame = None,
          legend: tuple[str, str] = ('Simulated Data', 'Observed Data'), grid: bool = False, title: str = None,

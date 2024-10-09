@@ -630,10 +630,8 @@ def generate_dataframes(csv_fpath: str='', sim_fpath: str='', obs_fpath: str='',
         simulated.drop(simulated.iloc[:, 0:], inplace=True, axis=1)
         observed.drop(observed.iloc[:, 0:], inplace=True, axis=1)
         for j in range(0, len(df.columns), 2):
-            arr1 = df.iloc[warm_up:, j]
-            arr2 = df.iloc[warm_up:, j+1]
-            observed = pd.concat([observed, arr1], axis = 1)
-            simulated = pd.concat([simulated, arr2], axis = 1)
+            observed = pd.concat([observed, df.iloc[warm_up:, j]], axis = 1)
+            simulated = pd.concat([simulated, df.iloc[warm_up:, j+1]], axis = 1)
 
     elif sim_fpath and obs_fpath:
         # read the simulated and observed csv files into dataframes
