@@ -102,7 +102,7 @@ def mse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
         
             summation = np.sum((abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))**2)        
             mse = summation/len(valid_observed)  #dividing summation by total number of values to obtain average    
-            MSE.append(mse)
+            MSE.append(round(mse, 4))
     else:
         for j in stations:
             # Adjust for zero indexing
@@ -113,7 +113,7 @@ def mse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
         
             summation = np.sum((abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))**2)        
             mse = summation/len(valid_observed)  #dividing summation by total number of values to obtain average    
-            MSE.append(mse)
+            MSE.append(round(mse, 4))
     
     return MSE
 
@@ -184,7 +184,7 @@ def rmse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
             
             summation = np.sum((abs((valid_observed.iloc[:, j]) - simulated.iloc[:, j]))**2)
             rmse = np.sqrt(summation/len(valid_observed)) #dividing summation by total number of values to obtain average    
-            RMSE.append(rmse)    
+            RMSE.append(round(rmse, 4))
     else:
         for j in stations:
             # Adjust for zero indexing
@@ -195,7 +195,7 @@ def rmse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
             
             summation = np.sum((abs((valid_observed.iloc[:, j]) - simulated.iloc[:, j]))**2)
             rmse = np.sqrt(summation/len(valid_observed)) #dividing summation by total number of values to obtain average    
-            RMSE.append(rmse)
+            RMSE.append(round(rmse, 4))
 
     return RMSE
 
@@ -266,7 +266,7 @@ def mae(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
             
             summation = np.sum(abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))
             mae = summation/len(valid_observed)  #dividing summation by total number of values to obtain average   
-            MAE.append(mae)
+            MAE.append(round(mae, 4))
     else:
         for j in stations:
             # Adjust for zero indexing
@@ -277,7 +277,7 @@ def mae(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
             
             summation = np.sum(abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))
             mae = summation/len(valid_observed)  #dividing summation by total number of values to obtain average   
-            MAE.append(mae)
+            MAE.append(round(mae, 4))
 
     return MAE
 
@@ -354,7 +354,7 @@ def nse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
             summation_denom = np.sum((abs(valid_observed.iloc[:, j] - observed_mean))**2)
             
             nse = (1 - (summation_num/summation_denom))  #dividing summation by total number of values to obtain average
-            NSE.append(nse)
+            NSE.append(round(nse, 4))
     else:
         for j in stations:
             # Adjust for zero indexing
@@ -371,7 +371,7 @@ def nse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
             summation_denom = np.sum((abs(valid_observed.iloc[:, j] - observed_mean))**2)
             
             nse = (1 - (summation_num/summation_denom))  #dividing summation by total number of values to obtain average
-            NSE.append(nse)
+            NSE.append(round(nse, 4))
         
     return NSE
 
@@ -447,7 +447,7 @@ def lognse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=
             summation_denom = np.sum((abs(np.log(valid_observed.iloc[:, j]) - observed_mean))**2)
             
             lognse = (1 - (summation_num/summation_denom))  #dividing summation by total number of values to obtain average
-            LOGNSE.append(lognse)
+            LOGNSE.append(round(lognse, 4))
     else:
         for j in stations:
             # Adjust for zero indexing
@@ -464,7 +464,7 @@ def lognse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=
             summation_denom = np.sum((abs(np.log(valid_observed.iloc[:, j]) - observed_mean))**2)
             
             lognse = (1 - (summation_num/summation_denom))  #dividing summation by total number of values to obtain average
-            LOGNSE.append(lognse)
+            LOGNSE.append(round(lognse, 4))
 
     return LOGNSE
 
@@ -560,7 +560,7 @@ def kge(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[],
             a = std_simulated / std_observed
             
             kge = 1 - np.sqrt((scale[0]*(r - 1))**2 + (scale[1]*(a - 1))**2 + (scale[2]*(b - 1))**2)
-            KGE.append(kge)
+            KGE.append(round(kge, 4))
     else:
         for j in stations:
             # Adjust for zero indexing
@@ -592,7 +592,7 @@ def kge(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[],
             a = std_simulated / std_observed
             
             kge = 1 - np.sqrt((scale[0]*(r - 1))**2 + (scale[1]*(a - 1))**2 + (scale[2]*(b - 1))**2)
-            KGE.append(kge)
+            KGE.append(round(kge, 4))
 
     return KGE
 
@@ -688,7 +688,7 @@ def kge_2012(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int
             a =  (std_simulated/ mean_simulated)/(std_observed / mean_observed)
             
             kge = 1 - np.sqrt((scale[0]*(r - 1))**2 + (scale[1]*(a - 1))**2 + (scale[2]*(b - 1))**2)
-            KGE.append(kge)
+            KGE.append(round(kge, 4))
     else:
         for j in stations:
             # Adjust for zero indexing
@@ -720,7 +720,7 @@ def kge_2012(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int
             a =  (std_simulated/ mean_simulated)/(std_observed / mean_observed)
             
             kge = 1 - np.sqrt((scale[0]*(r - 1))**2 + (scale[1]*(a - 1))**2 + (scale[2]*(b - 1))**2)
-            KGE.append(kge)
+            KGE.append(round(kge, 4))
 
     return KGE
 
@@ -790,7 +790,7 @@ def bias(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
             valid_observed = hlp.filter_valid_data(observed, station_num = j)
             
             bias = np.sum(simulated.iloc[:, j] - valid_observed.iloc[:, j])/np.sum(abs(valid_observed.iloc[:, j])) * 100
-            BIAS.append(bias)
+            BIAS.append(round(bias, 4))
     else:
         for j in stations:
             # Adjust for zero indexing
@@ -800,7 +800,7 @@ def bias(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
             valid_observed = hlp.filter_valid_data(observed, station_num = j)
             
             bias = np.sum(simulated.iloc[:, j] - valid_observed.iloc[:, j])/np.sum(abs(valid_observed.iloc[:, j])) * 100
-            BIAS.append(bias)
+            BIAS.append(round(bias, 4))
 
     return BIAS
         
@@ -890,7 +890,7 @@ def time_to_peak(df: pd.DataFrame, stations: list[int]=[])->float:
                 first += valid_values
                 year += 1
             ttp = np.mean(yearly_ttp)
-            TTP.append(ttp)
+            TTP.append(round(ttp, 2))
     else:
         for j in stations:
             # Adjust for zero indexing
@@ -913,7 +913,7 @@ def time_to_peak(df: pd.DataFrame, stations: list[int]=[])->float:
                 first += valid_values
                 year += 1
             ttp = np.mean(yearly_ttp)
-            TTP.append(ttp)
+            TTP.append(round(ttp, 2))
 
     return TTP
 
@@ -1002,7 +1002,7 @@ def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[])->float:
                 first += valid_values
                 year += 1
             ttcom = np.mean(yearly_ttcom)
-            TTCoM.append(ttcom)
+            TTCoM.append(round(ttcom, 2))
     else:
         for j in stations:
             # Adjust for zero indexing
@@ -1026,7 +1026,7 @@ def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[])->float:
                 first += valid_values
                 year += 1
             ttcom = np.mean(yearly_ttcom)
-            TTCoM.append(ttcom)
+            TTCoM.append(round(ttcom, 2))
 
     return TTCoM
 
@@ -1122,7 +1122,7 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
                 first += valid_values
                 year += 1          
             spod = np.mean(yearly_spod)
-            SPOD.append(spod)
+            SPOD.append(round(spod, 2))
     else:
         for j in stations:
             # Adjust for zero indexing
@@ -1153,7 +1153,7 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
                 first += valid_values
                 year += 1          
             spod = np.mean(yearly_spod)
-            SPOD.append(spod)
+            SPOD.append(round(spod, 2))
 
     return SPOD
 

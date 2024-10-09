@@ -21,7 +21,7 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
          legend: tuple[str, str] = ('Simulated Data', 'Observed Data'), metrices: list[str] = None,
          grid: bool = False, title: str = None, labels: tuple[str, str] = None, padding: bool = False ,
          linestyles: tuple[str, str] = ('r-', 'b-'), linewidth: tuple[float, float] = (1.5, 1.25),
-         fig_size: tuple[float, float] = (10,6), metrics_adjust: tuple[float, float] = (-0.35, 0.75),
+         fig_size: tuple[float, float] = (10,6), metrics_adjust: tuple[float, float] = (1.05, 0.5),
          plot_adjust: float = 0.15):
     """ Create a comparison time series line plot of simulated and observed time series data
 
@@ -198,7 +198,7 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
 
     # Placing Metrics on the Plot if requested
     if metrices:
-        formatted_selected_metrics = 'Metrics for this station: \n'
+        formatted_selected_metrics = 'Metrics:\n'
         if metrices == 'all':
             for key, value in metrics.calculate_all_metrics(observed=obs, simulated=sim).items():
                 formatted_selected_metrics += key + ' : ' + str(value[0]) + '\n'
@@ -210,8 +210,9 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
         font = {'family': 'sans-serif',
                 'weight': 'normal',
                 'size': 12}
-        plt.text(metrics_adjust[0], metrics_adjust[1], formatted_selected_metrics, ha='left', va='center',
-                 transform=ax.transAxes, fontdict=font)
+        plt.text(metrics_adjust[0], metrics_adjust[1], formatted_selected_metrics, ha='left',
+                 va='center', transform=ax.transAxes, fontdict=font, mouseover = True,
+                 bbox = dict(boxstyle = "round, pad = 0.5,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
 
         plt.subplots_adjust(left=plot_adjust)
 
@@ -342,7 +343,7 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
 
          merged_df: pd.DataFrame = None, obs_df: pd.DataFrame =  None, sim_df: pd.DataFrame = None,
          metrices: list[str] = None, markerstyle: str = 'ko',
-         metrics_adjust: tuple[float, float] = (-0.35, 0.75), plot_adjust: float = 0.15,
+         metrics_adjust: tuple[float, float] = (1.05, 0.5), plot_adjust: float = 0.15,
 
          shapefile_path: str = "", x_axis : pd.DataFrame=None, y_axis : pd.DataFrame=None,
          metric: str="", observed: pd.DataFrame = None, simulated: pd.DataFrame = None):
@@ -509,7 +510,7 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
 
         # Placing Metrics on the Plot if requested
         if metrices:
-            formatted_selected_metrics = 'Metrics for this data: \n'
+            formatted_selected_metrics = 'Metrics: \n'
             if metrices == 'all':
                 for key, value in metrics.calculate_all_metrics(observed=obs, simulated=sim).items():
                     formatted_selected_metrics += key + ' : ' + str(value[0]) + '\n'
@@ -521,8 +522,9 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
             font = {'family': 'sans-serif',
                     'weight': 'normal',
                     'size': 12}
-            plt.text(metrics_adjust[0], metrics_adjust[1], formatted_selected_metrics, ha='left', va='center',
-                    transform=ax.transAxes, fontdict=font)
+            plt.text(metrics_adjust[0], metrics_adjust[1], formatted_selected_metrics, ha='left',
+                 va='center', transform=ax.transAxes, fontdict=font, mouseover = True,
+                 bbox = dict(boxstyle = "round4, pad = 0.6,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
 
             plt.subplots_adjust(left=plot_adjust)
     else:
