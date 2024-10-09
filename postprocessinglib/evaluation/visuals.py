@@ -151,15 +151,20 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
         else:
             if '/' in time[0]:
                 # daily
-                time = [pd.Timestamp(datetime.datetime.strptime(time[i], '%Y/%d').date()) for i in range (0, len(time))]
+                time = [pd.Timestamp(datetime.datetime.strptime(week, '%Y/%j').date()) for week in time]
             elif '.' in time[0]:
+                print(True)
                 # weekly
-                time = [pd.Timestamp(datetime.datetime.strptime(time[i], '%Y.%U').date()) for i in range (0, len(time))]
+                # datetime ignores the week specifier unless theres a weekday attached,
+                # so we attach Sunday - day 0
+                time = [week+'.0' for week in time]
+                time = [pd.Timestamp(datetime.datetime.strptime(week, '%Y.%U.%w').date()) for week in time]
             elif '-' in time[0]:
                 # monthly
-                time = [pd.Timestamp(datetime.datetime.strptime(time[i], '%Y-%m').date()) for i in range (0, len(time))]
+                time = [pd.Timestamp(datetime.datetime.strptime(week, '%Y-%m').date()) for week in time]
             else: # yearly
                 time = np.asarray(time, dtype='float')
+            
     plt.plot(time, obs, linestyles[1], label=legend[1], linewidth = linewidth[1])
     plt.plot(time, sim, linestyles[0], label=legend[0], linewidth = linewidth[0])
     plt.legend(fontsize=15)
@@ -270,7 +275,7 @@ def plot_seasonal(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, s
         # Selecting the Variable for the simulated data, observed data, and time stamps
         copy = merged_df.copy()
         copy.index = copy.index.strftime("%Y-%m-%d")
-        copy.index = pd.MultiIndex.from_tuples([hlp.datetime_to_index(copy.index[i]) for i in range(0, len(copy.index))],
+        copy.index = pd.MultiIndex.from_tuples([hlp.datetime_to_index(index) for index in copy.index],
                                                names=('year', 'jday'))
         copy = copy.groupby(level = 'jday').mean()
 
@@ -281,13 +286,13 @@ def plot_seasonal(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, s
         # Selecting the Variable for the simulated data, observed data, and time stamps
         obs_copy = obs_df.copy()
         obs_copy.index = obs_copy.index.strftime("%Y-%m-%d")
-        obs_copy.index = pd.MultiIndex.from_tuples([hlp.datetime_to_index(obs_copy.index[i]) for i in range(0, len(obs_copy.index))],
+        obs_copy.index = pd.MultiIndex.from_tuples([hlp.datetime_to_index(index) for index in obs_copy.index],
                                                names=('year', 'jday'))
         obs_copy = obs_copy.groupby(level = 'jday').mean()
 
         sim_copy = sim_df.copy()
         sim_copy.index = sim_copy.index.strftime("%Y-%m-%d")
-        sim_copy.index = pd.MultiIndex.from_tuples([hlp.datetime_to_index(sim_copy.index[i]) for i in range(0, len(sim_copy.index))],
+        sim_copy.index = pd.MultiIndex.from_tuples([hlp.datetime_to_index(index) for index in sim_copy.index],
                                                names=('year', 'jday'))
         sim_copy = sim_copy.groupby(level = 'jday').mean()
 
