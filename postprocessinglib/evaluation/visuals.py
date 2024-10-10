@@ -549,7 +549,7 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
             for j in range(2, len(merged_df.columns), 2):
                 obs = pd.concat([obs, merged_df.iloc[:, j]], axis = 1)
                 sim = pd.concat([sim, merged_df.iloc[:, j+1]], axis = 1)
-        elif merged_df is None and not obs_df is not None or not sim_df is not None:
+        elif merged_df is None and obs_df is not None and sim_df is not None:
             obs = obs_df
             sim = sim_df
         else:

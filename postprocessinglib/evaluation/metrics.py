@@ -832,23 +832,24 @@ def time_to_peak(df: pd.DataFrame, stations: list[int]=[])->float:
     Calculation of the Time to Peak
 
     >>> from postprocessinglib.evaluation import metrics, data
+    >>> path = 'MESH_output_streamflow_1.csv'
     >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365)
     >>> observed = DATAFRAMES["DF_OBSERVED"] 
     >>> simulated = DATAFRAMES["DF_SIMULATED"]
     >>> print(observed)
                 QOMEAS_05BB001  QOMEAS_05BA001
     YEAR JDAY
-    1980 366            10.20            -1.0
-    1981 1               9.85            -1.0
-         2              10.20            -1.0
-         3              10.00            -1.0
-         4              10.10            -1.0
+    1980 366            10.20            NaN
+    1981 1               9.85            NaN
+         2              10.20            NaN
+         3              10.00            NaN
+         4              10.10            NaN
     ...                   ...             ...
-    2017 361            -1.00            -1.0
-         362            -1.00            -1.0
-         363            -1.00            -1.0
-         364            -1.00            -1.0
-         365            -1.00            -1.0
+    2017 361              NaN            NaN
+         362              NaN            NaN
+         363              NaN            NaN
+         364              NaN            NaN
+         365              NaN            NaN
     >>> .
     >>> print(simulated)
            QOSIM_05BB001  QOSIM_05BA001
@@ -942,23 +943,24 @@ def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[])->float:
     Calculation of the time to center of mass
 
     >>> from postprocessinglib.evaluation import metrics, data
+    >>> path = 'MESH_output_streamflow_1.csv'
     >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365)
     >>> observed = DATAFRAMES["DF_OBSERVED"] 
     >>> simulated = DATAFRAMES["DF_SIMULATED"]
     >>> print(observed)
                 QOMEAS_05BB001  QOMEAS_05BA001
     YEAR JDAY
-    1980 366            10.20            -1.0
-    1981 1               9.85            -1.0
-         2              10.20            -1.0
-         3              10.00            -1.0
-         4              10.10            -1.0
+    1980 366            10.20            NaN
+    1981 1               9.85            NaN
+         2              10.20            NaN
+         3              10.00            NaN
+         4              10.10            NaN
     ...                   ...             ...
-    2017 361            -1.00            -1.0
-         362            -1.00            -1.0
-         363            -1.00            -1.0
-         364            -1.00            -1.0
-         365            -1.00            -1.0
+    2017 361              NaN            NaN
+         362              NaN            NaN
+         363              NaN            NaN
+         364              NaN            NaN
+         365              NaN            NaN
     >>> .
     >>> print(simulated)
            QOSIM_05BB001  QOSIM_05BA001
@@ -1054,23 +1056,24 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
     Calculation of the SpringPulseOnset
 
     >>> from postprocessinglib.evaluation import metrics, data
+    >>> path = 'MESH_output_streamflow_1.csv'
     >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365)
     >>> observed = DATAFRAMES["DF_OBSERVED"] 
     >>> simulated = DATAFRAMES["DF_SIMULATED"]
     >>> print(observed)
                 QOMEAS_05BB001  QOMEAS_05BA001
     YEAR JDAY
-    1980 366            10.20            -1.0
-    1981 1               9.85            -1.0
-         2              10.20            -1.0
-         3              10.00            -1.0
-         4              10.10            -1.0
+    1980 366            10.20            NaN
+    1981 1               9.85            NaN
+         2              10.20            NaN
+         3              10.00            NaN
+         4              10.10            NaN
     ...                   ...             ...
-    2017 361            -1.00            -1.0
-         362            -1.00            -1.0
-         363            -1.00            -1.0
-         364            -1.00            -1.0
-         365            -1.00            -1.0
+    2017 361              NaN            NaN
+         362              NaN            NaN
+         363              NaN            NaN
+         364              NaN            NaN
+         365              NaN            NaN
     >>> .
     >>> print(simulated)
            QOSIM_05BB001  QOSIM_05BA001
