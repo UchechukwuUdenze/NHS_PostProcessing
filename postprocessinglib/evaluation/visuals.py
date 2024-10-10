@@ -22,7 +22,7 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
          grid: bool = False, title: str = None, labels: tuple[str, str] = None, padding: bool = False ,
          linestyles: tuple[str, str] = ('r-', 'b-'), linewidth: tuple[float, float] = (1.5, 1.25),
          fig_size: tuple[float, float] = (10,6), metrics_adjust: tuple[float, float] = (1.05, 0.5),
-         plot_adjust: float = 0.15, save: bool=False):
+         plot_adjust: float = 0.2, save: bool=False):
     """ Create a comparison time series line plot of simulated and observed time series data
 
     Parameters
@@ -82,7 +82,7 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
 
     Returns
     -------
-    fig : Matplotlib figure instance
+    fig : Matplotlib figure instance and/or png files of the figures.
     
     Examples
     --------
@@ -141,9 +141,7 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
         time = obs_df.index
     else:
         raise RuntimeError('either sim_df and obs_df or merged_df are required inputs.')
-    
-    
-    # TODO: Add the new lines here
+
     # Convert time index to float or int if not datetime
     if not isinstance(time, pd.DatetimeIndex):
         # if the index is not a datetime, then it was converted during aggregation to
@@ -221,15 +219,16 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
                         va='center', transform=ax.transAxes, fontdict=font, mouseover = True,
                         bbox = dict(boxstyle = "round, pad = 0.5,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
 
-                plt.subplots_adjust(right = 0.95-plot_adjust)
+                plt.subplots_adjust(right = 1-plot_adjust)
 
-                # save to file if requested 
-                if save:
-                   plt.savefig(f"plot_{i+1}.png")
+            # save to file if requested 
+            if save:
+                fig.set_facecolor('gainsboro')
+                plt.savefig(f"plot_{i+1}.png")
     else:
         for i in range (0, len(obs.columns)):
             # Plotting the Data     
-            fig = plt.figure(figsize=fig_size, facecolor='w', edgecolor='k')
+            fig = plt.figure(figsize=fig_size, facecolor='gainsboro', edgecolor='k')
             ax = fig.add_subplot(111)                       
             plt.plot(time, obs[obs.columns[i]], linestyles[1], label=legend[1], linewidth = linewidth[1])
             plt.plot(time, sim[sim.columns[i]], linestyles[0], label=legend[0], linewidth = linewidth[0])
@@ -280,9 +279,9 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
                         va='center', transform=ax.transAxes, fontdict=font, mouseover = True,
                         bbox = dict(boxstyle = "round, pad = 0.5,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
 
-                plt.subplots_adjust(right = 0.95-plot_adjust)
-                plt.savefig(f"plot_{i+1}.png")
-                plt.close(fig)
+                plt.subplots_adjust(right = 1-plot_adjust)
+            plt.savefig(f"plot_{i+1}.png")
+            plt.close(fig)
 
 
 
@@ -412,8 +411,8 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
          fig_size: tuple[float, float] = (10,6), best_fit: bool=False, line45: bool=False,
 
          merged_df: pd.DataFrame = None, obs_df: pd.DataFrame =  None, sim_df: pd.DataFrame = None,
-         metrices: list[str] = None, markerstyle: str = 'ko',
-         metrics_adjust: tuple[float, float] = (1.05, 0.5), plot_adjust: float = 0.15,
+         metrices: list[str] = None, markerstyle: str = 'ko', save: bool=False,
+         metrics_adjust: tuple[float, float] = (1.05, 0.5), plot_adjust: float = 0.2,
 
          shapefile_path: str = "", x_axis : pd.DataFrame=None, y_axis : pd.DataFrame=None,
          metric: str="", observed: pd.DataFrame = None, simulated: pd.DataFrame = None):
@@ -537,66 +536,172 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
     """     
     # Plotting the Data
     if not shapefile_path:
-        fig = plt.figure(figsize=fig_size, facecolor='w', edgecolor='k')
-        ax = fig.add_subplot(111)
-
         if merged_df is not None and sim_df is None and obs_df is None:
             # Setting Variable for the simulated and observed data
             obs = merged_df.iloc[:, [0]]
             sim = merged_df.iloc[:, [1]]
+            for j in range(2, len(merged_df.columns), 2):
+                obs = pd.concat([obs, merged_df.iloc[:, j]], axis = 1)
+                sim = pd.concat([sim, merged_df.iloc[:, j+1]], axis = 1)
         elif merged_df is None and not obs_df is not None or not sim_df is not None:
             obs = obs_df
             sim = sim_df
         else:
             raise RuntimeError('either sim_df and obs_df or merged_df are required inputs.')
 
-        plt.plot(sim, obs, markerstyle)
-        plt.xticks(fontsize=15, rotation=45)
-        plt.yticks(fontsize=15)
+        if len(obs.columns) <= 5:
+            for i in range (0, len(obs.columns)):
+                # Plotting the Data
+                fig = plt.figure(figsize=fig_size, facecolor='w', edgecolor='k')
+                ax = fig.add_subplot(111) 
+                plt.plot(sim[sim.columns[i]], obs[obs.columns[i]], markerstyle)
+                plt.xticks(fontsize=15, rotation=45)
+                plt.yticks(fontsize=15)
 
-        if best_fit:
-            # Getting a polynomial fit and defining a function with it
-            p = np.polyfit(sim.iloc[:, 0], obs.iloc[:, 0], 1)
-            f = np.poly1d(p)
+                if best_fit:
+                    # Getting a polynomial fit and defining a function with it
+                    p = np.polyfit(sim.iloc[:, i], obs.iloc[:, i], 1)
+                    f = np.poly1d(p)
 
-            # Calculating new x's and y's
-            x_new = np.linspace(sim.min(), sim.max(), sim.size)
-            y_new = f(x_new)
+                    # Calculating new x's and y's
+                    x_new = np.linspace(sim.iloc[:, i].min(), sim.iloc[:, i].max(), sim.size)
+                    y_new = f(x_new)
 
-            # Formatting the best fit equation to be able to display in latex
-            equation = "{} x + {}".format(np.round(p[0], 4), np.round(p[1], 4))
+                    # Formatting the best fit equation to be able to display in latex
+                    equation = "{} x + {}".format(np.round(p[0], 4), np.round(p[1], 4))
 
-            # Plotting the best fit line with the equation as a legend in latex
-            plt.plot(x_new, y_new, 'r', label="${}$".format(equation))
+                    # Plotting the best fit line with the equation as a legend in latex
+                    plt.plot(x_new, y_new, 'r', label="${}$".format(equation))
 
-        
-        if line45:
-            max = np.max([sim.max(), obs.max()])
-            plt.plot(np.arange(0, int(max) + 1), np.arange(0, int(max) + 1), 'r--', label='45$^\u00b0$ Line')
+                
+                if line45:
+                    max = np.nanmax([sim.iloc[:, i].max(), obs.iloc[:, i].max()])
+                    plt.plot(np.arange(0, int(max) + 1), np.arange(0, int(max) + 1), 'r--', label='45$^\u00b0$ Line')
 
-        
-        if best_fit or line45:
-            plt.legend(fontsize=12)
+                
+                if best_fit or line45:
+                    plt.legend(fontsize=12)
+                
+                # Placing Labels if requested
+                if labels:
+                    # Plotting Labels
+                    plt.xlabel(labels[0], fontsize=12)
+                    plt.ylabel(labels[1], fontsize=12)
 
-        # Placing Metrics on the Plot if requested
-        if metrices:
-            formatted_selected_metrics = 'Metrics: \n'
-            if metrices == 'all':
-                for key, value in metrics.calculate_all_metrics(observed=obs, simulated=sim).items():
-                    formatted_selected_metrics += key + ' : ' + str(value[0]) + '\n'
-            else: 
-                assert isinstance(metrices, list)
-                for key, value in metrics.calculate_metrics(observed=obs, simulated=sim, metrices=metrices).items():
-                    formatted_selected_metrics += key + ' : ' + str(value[0]) + '\n'
+                if title:
+                    title_dict = {'family': 'sans-serif',
+                                'color': 'black',
+                                'weight': 'normal',
+                                'size': 20,
+                                }
+                    ax.set_title(label=title, fontdict=title_dict, pad=25)
 
-            font = {'family': 'sans-serif',
-                    'weight': 'normal',
-                    'size': 12}
-            plt.text(metrics_adjust[0], metrics_adjust[1], formatted_selected_metrics, ha='left',
-                 va='center', transform=ax.transAxes, fontdict=font, mouseover = True,
-                 bbox = dict(boxstyle = "round4, pad = 0.6,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
+                # Placing a grid if requested
+                if grid:
+                    plt.grid(True)
+                
+                plt.tight_layout()
 
-            plt.subplots_adjust(left=plot_adjust)
+                # Placing Metrics on the Plot if requested
+                if metrices:
+                    formatted_selected_metrics = 'Metrics: \n'
+                    if metrices == 'all':
+                        for key, value in metrics.calculate_all_metrics(observed=obs, simulated=sim).items():
+                            formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
+                    else: 
+                        assert isinstance(metrices, list)
+                        for key, value in metrics.calculate_metrics(observed=obs, simulated=sim, metrices=metrices).items():
+                            formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
+
+                    font = {'family': 'sans-serif',
+                            'weight': 'normal',
+                            'size': 12}
+                    plt.text(metrics_adjust[0], metrics_adjust[1], formatted_selected_metrics, ha='left',
+                        va='center', transform=ax.transAxes, fontdict=font, mouseover = True,
+                        bbox = dict(boxstyle = "round4, pad = 0.6,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
+
+                    plt.subplots_adjust(right = 1-plot_adjust)
+                
+                # plt.subplots_adjust(bottom= plot_adjust)
+
+                # save to file if requested 
+                if save:
+                    fig.set_facecolor("gainsboro")
+                    plt.savefig(f"plot_{i+1}.png")
+        else:
+            for i in range (0, len(obs.columns)):
+                # Plotting the Data
+                fig = plt.figure(figsize=fig_size, facecolor="gainsboro", edgecolor='k')
+                ax = fig.add_subplot(111) 
+                plt.plot(sim[sim.columns[i]], obs[obs.columns[i]], markerstyle)
+                plt.xticks(fontsize=15, rotation=45)
+                plt.yticks(fontsize=15)
+
+                if best_fit:
+                    # Getting a polynomial fit and defining a function with it
+                    p = np.polyfit(sim.iloc[:, i], obs.iloc[:, i], 1)
+                    f = np.poly1d(p)
+
+                    # Calculating new x's and y's
+                    x_new = np.linspace(sim.iloc[:, i].min(), sim.iloc[:, i].max(), sim.size)
+                    y_new = f(x_new)
+
+                    # Formatting the best fit equation to be able to display in latex
+                    equation = "{} x + {}".format(np.round(p[0], 4), np.round(p[1], 4))
+
+                    # Plotting the best fit line with the equation as a legend in latex
+                    plt.plot(x_new, y_new, 'r', label="${}$".format(equation))
+
+                
+                if line45:
+                    max = np.nanmax([sim.iloc[:, i].max(), obs.iloc[:, i].max()])
+                    plt.plot(np.arange(0, int(max) + 1), np.arange(0, int(max) + 1), 'r--', label='45$^\u00b0$ Line')
+
+                
+                if best_fit or line45:
+                    plt.legend(fontsize=12)
+                
+                # Placing Labels if requested
+                if labels:
+                    # Plotting Labels
+                    plt.xlabel(labels[0], fontsize=12)
+                    plt.ylabel(labels[1], fontsize=12)
+
+                if title:
+                    title_dict = {'family': 'sans-serif',
+                                'color': 'black',
+                                'weight': 'normal',
+                                'size': 20,
+                                }
+                    ax.set_title(label=title, fontdict=title_dict, pad=25)
+
+                # Placing a grid if requested
+                if grid:
+                    plt.grid(True)
+                
+                plt.tight_layout()
+
+                # Placing Metrics on the Plot if requested
+                if metrices:
+                    formatted_selected_metrics = 'Metrics: \n'
+                    if metrices == 'all':
+                        for key, value in metrics.calculate_all_metrics(observed=obs, simulated=sim).items():
+                            formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
+                    else: 
+                        assert isinstance(metrices, list)
+                        for key, value in metrics.calculate_metrics(observed=obs, simulated=sim, metrices=metrices).items():
+                            formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
+
+                    font = {'family': 'sans-serif',
+                            'weight': 'normal',
+                            'size': 12}
+                    plt.text(metrics_adjust[0], metrics_adjust[1], formatted_selected_metrics, ha='left',
+                        va='center', transform=ax.transAxes, fontdict=font, mouseover = True,
+                        bbox = dict(boxstyle = "round4, pad = 0.6,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
+
+                    plt.subplots_adjust(right = 1-plot_adjust)
+                plt.savefig(f"plot_{i+1}.png")
+                plt.close(fig)
     else:
         metr = metrics.calculate_metrics(observed=observed, simulated=simulated, metrices=[metric])
         data = {
@@ -620,20 +725,20 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
         # Plot the points with color based on 'kge' column
         sc = gdf_points.plot(ax=ax, column=list(metr)[0], cmap='jet', legend=True, markersize=40, legend_kwds={'label': list(metr)[0]+" Value", "orientation": "vertical"})
 
-    # Placing Labels if requested
-    if labels:
-        # Plotting Labels
-        plt.xlabel(labels[0], fontsize=12)
-        plt.ylabel(labels[1], fontsize=12)
+        # Placing Labels if requested
+        if labels:
+            # Plotting Labels
+            plt.xlabel(labels[0], fontsize=12)
+            plt.ylabel(labels[1], fontsize=12)
 
-    if title:
-        title_dict = {'family': 'sans-serif',
-                      'color': 'black',
-                      'weight': 'normal',
-                      'size': 20,
-                      }
-        ax.set_title(label=title, fontdict=title_dict, pad=25)
+        if title:
+            title_dict = {'family': 'sans-serif',
+                        'color': 'black',
+                        'weight': 'normal',
+                        'size': 20,
+                        }
+            ax.set_title(label=title, fontdict=title_dict, pad=25)
 
-    # Placing a grid if requested
-    if grid:
-        plt.grid(True)
+        # Placing a grid if requested
+        if grid:
+            plt.grid(True)
