@@ -40,7 +40,7 @@ def station_dataframe(observed: pd.DataFrame, simulated: pd.DataFrame,
     >>> simulated = DATAFRAMES["DF_SIMULATED"]
     >>> STATIONS = data.station_dataframe(observed=observed, simulated=simulated)
     >>> for station in STATIONS:
-            print(station)
+    >>>     print(station)
                     QOMEAS_05BB001  QOSIM_05BB001
         1980-12-31           10.20       2.530770
         1981-01-01            9.85       2.518999
@@ -53,7 +53,6 @@ def station_dataframe(observed: pd.DataFrame, simulated: pd.DataFrame,
         2017-12-29             NaN       4.368303
         2017-12-30             NaN       4.343699
         2017-12-31             NaN       4.319275
-
         [13515 rows x 2 columns]
                     QOMEAS_05BA001  QOSIM_05BA001
         1980-12-31             NaN       1.006860
@@ -67,7 +66,6 @@ def station_dataframe(observed: pd.DataFrame, simulated: pd.DataFrame,
         2017-12-29             NaN       1.364174
         2017-12-30             NaN       1.356237
         2017-12-31             NaN       1.348359
-
         [13515 rows x 2 columns]
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
@@ -543,7 +541,7 @@ def yearly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
 def generate_dataframes(csv_fpath: str='', sim_fpath: str='', obs_fpath: str='', warm_up: int = 0, start_date :str = "", end_date: str = "",
                         daily_agg:bool=False, da_method:str="", weekly_agg:bool=False, wa_method:str="",
                         monthly_agg:bool=False, ma_method:str="", yearly_agg:bool=False, ya_method:str="",
-                        seasonal_p:bool=False, sp_dperiod:tuple[str, str]=[], sp_subset:tuple[str, str]=None) -> tuple[pd.DataFrame, pd.DataFrame]:
+                        seasonal_p:bool=False, sp_dperiod:tuple[str, str]=[], sp_subset:tuple[str, str]=None) -> dict[str, pd.DataFrame]:
     """ Function to Generate the required dataframes
 
     Parameters
@@ -601,7 +599,7 @@ def generate_dataframes(csv_fpath: str='', sim_fpath: str='', obs_fpath: str='',
 
     Returns
     -------
-    dict{str: pd.dataframe}
+    dict[str, pd.dataframe]
             A dictionary containing each Dataframe requested. Its default content is:
             - DF = merged dataframe
             - DF_SIMULATED = all simulated data

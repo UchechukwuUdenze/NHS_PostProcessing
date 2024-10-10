@@ -57,6 +57,8 @@
 <li class="toctree-l3"><a class="reference internal" href="#functions">Functions</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="api/postprocessinglib.evaluation.visuals.histogram.html">histogram</a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/postprocessinglib.evaluation.visuals.plot.html">plot</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/postprocessinglib.evaluation.visuals.plot_seasonal.html">plot_seasonal</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/postprocessinglib.evaluation.visuals.qqplot.html">qqplot</a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/postprocessinglib.evaluation.visuals.scatter.html">scatter</a></li>
 </ul>
 </li>
@@ -99,7 +101,7 @@
 <p>The visual module contains different plotting functions for time series visualization.
 It allows users to plot hydrographs per station for each stations to allow us visualize
 the time-series data</p>
-<p>Some of them also allow the addition of metruics to be placed beside the plots</p>
+<p>Some of them also allow their metrics to be placed beside the plots</p>
 <section id="functions">
 <h3>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h3>
 <table class="autosummary longtable docutils align-default">
@@ -107,11 +109,17 @@ the time-series data</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="api/postprocessinglib.evaluation.visuals.histogram.html#postprocessinglib.evaluation.visuals.histogram" title="postprocessinglib.evaluation.visuals.histogram"><code class="xref py py-obj docutils literal notranslate"><span class="pre">histogram</span></code></a>()</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/postprocessinglib.evaluation.visuals.plot.html#postprocessinglib.evaluation.visuals.plot" title="postprocessinglib.evaluation.visuals.plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot</span></code></a>(dataframe[, legend, metrices, num_min, ...])</p></td>
-<td><p>Create a compsriosn time series line plot of simulated and observed time series data</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="api/postprocessinglib.evaluation.visuals.plot.html#postprocessinglib.evaluation.visuals.plot" title="postprocessinglib.evaluation.visuals.plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot</span></code></a>([merged_df, obs_df, sim_df, legend, ...])</p></td>
+<td><p>Create a comparison time series line plot of simulated and observed time series data</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/postprocessinglib.evaluation.visuals.scatter.html#postprocessinglib.evaluation.visuals.scatter" title="postprocessinglib.evaluation.visuals.scatter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scatter</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/postprocessinglib.evaluation.visuals.plot_seasonal.html#postprocessinglib.evaluation.visuals.plot_seasonal" title="postprocessinglib.evaluation.visuals.plot_seasonal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_seasonal</span></code></a>([merged_df, obs_df, sim_df, ...])</p></td>
+<td><p>Create a comparison time series line plot of simulated and observed time series data</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="api/postprocessinglib.evaluation.visuals.qqplot.html#postprocessinglib.evaluation.visuals.qqplot" title="postprocessinglib.evaluation.visuals.qqplot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">qqplot</span></code></a>()</p></td>
 <td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/postprocessinglib.evaluation.visuals.scatter.html#postprocessinglib.evaluation.visuals.scatter" title="postprocessinglib.evaluation.visuals.scatter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scatter</span></code></a>([grid, title, labels, fig_size, ...])</p></td>
+<td><p>Creates a scatter plot of the observed and simulated data.</p></td>
 </tr>
 </tbody>
 </table>

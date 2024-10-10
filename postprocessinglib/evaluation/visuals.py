@@ -22,7 +22,7 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
          grid: bool = False, title: str = None, labels: tuple[str, str] = None, padding: bool = False ,
          linestyles: tuple[str, str] = ('r-', 'b-'), linewidth: tuple[float, float] = (1.5, 1.25),
          fig_size: tuple[float, float] = (10,6), metrics_adjust: tuple[float, float] = (1.05, 0.5),
-         plot_adjust: float = 0.2, save: bool=False):
+         plot_adjust: float = 0.2, save: bool=False) ->plt.figure:
     """ Create a comparison time series line plot of simulated and observed time series data
 
     Parameters
@@ -40,7 +40,7 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
         A DataFrame conataning rows of predicted/simulated data. It must have a datetime index. if it is
         present it is accompanied by the obs_df and the merged_df must be None.
 
-     legend: tuple[str, str]
+    legend: tuple[str, str]
         Adds a Legend in the 'best' location determined by matplotlib.
 
     metrices: list[str]
@@ -416,7 +416,7 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
          metrics_adjust: tuple[float, float] = (1.05, 0.5), plot_adjust: float = 0.2,
 
          shapefile_path: str = "", x_axis : pd.DataFrame=None, y_axis : pd.DataFrame=None,
-         metric: str="", observed: pd.DataFrame = None, simulated: pd.DataFrame = None):
+         metric: str="", observed: pd.DataFrame = None, simulated: pd.DataFrame = None)-> plt.figure:
     """ Creates a scatter plot of the observed and simulated data.
 
     Parameters

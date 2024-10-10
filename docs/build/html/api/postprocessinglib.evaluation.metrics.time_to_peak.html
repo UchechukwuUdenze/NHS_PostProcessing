@@ -20,6 +20,7 @@
         <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -131,23 +132,24 @@ Values can be any number from 1 to number of stations in the data</p></li>
 <p class="rubric">Example</p>
 <p>Calculation of the Time to Peak</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">postprocessinglib.evaluation</span> <span class="kn">import</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;MESH_output_streamflow_1.csv&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">DATAFRAMES</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">generate_dataframes</span><span class="p">(</span><span class="n">csv_fpath</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">warm_up</span><span class="o">=</span><span class="mi">365</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">observed</span> <span class="o">=</span> <span class="n">DATAFRAMES</span><span class="p">[</span><span class="s2">&quot;DF_OBSERVED&quot;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">simulated</span> <span class="o">=</span> <span class="n">DATAFRAMES</span><span class="p">[</span><span class="s2">&quot;DF_SIMULATED&quot;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">observed</span><span class="p">)</span>
 <span class="go">            QOMEAS_05BB001  QOMEAS_05BA001</span>
 <span class="go">YEAR JDAY</span>
-<span class="go">1980 366            10.20            -1.0</span>
-<span class="go">1981 1               9.85            -1.0</span>
-<span class="go">     2              10.20            -1.0</span>
-<span class="go">     3              10.00            -1.0</span>
-<span class="go">     4              10.10            -1.0</span>
+<span class="go">1980 366            10.20            NaN</span>
+<span class="go">1981 1               9.85            NaN</span>
+<span class="go">     2              10.20            NaN</span>
+<span class="go">     3              10.00            NaN</span>
+<span class="go">     4              10.10            NaN</span>
 <span class="go">...                   ...             ...</span>
-<span class="go">2017 361            -1.00            -1.0</span>
-<span class="go">     362            -1.00            -1.0</span>
-<span class="go">     363            -1.00            -1.0</span>
-<span class="go">     364            -1.00            -1.0</span>
-<span class="go">     365            -1.00            -1.0</span>
+<span class="go">2017 361              NaN            NaN</span>
+<span class="go">     362              NaN            NaN</span>
+<span class="go">     363              NaN            NaN</span>
+<span class="go">     364              NaN            NaN</span>
+<span class="go">     365              NaN            NaN</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="o">.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">simulated</span><span class="p">)</span>
 <span class="go">       QOSIM_05BB001  QOSIM_05BA001</span>
@@ -168,7 +170,7 @@ Values can be any number from 1 to number of stations in the data</p></li>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Calculating the time to peak</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ttp</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">time_to_peak</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">observed</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">ttp</span><span class="p">)</span>
-<span class="go">    [167.375, 170.77777777777777]</span>
+<span class="go">    [167, 171]</span>
 </pre></div>
 </div>
 <p><a class="reference external" href="https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb">JUPYTER NOTEBOOK Examples</a></p>

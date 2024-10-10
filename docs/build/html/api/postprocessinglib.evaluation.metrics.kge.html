@@ -20,6 +20,7 @@
         <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -113,8 +114,8 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>observed</strong> (<em>pd.DataFrame</em>) – Observed values[1: Day of the year; 2: Streamflow Values]</p></li>
-<li><p><strong>simulated</strong> (<em>pd.DataFrame</em>) – Simulated values[1: Day of the year; 2: Streamflow Values]</p></li>
+<li><p><strong>observed</strong> (<em>pd.DataFrame</em>) – Observed values[1: Datetime ; 2+: Streamflow Values]</p></li>
+<li><p><strong>simulated</strong> (<em>pd.DataFrame</em>) – Simulated values[1: Datetime ; 2+: Streamflow Values]</p></li>
 <li><p><strong>stations</strong> (<em>list</em><em>[</em><em>int</em><em>]</em>) – numbers pointing to the location of the stations in the list of stations.
 Values can be any number from 1 to number of stations in the data</p></li>
 <li><p><strong>scale</strong> (<em>list</em><em>[</em><em>float</em><em>, </em><em>float</em><em>, </em><em>float</em><em>]</em>) – Scale factor for correlation[0], alpha[1], and beta[2] components
@@ -159,7 +160,7 @@ in the calculation of KGE</p></li>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Calculate</span> <span class="n">the</span> <span class="n">Kling</span><span class="o">-</span><span class="n">Gupta</span> <span class="n">Efficiency</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">kge</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">kge</span><span class="p">(</span><span class="n">observed</span> <span class="o">=</span> <span class="n">obs</span><span class="p">,</span> <span class="n">simulated</span> <span class="o">=</span> <span class="n">sim</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">kge</span><span class="p">)</span>
-<span class="go">    [-0.021079725045971553, 0.49289907473609706]</span>
+<span class="go">    [-0.02108, 0.4929]</span>
 </pre></div>
 </div>
 <p><a class="reference external" href="https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb">JUPYTER NOTEBOOK Examples</a></p>

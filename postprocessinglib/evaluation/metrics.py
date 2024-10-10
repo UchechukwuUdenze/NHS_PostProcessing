@@ -1164,7 +1164,7 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
 
 
 def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[],
-                          format: str="", out: str='metrics_out') -> dict[str: float]:
+                          format: str="", out: str='metrics_out') -> dict[str, float]:
     """Calculate all metrics.
 
     Parameters
@@ -1186,7 +1186,7 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, stati
 
     Returns
     -------
-    dict{str: float}
+    dict[str, float]
             A dictionary containing every metric that can be evaluated and
             its result
 
@@ -1271,7 +1271,7 @@ def calculate_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, metrices:
 
     Returns
     -------
-    dict{str: float}
+    dict[str, float]
             A dictionary containing each metric to be evaluated and its result 
 
     Example
