@@ -24,7 +24,7 @@ setup(
     author='Uchechukwu Udenze',
     description='post processing library',
     long_description=long_description,
-    python_requires='3.11.9',
+    python_requires='3.11',
     install_requires=[
         'numpy',
         'pandas',
