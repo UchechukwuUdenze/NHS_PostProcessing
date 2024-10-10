@@ -42,9 +42,9 @@ def mse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
     Parameters
     ---------- 
     observed: pd.DataFrame
-            Observed values[1: Day of the year; 2: Streamflow Values]
+            Observed values[1: Datetime ; 2+: Streamflow Values]
     simulated: pd.DataFrame
-            Simulated values[1: Day of the year; 2: Streamflow Values]
+            Simulated values[1: Datetime ; 2+: Streamflow Values]
     stations: list[int]
             numbers pointing to the location of the stations in the list of stations.
             Values can be any number from 1 to number of stations in the data
@@ -84,9 +84,9 @@ def mse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
     >>> sim = test_df.iloc[:, [1, 3]]
     >>> .
     >>> Calculate the Mean Square Error
-    >>> mse = metrics.mse(observed = obs, simulated = sim, num_stations = 2)
+    >>> mse = metrics.mse(observed = obs, simulated = sim)
     >>> print(mse)
-        [0.08408454314573567, 0.24630978725134473]
+        [0.08408, 0.2463]
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
 
@@ -102,7 +102,7 @@ def mse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
         
             summation = np.sum((abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))**2)        
             mse = summation/len(valid_observed)  #dividing summation by total number of values to obtain average    
-            MSE.append(round(mse, 4))
+            MSE.append(hlp.sig_figs(mse, 4))
     else:
         for j in stations:
             # Adjust for zero indexing
@@ -113,7 +113,7 @@ def mse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
         
             summation = np.sum((abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))**2)        
             mse = summation/len(valid_observed)  #dividing summation by total number of values to obtain average    
-            MSE.append(round(mse, 4))
+            MSE.append(hlp.sig_figs(mse, 4))
     
     return MSE
 
@@ -124,9 +124,9 @@ def rmse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
     Parameters
     ---------- 
     observed: pd.DataFrame
-            Observed values[1: Day of the year; 2: Streamflow Values]
+            Observed values[1: Datetime ; 2+: Streamflow Values]
     simulated: pd.DataFrame
-            Simulated values[1: Day of the year; 2: Streamflow Values]
+            Simulated values[1: Datetime ; 2+: Streamflow Values]
     stations: list[int]
             numbers pointing to the location of the stations in the list of stations.
             Values can be any number from 1 to number of stations in the data
@@ -166,9 +166,9 @@ def rmse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
     >>> sim = test_df.iloc[:, [1, 3]]
     >>> .
     >>> Calculate the Root Mean Square Error
-    >>> rmse = metrics.rmse(observed = obs, simulated = sim, num_stations = 2)
+    >>> rmse = metrics.rmse(observed = obs, simulated = sim)
     >>> print(rmse)
-        [0.375999284970641, 0.33978586675651484]
+        [0.3760, 0.3398]
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
 
@@ -184,7 +184,7 @@ def rmse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
             
             summation = np.sum((abs((valid_observed.iloc[:, j]) - simulated.iloc[:, j]))**2)
             rmse = np.sqrt(summation/len(valid_observed)) #dividing summation by total number of values to obtain average    
-            RMSE.append(round(rmse, 4))
+            RMSE.append(hlp.sig_figs(rmse, 4))
     else:
         for j in stations:
             # Adjust for zero indexing
@@ -195,7 +195,7 @@ def rmse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
             
             summation = np.sum((abs((valid_observed.iloc[:, j]) - simulated.iloc[:, j]))**2)
             rmse = np.sqrt(summation/len(valid_observed)) #dividing summation by total number of values to obtain average    
-            RMSE.append(round(rmse, 4))
+            RMSE.append(hlp.sig_figs(rmse, 4))
 
     return RMSE
 
@@ -206,9 +206,9 @@ def mae(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
     Parameters
     ---------- 
     observed: pd.DataFrame
-            Observed values[1: Day of the year; 2: Streamflow Values]
+            Observed values[1: Datetime ; 2+: Streamflow Values]
     simulated: pd.DataFrame
-            Simulated values[1: Day of the year; 2: Streamflow Values]
+            Simulated values[1: Datetime ; 2+: Streamflow Values]
     stations: list[int]
             numbers pointing to the location of the stations in the list of stations.
             Values can be any number from 1 to number of stations in the data
@@ -248,9 +248,9 @@ def mae(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
     >>> sim = test_df.iloc[:, [1, 3]]
     >>> .
     >>> Calculate the Mean Average Error
-    >>> mae = metrics.mae(observed = obs, simulated = sim, num_stations = 2)
+    >>> mae = metrics.mae(observed = obs, simulated = sim)
     >>> print(mae)
-        [0.3132076084592758, 0.2708857712262245]
+        [0.3132, 0.2709]
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
 
@@ -266,7 +266,7 @@ def mae(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
             
             summation = np.sum(abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))
             mae = summation/len(valid_observed)  #dividing summation by total number of values to obtain average   
-            MAE.append(round(mae, 4))
+            MAE.append(hlp.sig_figs(mae, 4))
     else:
         for j in stations:
             # Adjust for zero indexing
@@ -277,7 +277,7 @@ def mae(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
             
             summation = np.sum(abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))
             mae = summation/len(valid_observed)  #dividing summation by total number of values to obtain average   
-            MAE.append(round(mae, 4))
+            MAE.append(hlp.sig_figs(mae, 4))
 
     return MAE
 
@@ -288,9 +288,9 @@ def nse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
     Parameters
     ---------- 
     observed: pd.DataFrame
-            Observed values[1: Day of the year; 2: Streamflow Values]
+            Observed values[1: Datetime ; 2+: Streamflow Values]
     simulated: pd.DataFrame
-            Simulated values[1: Day of the year; 2: Streamflow Values]
+            Simulated values[1: Datetime ; 2+: Streamflow Values]
     stations: list[int]
             numbers pointing to the location of the stations in the list of stations.
             Values can be any number from 1 to number of stations in the data
@@ -332,7 +332,7 @@ def nse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
     >>> Calculate the Nash-Sutcliffe Efficiency 
     >>> nse = metrics.nse(observed = obs, simulated = sim)
     >>> print(nse)
-        [-0.9712872212067771, 0.016690558297001723]
+        [-0.9713, 0.01669]
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
 
@@ -354,7 +354,7 @@ def nse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
             summation_denom = np.sum((abs(valid_observed.iloc[:, j] - observed_mean))**2)
             
             nse = (1 - (summation_num/summation_denom))  #dividing summation by total number of values to obtain average
-            NSE.append(round(nse, 4))
+            NSE.append(hlp.sig_figs(nse, 4))
     else:
         for j in stations:
             # Adjust for zero indexing
@@ -371,7 +371,7 @@ def nse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
             summation_denom = np.sum((abs(valid_observed.iloc[:, j] - observed_mean))**2)
             
             nse = (1 - (summation_num/summation_denom))  #dividing summation by total number of values to obtain average
-            NSE.append(round(nse, 4))
+            NSE.append(hlp.sig_figs(nse, 4))
         
     return NSE
 
@@ -381,9 +381,9 @@ def lognse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=
     Parameters
     ---------- 
     observed: pd.DataFrame
-            Observed values[1: Day of the year; 2: Streamflow Values]
+            Observed values[1: Datetime ; 2+: Streamflow Values]
     simulated: pd.DataFrame
-            Simulated values[1: Day of the year; 2: Streamflow Values]
+            Simulated values[1: Datetime ; 2+: Streamflow Values]
     stations: list[int]
             numbers pointing to the location of the stations in the list of stations.
             Values can be any number from 1 to number of stations in the data
@@ -425,7 +425,7 @@ def lognse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=
     >>> Calculate the Log of Nash-Sutcliffe Efficiency 
     >>> lognse = metrics.lognse(observed = obs, simulated = sim)
     >>> print(lognse)
-        [-0.4922908746789514, -0.42279642867104616]
+        [-0.4923, -0.4228]
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
 
@@ -447,7 +447,7 @@ def lognse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=
             summation_denom = np.sum((abs(np.log(valid_observed.iloc[:, j]) - observed_mean))**2)
             
             lognse = (1 - (summation_num/summation_denom))  #dividing summation by total number of values to obtain average
-            LOGNSE.append(round(lognse, 4))
+            LOGNSE.append(hlp.sig_figs(lognse, 4))
     else:
         for j in stations:
             # Adjust for zero indexing
@@ -464,7 +464,7 @@ def lognse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=
             summation_denom = np.sum((abs(np.log(valid_observed.iloc[:, j]) - observed_mean))**2)
             
             lognse = (1 - (summation_num/summation_denom))  #dividing summation by total number of values to obtain average
-            LOGNSE.append(round(lognse, 4))
+            LOGNSE.append(hlp.sig_figs(lognse, 4))
 
     return LOGNSE
 
@@ -476,9 +476,9 @@ def kge(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[],
     Parameters
     ---------- 
     observed: pd.DataFrame
-            Observed values[1: Day of the year; 2: Streamflow Values]
+            Observed values[1: Datetime ; 2+: Streamflow Values]
     simulated: pd.DataFrame
-            Simulated values[1: Day of the year; 2: Streamflow Values]
+            Simulated values[1: Datetime ; 2+: Streamflow Values]
     stations: list[int]
             numbers pointing to the location of the stations in the list of stations.
             Values can be any number from 1 to number of stations in the data
@@ -523,7 +523,7 @@ def kge(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[],
     >>> Calculate the Kling-Gupta Efficiency 
     >>> kge = metrics.kge(observed = obs, simulated = sim)
     >>> print(kge)
-        [-0.021079725045971553, 0.49289907473609706]
+        [-0.02108, 0.4929]
     
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
 
@@ -560,7 +560,7 @@ def kge(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[],
             a = std_simulated / std_observed
             
             kge = 1 - np.sqrt((scale[0]*(r - 1))**2 + (scale[1]*(a - 1))**2 + (scale[2]*(b - 1))**2)
-            KGE.append(round(kge, 4))
+            KGE.append(hlp.sig_figs(kge, 4))
     else:
         for j in stations:
             # Adjust for zero indexing
@@ -592,7 +592,7 @@ def kge(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[],
             a = std_simulated / std_observed
             
             kge = 1 - np.sqrt((scale[0]*(r - 1))**2 + (scale[1]*(a - 1))**2 + (scale[2]*(b - 1))**2)
-            KGE.append(round(kge, 4))
+            KGE.append(hlp.sig_figs(kge, 4))
 
     return KGE
 
@@ -604,9 +604,9 @@ def kge_2012(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int
     Parameters
     ---------- 
     observed: pd.DataFrame
-            Observed values[1: Day of the year; 2: Streamflow Values]
+            Observed values[1: Datetime ; 2+: Streamflow Values]
     simulated: pd.DataFrame
-            Simulated values[1: Day of the year; 2: Streamflow Values]
+            Simulated values[1: Datetime ; 2+: Streamflow Values]
     stations: list[int]
             numbers pointing to the location of the stations in the list of stations.
             Values can be any number from 1 to number of stations in the data
@@ -618,6 +618,11 @@ def kge_2012(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int
     -------
     float:
         the Kling-Gupta Efficiency of the data
+
+    Note
+    ----
+    This is different from the regular kge in that this uses the coefficient of Variation
+    as its bias term (i.e., std/mean) as oppased to just the mean
 
     Example
     -------
@@ -651,7 +656,7 @@ def kge_2012(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int
     >>> Calculate the Kling-Gupta Efficiency 
     >>> kge_2012 = metrics.kge_2012(observed = obs, simulated = sim)
     >>> print(kge_2012)
-        [-0.02566742728790561, 0.48944337578498387]
+        [-0.02567, 0.4894]
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
 
@@ -688,7 +693,7 @@ def kge_2012(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int
             a =  (std_simulated/ mean_simulated)/(std_observed / mean_observed)
             
             kge = 1 - np.sqrt((scale[0]*(r - 1))**2 + (scale[1]*(a - 1))**2 + (scale[2]*(b - 1))**2)
-            KGE.append(round(kge, 4))
+            KGE.append(hlp.sig_figs(kge, 4))
     else:
         for j in stations:
             # Adjust for zero indexing
@@ -720,7 +725,7 @@ def kge_2012(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int
             a =  (std_simulated/ mean_simulated)/(std_observed / mean_observed)
             
             kge = 1 - np.sqrt((scale[0]*(r - 1))**2 + (scale[1]*(a - 1))**2 + (scale[2]*(b - 1))**2)
-            KGE.append(round(kge, 4))
+            KGE.append(hlp.sig_figs(kge, 4))
 
     return KGE
 
@@ -731,9 +736,9 @@ def bias(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
     Parameters
     ---------- 
     observed: pd.DataFrame
-            Observed values[1: Day of the year; 2: Streamflow Values]
+            Observed values[1: Datetime ; 2+: Streamflow Values]
     simulated: pd.DataFrame
-            Simulated values[1: Day of the year; 2: Streamflow Values]
+            Simulated values[1: Datetime ; 2+: Streamflow Values]
     stations: list[int]
             numbers pointing to the location of the stations in the list of stations.
             Values can be any number from 1 to number of stations in the data
@@ -775,7 +780,7 @@ def bias(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
     >>> # Calculate the percentage Bias
     >>> bias = metrics.bias(observed = obs, simulated = sim)
     >>> print(bias)
-        [-22.91730092227065, 3.872738708994304]
+        [-22.92, 3.873]
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
 
@@ -790,7 +795,7 @@ def bias(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
             valid_observed = hlp.filter_valid_data(observed, station_num = j)
             
             bias = np.sum(simulated.iloc[:, j] - valid_observed.iloc[:, j])/np.sum(abs(valid_observed.iloc[:, j])) * 100
-            BIAS.append(round(bias, 4))
+            BIAS.append(hlp.sig_figs(bias, 4))
     else:
         for j in stations:
             # Adjust for zero indexing
@@ -800,7 +805,7 @@ def bias(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
             valid_observed = hlp.filter_valid_data(observed, station_num = j)
             
             bias = np.sum(simulated.iloc[:, j] - valid_observed.iloc[:, j])/np.sum(abs(valid_observed.iloc[:, j])) * 100
-            BIAS.append(round(bias, 4))
+            BIAS.append(hlp.sig_figs(bias, 4))
 
     return BIAS
         
@@ -813,7 +818,6 @@ def time_to_peak(df: pd.DataFrame, stations: list[int]=[])->float:
     ----------
     df: pd.DataFrame
             the observed or simulated dataframe
-
     stations: list[int]
             numbers pointing to the location of the stations in the list of stations.
             Values can be any number from 1 to number of stations in the data
@@ -864,7 +868,7 @@ def time_to_peak(df: pd.DataFrame, stations: list[int]=[])->float:
     >>> # Calculating the time to peak
     >>> ttp = metrics.time_to_peak(df=observed)
     >>> print(ttp)
-        [167.375, 170.77777777777777]   
+        [167, 171]   
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_ 
     
@@ -890,7 +894,7 @@ def time_to_peak(df: pd.DataFrame, stations: list[int]=[])->float:
                 first += valid_values
                 year += 1
             ttp = np.mean(yearly_ttp)
-            TTP.append(round(ttp, 2))
+            TTP.append(hlp.sig_figs(ttp, 3))
     else:
         for j in stations:
             # Adjust for zero indexing
@@ -913,7 +917,7 @@ def time_to_peak(df: pd.DataFrame, stations: list[int]=[])->float:
                 first += valid_values
                 year += 1
             ttp = np.mean(yearly_ttp)
-            TTP.append(round(ttp, 2))
+            TTP.append(hlp.sig_figs(ttp, 3))
 
     return TTP
 
@@ -924,7 +928,6 @@ def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[])->float:
     ----------
     df: pd.DataFrame
             the observed or simulated dataframe
-
     stations: list[int]
             numbers pointing to the location of the stations in the list of stations.
             Values can be any number from 1 to number of stations in the data
@@ -975,7 +978,7 @@ def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[])->float:
     >>> # Calculating the time to center of mass
     >>> ttcom = metrics.time_to_centre_of_mass(df=observed)
     >>> print(ttcom)
-        [193.911419943451, 203.2721509619546]
+        [194, 203]
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
 
@@ -1002,7 +1005,7 @@ def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[])->float:
                 first += valid_values
                 year += 1
             ttcom = np.mean(yearly_ttcom)
-            TTCoM.append(round(ttcom, 2))
+            TTCoM.append(hlp.sig_figs(ttcom, 3))
     else:
         for j in stations:
             # Adjust for zero indexing
@@ -1026,7 +1029,7 @@ def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[])->float:
                 first += valid_values
                 year += 1
             ttcom = np.mean(yearly_ttcom)
-            TTCoM.append(round(ttcom, 2))
+            TTCoM.append(hlp.sig_figs(ttcom, 3))
 
     return TTCoM
 
@@ -1037,7 +1040,6 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
     ----------
     df: pd.DataFrame
             the observed or simulated dataframe
-
     stations: list[int]
             numbers pointing to the location of the stations in the list of stations.
             Values can be any number from 1 to number of stations in the data
@@ -1088,7 +1090,7 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
     >>> # Calculating the spring pulse onset day
     >>> spod = metrics.SpringPulseOnset(df=simulated)
     >>> print(spod)
-        [136.19444444444446, 142.94444444444446]
+        [136, 143]
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
 
@@ -1122,7 +1124,7 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
                 first += valid_values
                 year += 1          
             spod = np.mean(yearly_spod)
-            SPOD.append(round(spod, 2))
+            SPOD.append(hlp.sig_figs(spod, 3))
     else:
         for j in stations:
             # Adjust for zero indexing
@@ -1153,7 +1155,7 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
                 first += valid_values
                 year += 1          
             spod = np.mean(yearly_spod)
-            SPOD.append(round(spod, 2))
+            SPOD.append(hlp.sig_figs(spod, 3))
 
     return SPOD
 
@@ -1165,9 +1167,9 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, stati
     Parameters
     ---------- 
     observed: pd.DataFrame
-            Observed values[1: Day of the year; 2: Streamflow Values]
+            Observed values[1: Datetime ; 2+: Streamflow Values]
     simulated: pd.DataFrame
-            Simulated values[1: Day of the year; 2: Streamflow Values]
+            Simulated values[1: Datetime ; 2+: Streamflow Values]
     stations: list[int]
             numbers pointing to the location of the stations in the list of stations.
             Values can be any number from 1 to number of stations in the data
@@ -1190,13 +1192,14 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, stati
     Calculation of all available metrics
 
     >>> from postprocessinglib.evaluation import metrics, data
+    >>> path = 'MESH_output_streamflow_1.csv'
     >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365)
     >>> print(metrics.calculate_all_metrics(observed=DATAFRAMES["DF_OBSERVED"], simulated=DATAFRAMES["DF_SIMULATED"]))
-        {'MSE': [1889.8829356273197], 'RMSE': [43.47278384952268], 'MAE': [25.140806861503677], 'NSE': [0.0994826408059557],
-        'NegNSE': [-0.0994826408059557], 'LogNSE': [-0.33425398964890385], 'NegLogNSE': [0.33425398964890385], 'KGE': [0.4391875106526365],
-        'NegKGE': [-0.4391875106526365], 'KGE 2012': [0.3130173067471582], 'BIAS': [-34.59860016110435], 'AbsBIAS': [34.59860016110435],
-        'TTP_obs': [154.8], 'TTP_sim': [180.84], 'TTCoM_obs': [184.87057921300135], 'TTCoM_sim': [190.60358617846887], 'SPOD_obs': [72.0],
-        'SPOD_sim': [76.12]} 
+        {'MSE': [1890], 'RMSE': [43.47], 'MAE': [25.14], 'NSE': [0.09948],
+        'NegNSE': [-0.09948], 'LogNSE': [-0.3342], 'NegLogNSE': [0.3342], 'KGE': [0.4392],
+        'NegKGE': [-0.4392], 'KGE 2012': [0.3130], 'BIAS': [-34.60], 'AbsBIAS': [34.60],
+        'TTP_obs': [155], 'TTP_sim': [181], 'TTCoM_obs': [185], 'TTCoM_sim': [191], 'SPOD_obs': [72.0],
+        'SPOD_sim': [76.1]} 
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
             
@@ -1248,14 +1251,14 @@ def calculate_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, metrices:
     Parameters
     ---------- 
     observed: pd.DataFrame
-            Observed values[1: Day of the year; 2: Streamflow Values]
+            Observed values[1: Datetime ; 2+: Streamflow Values]
     simulated: pd.DataFrame
-            Simulated values[1: Day of the year; 2: Streamflow Values]
-    metrices: List[str]
-            List of metrics to be calculated
+            Simulated values[1: Datetime ; 2+: Streamflow Values]
     stations: list[int]
             numbers pointing to the location of the stations in the list of stations.
             Values can be any number from 1 to number of stations in the data
+    metrices: List[str]
+            List of metrics to be calculated
     format: str
             used to indicate that you want the output to be saved to a output file who's
             name is specified by the 'out' parameter
@@ -1273,11 +1276,11 @@ def calculate_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, metrices:
     Calculation of a list of metrics
 
     >>> from postprocessinglib.evaluation import metrics, data
+    >>> path = 'MESH_output_streamflow_1.csv'
     >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365)
     >>> list_of_metrices = ["MSE", "NSE", "KGE 2012"]
-    >>> print(metrics.calculate_metrics(observed=DATAFRAMES["DF_OBSERVED"], simulated=DATAFRAMES["DF_SIMULATED"], metrics=list_of_metrics))
-        {'MSE': [1889.8829356273197, 665.8655715367416], 'NSE': [0.0994826408059557, -3.582905524779485],
-        'KGE 2012': [0.3130173067471582, -0.1483398188302718]} 
+    >>> print(metrics.calculate_metrics(observed=DATAFRAMES["DF_OBSERVED"], simulated=DATAFRAMES["DF_SIMULATED"], metrices=list_of_metrics))
+        {'MSE': [1890, 665.9], 'NSE': [0.09948, -3.583], 'KGE 2012': [0.3130, -0.1483]} 
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
                

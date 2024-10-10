@@ -7,6 +7,7 @@ before it gets evaluated.
 import numpy as np
 import pandas as pd
 from datetime import datetime
+from math import floor, log10
 
 from postprocessinglib.utilities.errors import AllInvalidError
 
@@ -155,4 +156,27 @@ def filter_valid_data(df: pd.DataFrame, station_num: int = 0, station: str = "")
     # drop zeros and negatives
     df = df.drop(df[df[station] <= 0.0].index)
     return df        
+
+
+def sig_figs(x: float, precision: int)-> float:
+    """
+    Rounds a number to number of significant figures
+
+    Parameters
+    ----------
+    x: float
+        the number to be rounded
+    precision: int
+        the number of significant figures
+
+    Returns
+    -------
+    float:
+        the number rounded to the requested significant figures
+    """
+
+    x = float(x)
+    precision = int(precision)
+
+    return round(x, -int(floor(log10(abs(x)))) + (precision - 1))
     
