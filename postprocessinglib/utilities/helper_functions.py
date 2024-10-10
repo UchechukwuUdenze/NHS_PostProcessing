@@ -1,6 +1,6 @@
 """
-The helper module contains all of the functions used alongside the metrics to filter, limit and validate the data 
-before it gets evaluated.
+The helper module contains all of the functions used alongside the metrics to filter, limit, validate the data 
+before it gets evaluated and present the data properly
 
 """
 

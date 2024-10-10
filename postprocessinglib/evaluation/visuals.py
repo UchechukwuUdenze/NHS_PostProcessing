@@ -29,22 +29,22 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
     ----------
     merged_df : pd.DataFrame
         the dataframe containing the series of observed and simulated values. It must have a datetime
-        index and only two columns where the left column is the Measured/observed data and the right is
-        the Simulated data. If it is present, the obs_df and sim_df must be None.
+        index and an even number of columns where in any two, the left column is the Measured/observed
+        data and the right is the Simulated data. If it is present, the obs_df and sim_df must be None.
     
     obs_df : pd.DataFrame
-        A DataFrame conataning a single row of measured data. It must have a datetime index. if it is
+        A DataFrame conataning rows of measured data. It must have a datetime index. if it is
         present it is accompanied by the sim_df and the merged_df must be None.
 
     sim_df : pd.DataFrame
-        A DataFrame conataning a single row of predicted/simulated data. It must have a datetime index. if it is
+        A DataFrame conataning rows of predicted/simulated data. It must have a datetime index. if it is
         present it is accompanied by the obs_df and the merged_df must be None.
 
      legend: tuple[str, str]
         Adds a Legend in the 'best' location determined by matplotlib.
 
     metrices: list[str]
-        Adds Metrics to the left side of the plot. Any metric from the postprocessing.metrics library
+        Adds Metrics to the right side of the plot. Any metric from the postprocessing.metrics library
         can be added to the plot as the abbreviation of the function. The entries must be in a list.
         (e.g. ['PBIAS', 'MSE', 'KGE']).
 
@@ -55,30 +55,34 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
         If given, adds a title to the plot.
 
     labels: tuple[str, str]
-        List of two str type inputs specifying x-axis labels and y-axis labels, respectively.
-
-    linestyles: tuple[str, str]
-        List of two string type inputs thet will change the linestyle of the simulated and
-        recorded data, respectively.
-
-    linewidth: tuple[float, float]
-        Tuple of length two tat specifies he thickness of the lines for both the Simulated and 
-        Observed data 
+        List of two string inputs specifying x-axis labels and y-axis labels, respectively.
 
     padding: bool
         If true, will set the padding to zero for the lines in the line plot.
+    
+    linestyles: tuple[str, str]
+        List of two string inputs that will change the linestyle of the simulated and
+        recorded data, respectively.
+
+    linewidth: tuple[float, float]
+        Tuple of length two that specifies the thickness of the lines for both the Simulated and 
+        recorded data, respectively
 
     fig_size: tuple[float, float]
         Tuple of length two that specifies the horizontal and vertical lengths of the plot in
         inches, respectively.
 
     metrics_adjust: tuple[float, float]
-        Tuple of length two with float type inputs indicating the relative position of the text
-        (x-coordinate, y-coordinate) when adding metrics to the plot.
+        Tuple of length two indicating the relative position of the text (x-coordinate, y-coordinate)
+        when adding metrics to the plot.
 
     plot_adjust: float
-        Specifies the relative position to shift the plot the the right when adding metrics to the
+        Specifies the relative position to shift the plot to the left when adding metrics to the
         plot.
+    
+    save: bool
+        If True, the plot images will be saved as png files in the format plot_1.png, plot_2.png,
+        etc., depending how many plots are generated.
 
     Returns
     -------
@@ -86,43 +90,40 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
     
     Examples
     --------
-    Visualization of a station's data using a 2D plot
+    Visualization of a set of data from two stations using a 2D line plot
 
     >>> from postprocessinglib.evaluation import metrics, visuals, data
-    >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365, start_date = "1981-01-01", end_date = "1990-12-31",)
+    >>> path = 'MESH_output_streamflow_1.csv'
+    >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365, monthly_agg = True)
     >>> observed = DATAFRAMES["DF_OBSERVED"] 
     >>> simulated = DATAFRAMES["DF_SIMULATED"]
     >>> merged_df = DATAFRAMES["DF"]
+    >>> monthly_df = DATAFRAMES["DF_MONTHLY"]
     >>> .
-    >>> Stations = data.station_dataframe(observed=observed, simulated=simulated)
-    >>> .
-    >>> # plot of the first station in the dataframe within the time period
-    >>> visuals.plot(merged_df = Stations[0],
+    >>> # plot of the stations in the dataframe from 1981 till 1990
+    >>> visuals.plot(merged_df = merged_df['1981-01-01':'1990-12-31'],
                     title='Hydrograph of the daily time series from 1981-1990',
                     linestyles=['r-', 'b-'],
                     labels=['Datetime', 'Streamflow'],
                     metrices=['RMSE', 'MAE', 'KGE'],
-                    plot_adjust = 0.15,
+                    linewidth = [.75, 1.25],
                     grid=True
                     )
 
-    .. image:: ../Figures/plot_1981_to_1990.png
+    .. image:: ../Figures/plot_Station_1_1981_to_1990.png
+    .. image:: ../Figures/plot_Station_2_1981_to_1990.png
 
-    >>> sim_monthly = data.monthly_aggregate(df=simulated)
-    >>> obs_monthly = data.monthly_aggregate(df=observed)
-    >>> Stations_by_monthly = data.station_dataframe(observed=obs_monthly, simulated=sim_monthly)
-    >>> .
-    >>> # plot of the second station in the dataframe within the time period aggregated monthly by mean(default)
-    >>> visuals.plot(merged_df = Stations_by_monthly[1],
+    >>> # plot of the stations in the dataframe from 1981 till 1990 aggregated monthly by mean(default)
+    >>> visuals.plot(merged_df = monthly_df['1981-01':'1990-12'],
                     title='Hydrograph of the time series aggregated monthly from 1981-1990',
                     linestyles=['r-', 'b-'],
                     labels=['Datetime', 'Streamflow'],
                     metrices=['RMSE', 'MSE', 'PBIAS'],
-                    plot_adjust = 0.15,
                     grid=True
                     )
 
-    .. image:: ../Figures/plot_monthly_1981_to_1990.png
+    .. image:: ../Figures/plot_monthly_Station_1_1981_to_1990.png
+    .. image:: ../Figures/plot_monthly_Station_2_1981_to_1990.png
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
          
@@ -427,7 +428,7 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
         If given, adds a title to the plot.
 
     labels: tuple[str, str]
-        List of two str type inputs specifying x-axis labels and y-axis labels, respectively.
+        List of two string inputs specifying x-axis labels and y-axis labels, respectively.
 
     fig_size: tuple[float, float]
         Tuple of length two that specifies the horizontal and vertical lengths of the plot in
@@ -435,15 +436,15 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
 
     merged_df : pd.DataFrame
         the dataframe containing the series of observed and simulated values. It must have a datetime
-        index and only two columns where the left column is the Measured/observed data and the right is
-        the Simulated data. If it is present, the obs_df and sim_df must be None.
+        index and an even number of columns where in any two, the left column is the Measured/observed
+        data and the right is the Simulated data. If it is present, the obs_df and sim_df must be None.
     
-    obs_df  pd.DataFrame
-        A DataFrame conataning a single row of measured data. It must have a datetime index. if it is
+    obs_df : pd.DataFrame
+        A DataFrame conataning rows of measured data. It must have a datetime index. if it is
         present it is accompanied by the sim_df and the merged_df must be None.
 
-    sim_df  pd.DataFrame
-        A DataFrame conataning a single row of predicted/simulated data. It must have a datetime index. if it is
+    sim_df : pd.DataFrame
+        A DataFrame conataning rows of predicted/simulated data. It must have a datetime index. if it is
         present it is accompanied by the obs_df and the merged_df must be None.
 
     metrices: list[str]
@@ -452,14 +453,14 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
         (e.g. ['PBIAS', 'MSE', 'KGE']).
 
     markerstyle: str
-        List of two string type inputs thet will change the point style of the data being plotted 
+        List of two strings that determine the point style and shape of the data being plotted 
 
     metrics_adjust: tuple[float, float]
-        Tuple of length two with float type inputs indicating the relative position of the text
-        (x-coordinate, y-coordinate) when adding metrics to the plot.
+        Tuple of length two with float inputs indicating the relative position of the text (x-coordinate,
+        y-coordinate) when adding metrics to the plot.
 
     plot_adjust: float
-        Specifies the relative position to shift the plot the the right when adding metrics to the
+        Specifies the relative position to shift the plot to the left when adding metrics to the
         plot. 
 
     best_fit: bool
@@ -467,6 +468,10 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
 
     line45: bool
         IF True, adds a 45 degree line to the plot and the legend. 
+        
+    save: bool
+        If True, the plot images will be saved as png files in the format plot_1.png, plot_2.png,
+        etc., depending how many plots are generated.
 
     shapefile_path : str
         Tha path to a shapefile on top of which you will be plotting the scatter plot
@@ -495,26 +500,27 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
     Visualization of a station's data using a 2D plot
 
     >>> from postprocessinglib.evaluation import metrics, visuals, data
-    >>> import pandas as pd
-    >>> .
-    >>> DATAFRAMES = data.generate_dataframes(csv_fpath=data_path, warm_up=365)
+    >>> path = 'MESH_output_streamflow_1.csv'
+    >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365)
     >>> observed = DATAFRAMES["DF_OBSERVED"] 
     >>> simulated = DATAFRAMES["DF_SIMULATED"]
     >>> merged_df = DATAFRAMES["DF"]
     >>> .
-    >>> Stations = data.station_dataframe(observed=observed, simulated=simulated)
-    >>> .
-    >>> # plot of the first station in the dataframe within the time period
-    >>> visuals.scatter(merged_df = Stations[0]['1981-01-01':'1981-01-31'],
+    >>> # plot of the stations in the dataframe from 1981 - 1985
+    >>> visuals.scatter(merged_df = merged_df['1981-01-01':'1985-12-31'],
                grid = True,
                labels = ("Simulated Data", "Observed Data"),
                markerstyle = 'b.',
                line45 = True,
-               title = "Scatterplot of January 1981"
+               title = "Scatterplot of 1981 - 1985"
+               metrices = ['KGE','MSE','BIAS']
                )
 
-    .. image:: ../Figures/scatterplot_January 1981.png
+    .. image:: ../Figures/plot_Station_1_1981_to_1990.png
+    .. image:: ../Figures/plot_Station_2_1981_to_1990.png
 
+    >>> shapefile_path = r"SaskRB_SubDrainage2.shp"
+    >>> stations_path = 'Station_data.xlsx'
     >>> Station_info = pd.read_excel(io=stations_path)
     >>> .
     >>> # plot of a few stations in the SRB showing the disparities in their KGE
@@ -742,3 +748,7 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
         # Placing a grid if requested
         if grid:
             plt.grid(True)
+
+
+def qqplot():
+    return
