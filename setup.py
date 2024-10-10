@@ -13,13 +13,14 @@ setup(
     name='postprocessinglib',
     version=version["__version__"],
     packages=find_packages(include=[
-            'postprocessinglib.evaluation',
-            'postprocessinglib.utilities'
+            'postprocessinglib',
     ]), 
     url='https://postprocessinglib.readthedocs.io', 
-    # project_urls={
-    #     'Source': 'https://github.com/repo/repo/repo',
-    # },  
+    project_urls={
+        'Visualization': 'https://github.com/users/UchechukwuUdenze/projects/4',
+        'Data Manipulation': 'https://github.com/users/UchechukwuUdenze/projects/2',
+        'Documentation': 'https://github.com/users/UchechukwuUdenze/projects/5',
+    },  
     author='Uchechukwu Udenze',
     description='post processing library',
     long_description=long_description,
