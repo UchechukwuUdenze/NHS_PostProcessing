@@ -17,7 +17,11 @@ setup(
     #         'postprocessinglib.evaluation',
     #         'postprocessinglib.utilities'
     # ],
-    packages=find_packages(), 
+    packages=find_packages([
+            'postprocessinglib', 
+            'postprocessinglib.evaluation',
+            'postprocessinglib.utilities'
+    ]), 
     url='https://nhs-postprocessinglib.readthedocs.io', 
     project_urls={
         'Visualization': 'https://github.com/users/UchechukwuUdenze/projects/4',
