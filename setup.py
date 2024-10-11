@@ -14,6 +14,8 @@ setup(
     version=version["__version__"],
     packages=find_packages(include=[
             'postprocessinglib',
+            'postprocessinglib.evaluation',
+            'postprocessinglib.utilities'
     ]), 
     url='https://postprocessinglib.readthedocs.io', 
     project_urls={
