@@ -13,19 +13,19 @@ setup(
     name='postprocessinglib',
     version=version["__version__"],
     packages=find_packages(include=[
-            'postprocessinglib',
-            'postprocessinglib.evaluation',
-            'postprocessinglib.utilities'
+            'postprocessinglib'
     ]), 
-    url='https://postprocessinglib.readthedocs.io', 
+    url='https://nhs-postprocessinglib.readthedocs.io', 
     project_urls={
         'Visualization': 'https://github.com/users/UchechukwuUdenze/projects/4',
         'Data Manipulation': 'https://github.com/users/UchechukwuUdenze/projects/2',
         'Documentation': 'https://github.com/users/UchechukwuUdenze/projects/5',
     },  
     author='Uchechukwu Udenze',
-    description='post processing library',
+    author_email='uchechukwu.udenze@ec.gc.ca',
+    description='NHS Post Processing library',
     long_description=long_description,
+    long_description_content_type='text/markdown',
     python_requires='>=3.10',
     install_requires=[
         'numpy',
@@ -37,4 +37,5 @@ setup(
         'shapely'
     ],
     test_suite='tests',
+    license='MIT'
 )
