@@ -12,9 +12,11 @@ with open("postprocessinglib/__version__.py", "r") as fp:
 setup(
     name='postprocessinglib',
     version=version["__version__"],
-    packages=find_packages(include=[
-            'postprocessinglib'
-    ]), 
+    packages=[
+            'postprocessinglib', 
+            'postprocessinglib.evaluation',
+            'postprocessinglib.utilities'
+    ], 
     url='https://nhs-postprocessinglib.readthedocs.io', 
     project_urls={
         'Visualization': 'https://github.com/users/UchechukwuUdenze/projects/4',
