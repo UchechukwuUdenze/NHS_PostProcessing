@@ -44,6 +44,12 @@ exclude_patterns = ['**.ipynb_checkpoints', '_build']
 html_theme = "sphinx_rtd_theme"
 html_static_path = ['_static']
 pygments_style = 'sphinx'
+html_context = {
+  'display_github': True,
+  'github_user': 'UchechukwuUdenze',
+  'github_repo': 'NHS_PostProcessing',
+  'github_version': 'main/docs/source'
+}
 
 # -- Napoleon autodoc options -------------------------------------------------
 napoleon_numpy_docstring = True
