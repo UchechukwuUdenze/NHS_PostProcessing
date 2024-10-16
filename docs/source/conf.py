@@ -48,7 +48,7 @@ html_context = {
   'display_github': True,
   'github_user': 'UchechukwuUdenze',
   'github_repo': 'NHS_PostProcessing',
-  'github_version': 'main/docs/source'
+  'github_version': 'main/docs/source/'
 }
 
 # -- Napoleon autodoc options -------------------------------------------------
