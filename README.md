@@ -1,51 +1,31 @@
+# National Hydrologic Services - Post processing Library
+
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/HEAD)
 
 <mark>When using the binder link, navigate to docs, source and then notebooks</mark>
 
 
-## Introduction
+## Description
 
-This is a python Library to enable the National Hydrological Services carry out post processing operations quickly and efficiently by providing them with the exact features and packages that are required.
+This is a python Library to enable the National Hydrological Services of Canada carry out post processing operations quickly and efficiently by providing them with the exact features and packages that they require to do so - wrapped up in one library.
 
 
-## Usage
+## Usage and Installation
 
-### Prerequisites
+A quick rundown of the process of installation and Usage can be found in its documentation page over at [NHS_postprocessing ReadTheDocs](https://nhs-postprocessing.readthedocs.io/en/latest/)
 
-As a first step you need a Python environment with all required dependencies. The recommended way is to use Anaconda and to create a new environment using our predefined environment files in [environments](https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/environments).
-
-Use: 
-```
-conda env create -f environments/environment.yml
-```
-
-### Installation
-
-**The Library is not yet avaialable on PyPi so it wll have to be installed directly from the git repo**
-
-To install the library use:
-```
-pip install git+https://github.com/UchechukwuUdenze/NHS_PostProcessing.git
-```
-
-If you want to install an editable verson to implememt your own models or dataset you'll have to clone the repository  using:
-```
-git clone https://github.com/UchechukwuUdenze/NHS_PostProcessing.git
-```
-
-or just download the zip file [here](https://github.com/UchechukwuUdenze/NHS_PostProcessing/archive/refs/heads/main.zip)
-
-After this, you are then left with a directory called *NHS_PostProcessing* or *NHS_PostProcessing-main*.  Next, we’ll go to that directory and install a local, editable copy of the package:
-```
-cd NHS_PostProcessing
-pip install -e .
-```
+The post processing library provides tools to aid with 
+- Data Processing/Manipulation
+- Streamflow Prediction Model Performance
+- Streamflow Prediction Model Diagonistics 
+- Multi Model Evaluations
+- Data Visualizations
 
 #### Note:
+<mark>This is a work in progress and I am very open to suggestions and ideas</mark>
 
-This is a work in progress and I am very open to suggestions and ideas
 - Documentation: [NHS_postprocessing ReadTheDocs](https://nhs-postprocessing.readthedocs.io/en/latest/)
-- Bug reports/Feature Requests: https://github.com/UchechukwuUdenze/NHS_PostProcessing/issues
+- Bug reports/Feature Requests: [Issues](https://github.com/UchechukwuUdenze/NHS_PostProcessing/issues)
 
 ## Contact
 
