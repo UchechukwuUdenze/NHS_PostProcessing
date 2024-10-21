@@ -6,6 +6,7 @@ before it gets evaluated.
 
 import numpy as np
 import pandas as pd
+import re
 
 from postprocessinglib.utilities import helper_functions as hlp
 
@@ -95,9 +96,110 @@ def station_dataframe(observed: pd.DataFrame, simulated: pd.DataFrame,
         return Stations
 
 
+def long_term_seasonal(df: pd.DataFrame, method: str= 'mean')-> pd.DataFrame:
+    """ Returns the long term seasonal aggregate value of a given dataframe based
+        on the chosen method over the entire data, into a single year
+
+    Parameters
+    ---------- 
+    df: pd.DataFrame
+            A pandas DataFrame with a datetime index and columns containing float type values.
+    method: string
+            string indicating the method of aggregation
+            i.e, mean, min, max, median, sum and instantaenous
+            - default is mean
+
+    Returns
+    -------
+    pd.DataFrame:
+            The new dataframe with the values aggregated into a 366 row Dataframe 
+
+    Examples
+    --------
+    Extraction of a Long term seasonal aggregation
+
+    >>> from postprocessinglib.evaluation import data
+    >>> path = 'MESH_output_streamflow_1.csv'
+    >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365)
+    >>> merged_df = DATAFRAMES["DF"]
+    >>> print(merged_df)
+                QOMEAS_05BB001  QOSIM_05BB001  QOMEAS_05BA001  QOSIM_05BA001
+    1980-12-31           10.20       2.530770             NaN       1.006860
+    1981-01-01            9.85       2.518999             NaN       1.001954
+    1981-01-02           10.20       2.507289             NaN       0.997078
+    1981-01-03           10.00       2.495637             NaN       0.992233
+    1981-01-04           10.10       2.484073             NaN       0.987417
+    ...                    ...            ...             ...            ...
+    2017-12-27             NaN       4.418050             NaN       1.380227
+    2017-12-28             NaN       4.393084             NaN       1.372171
+    2017-12-29             NaN       4.368303             NaN       1.364174
+    2017-12-30             NaN       4.343699             NaN       1.356237
+    2017-12-31             NaN       4.319275             NaN       1.348359
+
+    >>> # Extract the long term Seasonal Aggregation
+    >>> long_term_seasonal = data.long_term_seasonal(df=merged_df) # Recall the default is mean
+    >>> print(long_term_seasonal)
+          QOMEAS_05BB001  QOSIM_05BB001  QOMEAS_05BA001  QOSIM_05BA001
+    jday
+    1           9.446471       4.037666             NaN       1.130686
+    2           9.428125       4.014474             NaN       1.123915
+    3           9.660625       3.991451             NaN       1.117196
+    4           9.804375       3.968602             NaN       1.110529
+    5           9.787500       3.945921             NaN       1.103913
+    ...              ...            ...             ...            ...
+    362         9.942500       4.188140             NaN       1.169614
+    363         9.695000       4.163847             NaN       1.162533
+    364         9.633125       4.139735             NaN       1.155507
+    365         9.516875       4.115805             NaN       1.148535
+    366         9.936000       4.243073             NaN       1.173174
+
+    >>> # Obtain the Upper Quartile - Q3
+    >>> long_term_seasonal = data.long_term_seasonal(df=merged_df, method = 'Q3')
+    >>> print(long_term_seasonal)
+          QOMEAS_05BB001  QOSIM_05BB001  QOMEAS_05BA001  QOSIM_05BA001
+    jday
+    1             10.100       4.830453             NaN       1.315370
+    2             10.200       4.801530             NaN       1.306986
+    3             10.550       4.772831             NaN       1.298670
+    4             10.500       4.744344             NaN       1.290422
+    5             10.700       4.716085             NaN       1.282241
+    ...              ...            ...             ...            ...
+    362           11.175       4.978491             NaN       1.372171
+    363           11.075       4.948421             NaN       1.364174
+    364           11.100       4.918590             NaN       1.356237
+    365           10.775       4.888982             NaN       1.348359
+    366           11.300       4.765379             NaN       1.317393
     
-#### aggregation(weekly, monthly, yearly)(check hydrostats)
-# (median, mean, min, max, sum, instantaenous values options)
+    """
+    # Check that there is a chosen method else return error
+    if not method:
+        raise RuntimeError("ERROR: A method of aggregation is required")
+    else:
+        # Making a copy to avoid changing the original df
+        df_copy = df.copy()
+    
+        df_copy.index = df_copy.index.strftime("%Y-%m-%d")
+        df_copy.index = pd.MultiIndex.from_tuples([hlp.datetime_to_index(index) for index in df_copy.index],
+                                                names=('year', 'jday'))
+
+        # Making a pattern to check with
+        pattern = r'^[qQ]\d{2}$'
+        
+        if method == 'mean': 
+            df_copy = df_copy.groupby(level = 'jday').mean()
+        elif method == 'min':
+            df_copy = df_copy.groupby(level = 'jday').min()
+        elif method == 'max':
+            df_copy = df_copy.groupby(level = 'jday').max()
+        elif method == 'median':
+            df_copy = df_copy.groupby(level = 'jday').median()
+        elif method == 'sum':
+            df_copy = df_copy.groupby(level = 'jday').sum()
+        # Check the quartiles with the matching pattern 
+        elif re.match(pattern=pattern, string=method):
+                df_copy = df_copy.groupby(level = 'jday').quantile(float(re.search(r'\d+', method).group())/100)
+    
+    return df_copy
 
 def seasonal_period(df: pd.DataFrame, daily_period: tuple[str, str],
                               subset: tuple[str, str]=None) -> pd.DataFrame:
@@ -186,6 +288,7 @@ def seasonal_period(df: pd.DataFrame, daily_period: tuple[str, str],
     
     return df_copy
 
+
 def daily_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
     """ Returns the daily aggregate value of a given dataframe based
         on the chosen method 
@@ -266,6 +369,7 @@ def daily_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
             daily_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%j")).last() 
     
     return daily_aggr
+
 
 def weekly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
     """ Returns the weekly aggregate value of a given dataframe based
@@ -348,6 +452,7 @@ def weekly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
     
     return weekly_aggr
 
+
 def monthly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
     """ Returns the weekly aggregate value of a given dataframe based
         on the chosen method 
@@ -429,6 +534,7 @@ def monthly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
             monthly_aggr = df_copy.groupby(df_copy.index.strftime("%Y-%m")).last()    
     
     return monthly_aggr
+
 
 def yearly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
     """ Returns the weekly aggregate value of a given dataframe based
@@ -538,10 +644,12 @@ def yearly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
     
     return yearly_aggr  
 
+
 def generate_dataframes(csv_fpath: str='', sim_fpath: str='', obs_fpath: str='', warm_up: int = 0, start_date :str = "", end_date: str = "",
                         daily_agg:bool=False, da_method:str="", weekly_agg:bool=False, wa_method:str="",
                         monthly_agg:bool=False, ma_method:str="", yearly_agg:bool=False, ya_method:str="",
-                        seasonal_p:bool=False, sp_dperiod:tuple[str, str]=[], sp_subset:tuple[str, str]=None) -> dict[str, pd.DataFrame]:
+                        seasonal_p:bool=False, sp_dperiod:tuple[str, str]=[], sp_subset:tuple[str, str]=None,
+                        long_term:bool=False, lt_method=None) -> dict[str, pd.DataFrame]:
     """ Function to Generate the required dataframes
 
     Parameters
@@ -596,6 +704,11 @@ def generate_dataframes(csv_fpath: str='', sim_fpath: str='', obs_fpath: str='',
             (01-01, 01-31) for Jan 1 to Jan 31.
     sp_subset: tuple(str, str)
             A tuple of string values representing the start and end dates of the time range. Format is YYYY-MM-DD.
+    longterm: bool = False
+            If True calculates the min, max and median values for the long term seasonal. It will also create
+            additional dataframes depending on the value of 'lt_method'.
+    lt_method
+            Specifies extra long term dataframes to create
 
     Returns
     -------
@@ -611,6 +724,16 @@ def generate_dataframes(csv_fpath: str='', sim_fpath: str='', obs_fpath: str='',
             - DF_MONTHLY = dataframe aggregated by months of the year
             - DF_YEARLY = dataframe aggregated by all the years in the data
             - DF_CUSTOM = dataframe truncated as per the seasonal period parameters
+            - DF_LONGTERM_MIN = long term seasonal dataframe aggregated using the min of its daily values 
+            - DF_LONGTERM_MAX = long term seasonal dataframe aggregated using the max of its daily values
+            - DF_LONGTERM_MEAN =  long term seasonal dataframe aggregated using the mean of its daily values
+              Depending on "lt_method," you can also request that it contain:
+                - DF_LONGTERM_SUM = long term seasonal dataframe aggregated using the sum of its daily values
+                - DF_LONGTERM_MEDIAN = long term seasonal dataframe aggregated using the median of its daily values
+                - DF_LONGTERM_Q1 = long term seasonal dataframe aggregated showing the first quartile of its daily
+                - DF_LONGTERM_Q2 = long term seasonal dataframe aggregated showing the second quartile of its daily
+                - DF_LONGTERM_Q3 = long term seasonal dataframe aggregated showing the third quartile of its daily
+         
 
     Example
     -------
@@ -733,6 +856,23 @@ def generate_dataframes(csv_fpath: str='', sim_fpath: str='', obs_fpath: str='',
                                                   subset=sp_subset)    
     elif seasonal_p and sp_dperiod:
         DATAFRAMES["DF_CUSTOM"] = seasonal_period(df = DATAFRAMES["DF"], daily_period=sp_dperiod)
+
+    # 6. long term seasonal
+    if long_term:
+        DATAFRAMES["LONG_TERM_MIN"] = long_term_seasonal(df=DATAFRAMES["DF"], method="min")
+        DATAFRAMES["LONG_TERM_MAX"] = long_term_seasonal(df=DATAFRAMES["DF"], method="max")
+        DATAFRAMES["LONG_TERM_MEAN"] = long_term_seasonal(df=DATAFRAMES["DF"], method="mean")
+        if lt_method is None:
+            lt_method = []
+        elif isinstance(lt_method, str):
+            lt_method = [lt_method]
+        elif not isinstance(lt_method, list):
+            raise ValueError("Argument must be a string or a list of strings.")
+
+        for method in lt_method:
+            if not isinstance(method, str):
+                raise ValueError("All items in the list must be strings.")    
+            DATAFRAMES[f"LONG_TERM_{method.upper()}"] = long_term_seasonal(df=DATAFRAMES["DF"], method=method)
     
     
     return DATAFRAMES

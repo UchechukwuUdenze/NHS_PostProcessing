@@ -1,4 +1,4 @@
-# National Hydrologic Services - Post processing Library
+# National Hydrologic Services - Post Processing Library
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/HEAD)
 
