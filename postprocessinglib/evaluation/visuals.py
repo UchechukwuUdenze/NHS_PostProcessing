@@ -7,6 +7,7 @@ Some of them also allow their metrics to be placed beside the plots
 
 """
 
+from typing import Union
 import pandas as pd
 import geopandas as gpd
 import numpy as np
@@ -286,28 +287,27 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
 
 
 
-def plot_seasonal(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd.DataFrame = None,
+def bounded_plot(lines: Union[list[pd.DataFrame]], upper_bounds: list[pd.DataFrame] = None, lower_bounds: list[pd.DataFrame] = None,
          legend: tuple[str, str] = ('Simulated Data', 'Observed Data'), grid: bool = False, title: str = None,
          labels: tuple[str, str] = None, linestyles: tuple[str, str] = ('r-', 'b-'), padding: bool = False ,
-         fig_size: tuple[float, float] = (10,6)):
-    """ Create a comparison time series line plot of simulated and observed time series data
+         fig_size: tuple[float, float] = (10,6), transparency: float = 0.4, save:bool = False) ->plt.figure:
+    """ Create a comparison time series line plot of simulated and observed time series data with optional
+    upper and lower bounds 
 
     Parameters
     ----------
-    merged_df : pd.DataFrame
-        the dataframe containing the series of observed and simulated values. It must have a datetime
-        index and only two columns where the left column is the Measured/observed data and the right is
-        the Simulated data. If it is present, the obs_df and sim_df must be None.
+    lines : list[pd.DataFrame] or pd.DataFrame
+        a single dataframe or a list containing the dataframes that will be plotted as lines
     
-    obs_df : pd.DataFrame
-        A DataFrame conataning a single row of measured data. It must have a datetime index. if it is
-        present it is accompanied by the sim_df and the merged_df must be None.
+    upper_bounds : list[pd.DataFrame] or pd.DataFrame
+        a single dataframe or a list containing the dataframes that will be plotted as upper bounds
+        that should sync directly with the indexes on the lower bound dataframes
 
-    sim_df : pd.DataFrame
-        A DataFrame conataning a single row of predicted/simulated data. It must have a datetime index. if it is
-        present it is accompanied by the obs_df and the merged_df must be None.
+    lower_bounds : list[pd.DataFrame] or pd.DataFrame
+        a single dataframe or a list containing the dataframes that will be plotted as lower bounds
+        that should sync directly with the indexes on the upper bound dataframes
 
-     legend: tuple[str, str]
+    legend: tuple[str, str]
         Adds a Legend in the 'best' location determined by matplotlib.
 
     grid: bool
@@ -329,6 +329,13 @@ def plot_seasonal(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, s
     fig_size: tuple[float, float]
         Tuple of length two that specifies the horizontal and vertical lengths of the plot in
         inches, respectively.
+    
+    transparency: float
+        a float between 0 and 0.9 that represents how bold the shaded bounds will be
+
+    save: bool
+        If True, the plot images will be saved as png files in the format plot_1.png, plot_2.png,
+        etc., depending how many plots are generated.
 
     Returns
     -------
@@ -336,74 +343,244 @@ def plot_seasonal(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, s
     
     Examples
     --------
-    Visualization of a station's data using a 2D plot
+    Visualization of the bounded long term seasonal data of a station with
+    its median bounedd by its max and min 
     """
 
-    fig = plt.figure(figsize=fig_size, facecolor='w', edgecolor='k')
-    ax = fig.add_subplot(111)
+    ## Check that the inputs are lists of DataFrames or DataFrames
+    if isinstance(lines, pd.DataFrame):
+        lines = [lines]
+    elif not isinstance(lines, list):
+        raise ValueError("Argument must be a dataframe or a list of dataframes.")
+    
+    if upper_bounds is None:
+        upper_bounds = []
+    elif isinstance(upper_bounds, pd.DataFrame):
+        upper_bounds = [upper_bounds]
+    elif not isinstance(upper_bounds, list):
+        raise ValueError("Argument must be a dataframe or a list of dataframes.")
+    
+    if lower_bounds is None:
+        lower_bounds = []
+    elif isinstance(lower_bounds, pd.DataFrame):
+        lower_bounds = [lower_bounds]
+    elif not isinstance(lower_bounds, list):
+        raise ValueError("Argument must be a dataframe or a list of dataframes.")
 
-    if merged_df is not None and sim_df is None and obs_df is None:
-        # Selecting the Variable for the simulated data, observed data, and time stamps
-        copy = merged_df.copy()
-        copy.index = copy.index.strftime("%Y-%m-%d")
-        copy.index = pd.MultiIndex.from_tuples([hlp.datetime_to_index(index) for index in copy.index],
-                                               names=('year', 'jday'))
-        copy = copy.groupby(level = 'jday').mean()
+    if len(lower_bounds) != len(upper_bounds):
+        raise ValueError("You must have the same number of upper and lower bounds")
 
-        obs = copy.iloc[:, [0]]
-        sim = copy.iloc[:, [1]]
-        time = copy.index
-    elif sim_df is not None and obs_df is not None and merged_df is None:
-        # Selecting the Variable for the simulated data, observed data, and time stamps
-        obs_copy = obs_df.copy()
-        obs_copy.index = obs_copy.index.strftime("%Y-%m-%d")
-        obs_copy.index = pd.MultiIndex.from_tuples([hlp.datetime_to_index(index) for index in obs_copy.index],
-                                               names=('year', 'jday'))
-        obs_copy = obs_copy.groupby(level = 'jday').mean()
 
-        sim_copy = sim_df.copy()
-        sim_copy.index = sim_copy.index.strftime("%Y-%m-%d")
-        sim_copy.index = pd.MultiIndex.from_tuples([hlp.datetime_to_index(index) for index in sim_copy.index],
-                                               names=('year', 'jday'))
-        sim_copy = sim_copy.groupby(level = 'jday').mean()
 
-        obs = obs_copy
-        sim = sim_copy
-        time = obs.index
-    else:
-        raise RuntimeError('either sim_df and obs_df or merged_df are required inputs.')
+    # Plotting
+    for line in lines:
+        if not isinstance(line, pd.DataFrame):
+            raise ValueError("All items in the list must be a DataFrame.")
+        
+        # Setting Variable for the simulated data, observed data, and time stamps
+        line_obs = line.iloc[:, [0]]
+        line_sim = line.iloc[:, [1]]
+        for k in range(2, len(line.columns), 2):
+            line_obs = pd.concat([line_obs, line.iloc[:, k]], axis = 1)
+            line_sim = pd.concat([line_sim, line.iloc[:, k+1]], axis = 1)
+        time = line.index
 
-    # Plotting the Data
-    plt.plot(time, obs, linestyles[1], label=legend[1], linewidth = 1.5)
-    plt.plot(time, sim, linestyles[0], label=legend[0], linewidth = 1.25)
-    plt.legend(fontsize=15)
+        if len(line_obs.columns) <= 5:
+            for i in range (0, len(line_obs.columns)):
+                fig = plt.figure(figsize=fig_size, facecolor='w', edgecolor='k')
+                ax = fig.add_subplot(111)        
 
-    # Adjusting the plot if user wants tight x axis limits
-    if padding:
-        plt.xlim(time[0], time[-1])
+                # Plotting the line data
+                plt.plot(time, line_obs[line_obs.columns[i]], linestyles[1], label=legend[1], linewidth = 1.5)
+                plt.plot(time, line_sim[line_sim.columns[i]], linestyles[0], label=legend[0], linewidth = 1.25)
+                plt.legend(fontsize=15)
+                        
+                # check that there are bounds
+                if upper_bounds or lower_bounds:
+                    # lists to store all bounds
+                    upper_obs = []
+                    upper_sim = []
+                    lower_obs = []
+                    lower_sim = []
 
-    plt.xticks(fontsize=15, rotation=45)
-    plt.yticks(fontsize=15)
+                    for j in range(0, len(upper_bounds)):
+                        # check that the bounds are valid 
+                        if not line.index.equals(upper_bounds[j].index) or not line.index.equals(lower_bounds[j].index):
+                            raise ValueError("The lines and bounds don't have the same indexing syntax")
+                        if not isinstance(upper_bounds[j], pd.DataFrame) and not isinstance(lower_bounds[j], pd.DataFrame):
+                            raise ValueError("All items in the lists must be a DataFrame.")              
+                    
+                        # Setting Variable for the simulated data, observed data, and time stamps for the bounds
+                        # Upper bounds
+                        obs = upper_bounds[j].iloc[:, [0]]
+                        sim = upper_bounds[j].iloc[:, [1]]
+                        for k in range(2, len(upper_bounds[j].columns), 2):
+                            obs = pd.concat([obs, upper_bounds[j].iloc[:, k]], axis = 1)
+                            sim = pd.concat([sim, upper_bounds[j].iloc[:, k+1]], axis = 1)
+                        upper_sim.append(sim)
+                        upper_obs.append(obs)
 
-    # Placing Labels if requested
-    if labels:
-        # Plotting Labels
-        plt.xlabel(labels[0], fontsize=18)
-        plt.ylabel(labels[1], fontsize=18)
-    if title:
-        title_dict = {'family': 'sans-serif',
-                      'color': 'black',
-                      'weight': 'normal',
-                      'size': 20,
-                      }
-        ax.set_title(label=title, fontdict=title_dict, pad=25)
+                        # Lower bounds
+                        obs = lower_bounds[j].iloc[:, [0]]
+                        sim = lower_bounds[j].iloc[:, [1]]
+                        for k in range(2, len(lower_bounds[j].columns), 2):
+                            obs = pd.concat([obs, lower_bounds[j].iloc[:, k]], axis = 1)
+                            sim = pd.concat([sim, lower_bounds[j].iloc[:, k+1]], axis = 1)
+                        lower_sim.append(sim)
+                        lower_obs.append(obs)
 
-    # Placing a grid if requested
-    if grid:
-        plt.grid(True)
+                    # Plotting the range data                
+                    idx = len(upper_bounds)-1
+                    while idx > 0:
+                        # Observed Data
+                        plt.fill_between(time, upper_obs[idx-1][upper_obs[idx-1].columns[i]], upper_obs[idx][upper_obs[idx].columns[i]],
+                                        alpha=(transparency/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[1][0])
+                        plt.fill_between(time, lower_obs[idx][lower_obs[idx].columns[i]], lower_obs[idx-1][lower_obs[idx-1].columns[i]],
+                                        alpha=(transparency/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[1][0])
+                        # Simulated Data
+                        plt.fill_between(time, upper_sim[idx-1][upper_sim[idx-1].columns[i]], upper_sim[idx][upper_sim[idx].columns[i]],
+                                        alpha=(transparency/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[0][0])
+                        plt.fill_between(time, lower_sim[idx][lower_sim[idx].columns[i]], lower_sim[idx-1][lower_sim[idx-1].columns[i]],
+                                        alpha=(transparency/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[0][0])
+                        idx-=1
+                    
+                    # Observed Data
+                    plt.fill_between(time, line_obs[line_obs.columns[i]], upper_obs[0][upper_obs[0].columns[i]], alpha=transparency, color=linestyles[1][0])
+                    plt.fill_between(time, lower_obs[0][lower_obs[0].columns[i]], line_obs[line_obs.columns[i]], alpha=transparency, color=linestyles[1][0])
+                    # Simulated Data
+                    plt.fill_between(time, line_sim[line_sim.columns[i]], upper_sim[0][upper_sim[0].columns[i]], alpha=transparency, color=linestyles[0][0])
+                    plt.fill_between(time, lower_sim[0][lower_sim[0].columns[i]], line_sim[line_sim.columns[i]], alpha=transparency, color=linestyles[0][0])
 
-    # Fixes issues with parts of plot being cut off
-    plt.tight_layout()
+
+                    
+                # Adjusting the plot if user wants tight x axis limits
+                if padding:
+                    plt.xlim(time[0], time[-1])
+
+                plt.xticks(fontsize=15, rotation=45)
+                plt.yticks(fontsize=15)
+
+                # Placing Labels if requested
+                if labels:
+                    # Plotting Labels
+                    plt.xlabel(labels[0], fontsize=18)
+                    plt.ylabel(labels[1], fontsize=18)
+                if title:
+                    title_dict = {'family': 'sans-serif',
+                                'color': 'black',
+                                'weight': 'normal',
+                                'size': 20,
+                                }
+                    ax.set_title(label=title, fontdict=title_dict, pad=25)
+
+                # Placing a grid if requested
+                if grid:
+                    plt.grid(True)
+
+                # Fixes issues with parts of plot being cut off
+                plt.tight_layout()
+
+                # save to file if requested 
+                if save:
+                    fig.set_facecolor('gainsboro')
+                    plt.savefig(f"bounded_plot_{i+1}.png")
+        else:
+            for i in range (0, len(line_obs.columns)):
+                fig = plt.figure(figsize=fig_size, facecolor='gainsboro', edgecolor='k')
+                ax = fig.add_subplot(111)        
+
+                # Plotting the line data
+                plt.plot(time, line_obs[line_obs.columns[i]], linestyles[1], label=legend[1], linewidth = 1.5)
+                plt.plot(time, line_sim[line_sim.columns[i]], linestyles[0], label=legend[0], linewidth = 1.25)
+                plt.legend(fontsize=15)
+                        
+                # check that there are bounds
+                if upper_bounds or lower_bounds:
+                    # lists to store all bounds
+                    upper_obs = []
+                    upper_sim = []
+                    lower_obs = []
+                    lower_sim = []
+
+                    for j in range(0, len(upper_bounds)):
+                        # check that the bounds are valid 
+                        if not line.index.equals(upper_bounds[j].index) or not line.index.equals(lower_bounds[j].index):
+                            raise ValueError("The lines and bounds don't have the same indexing syntax")
+                        if not isinstance(upper_bounds[j], pd.DataFrame) and not isinstance(lower_bounds[j], pd.DataFrame):
+                            raise ValueError("All items in the lists must be a DataFrame.")              
+                    
+                        # Setting Variable for the simulated data, observed data, and time stamps for the bounds
+                        # Upper bounds
+                        obs = upper_bounds[j].iloc[:, [0]]
+                        sim = upper_bounds[j].iloc[:, [1]]
+                        for k in range(2, len(upper_bounds[j].columns), 2):
+                            obs = pd.concat([obs, upper_bounds[j].iloc[:, k]], axis = 1)
+                            sim = pd.concat([sim, upper_bounds[j].iloc[:, k+1]], axis = 1)
+                        upper_sim.append(sim)
+                        upper_obs.append(obs)
+
+                        # Lower bounds
+                        obs = lower_bounds[j].iloc[:, [0]]
+                        sim = lower_bounds[j].iloc[:, [1]]
+                        for k in range(2, len(lower_bounds[j].columns), 2):
+                            obs = pd.concat([obs, lower_bounds[j].iloc[:, k]], axis = 1)
+                            sim = pd.concat([sim, lower_bounds[j].iloc[:, k+1]], axis = 1)
+                        lower_sim.append(sim)
+                        lower_obs.append(obs)
+
+                    # Plotting the range data                
+                    idx = len(upper_bounds)-1
+                    while idx > 0:
+                        # Observed Data
+                        plt.fill_between(time, upper_obs[idx-1][upper_obs[idx-1].columns[i]], upper_obs[idx][upper_obs[idx].columns[i]],
+                                        alpha=(transparency/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[1][0])
+                        plt.fill_between(time, lower_obs[idx][lower_obs[idx].columns[i]], lower_obs[idx-1][lower_obs[idx-1].columns[i]],
+                                        alpha=(transparency/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[1][0])
+                        # Simulated Data
+                        plt.fill_between(time, upper_sim[idx-1][upper_sim[idx-1].columns[i]], upper_sim[idx][upper_sim[idx].columns[i]],
+                                        alpha=(transparency/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[0][0])
+                        plt.fill_between(time, lower_sim[idx][lower_sim[idx].columns[i]], lower_sim[idx-1][lower_sim[idx-1].columns[i]],
+                                        alpha=(transparency/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[0][0])
+                        idx-=1
+                    
+                    # Observed Data
+                    plt.fill_between(time, line_obs[line_obs.columns[i]], upper_obs[0][upper_obs[0].columns[i]], alpha=transparency, color=linestyles[1][0])
+                    plt.fill_between(time, lower_obs[0][lower_obs[0].columns[i]], line_obs[line_obs.columns[i]], alpha=transparency, color=linestyles[1][0])
+                    # Simulated Data
+                    plt.fill_between(time, line_sim[line_sim.columns[i]], upper_sim[0][upper_sim[0].columns[i]], alpha=transparency, color=linestyles[0][0])
+                    plt.fill_between(time, lower_sim[0][lower_sim[0].columns[i]], line_sim[line_sim.columns[i]], alpha=transparency, color=linestyles[0][0])
+
+
+                    
+                # Adjusting the plot if user wants tight x axis limits
+                if padding:
+                    plt.xlim(time[0], time[-1])
+
+                plt.xticks(fontsize=15, rotation=45)
+                plt.yticks(fontsize=15)
+
+                # Placing Labels if requested
+                if labels:
+                    # Plotting Labels
+                    plt.xlabel(labels[0], fontsize=18)
+                    plt.ylabel(labels[1], fontsize=18)
+                if title:
+                    title_dict = {'family': 'sans-serif',
+                                'color': 'black',
+                                'weight': 'normal',
+                                'size': 20,
+                                }
+                    ax.set_title(label=title, fontdict=title_dict, pad=25)
+
+                # Placing a grid if requested
+                if grid:
+                    plt.grid(True)
+
+                # Fixes issues with parts of plot being cut off
+                plt.tight_layout()
+                plt.savefig(f"bounded_plot_{i+1}.png")
+                plt.close(fig)
+        
 
 def histogram():
     return
