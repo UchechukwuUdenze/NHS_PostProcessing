@@ -23,7 +23,7 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
          grid: bool = False, title: str = None, labels: tuple[str, str] = None, padding: bool = False ,
          linestyles: tuple[str, str] = ('r-', 'b-'), linewidth: tuple[float, float] = (1.5, 1.25),
          fig_size: tuple[float, float] = (10,6), metrics_adjust: tuple[float, float] = (1.05, 0.5),
-         plot_adjust: float = 0.2, save: bool=False) ->plt.figure:
+         plot_adjust: float = 0.2, save: bool=False, save_as:str = None) ->plt.figure:
     """ Create a comparison time series line plot of simulated and observed time series data
 
     Parameters
@@ -83,7 +83,12 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
     
     save: bool
         If True, the plot images will be saved as png files in the format plot_1.png, plot_2.png,
-        etc., depending how many plots are generated.
+        etc., depending how many plots are generated or with the names specified in the save_as 
+        variable
+    
+    save_as: str or list[str]
+        If provided these wil be the naming nomenclature used to save the figures as specified by the
+        save variable 
 
     Returns
     -------
@@ -202,8 +207,7 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
                         else:
                             ax.set_title(label=title[i], fontdict=title_dict, pad=25)
                     except IndexError:
-                        ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
-                        
+                        ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)                        
                 elif isinstance(title, str):
                     ax.set_title(label=title, fontdict=title_dict, pad=25)
 
@@ -237,7 +241,19 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
             # save to file if requested 
             if save:
                 fig.set_facecolor('gainsboro')
-                plt.savefig(f"plot_{i+1}.png")
+                ## Check that the title is a list of strings or a single string
+                if isinstance(save_as, list):
+                    try:
+                        if save_as[i] == '':
+                            plt.savefig(f"plot_{i+1}.png")
+                        else:
+                            plt.savefig(f"{save_as[i]}.png")
+                    except IndexError:
+                        plt.savefig(f"plot_{i+1}.png")                        
+                elif isinstance(save_as, str):
+                    plt.savefig(f"{save_as}_{i+1}.png")
+                else:
+                    plt.savefig(f"plot_{i+1}.png")
     else:
         for i in range (0, len(obs.columns)):
             # Plotting the Data     
@@ -273,8 +289,7 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
                         else:
                             ax.set_title(label=title[i], fontdict=title_dict, pad=25)
                     except IndexError:
-                        ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
-                        
+                        ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)                        
                 elif isinstance(title, str):
                     ax.set_title(label=title, fontdict=title_dict, pad=25)
 
@@ -312,7 +327,8 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
 def bounded_plot(lines: Union[list[pd.DataFrame]], upper_bounds: list[pd.DataFrame] = None, lower_bounds: list[pd.DataFrame] = None,
          legend: tuple[str, str] = ('Simulated Data', 'Observed Data'), grid: bool = False, title: str = None,
          labels: tuple[str, str] = None, linestyles: tuple[str, str] = ('r-', 'b-'), padding: bool = False ,
-         fig_size: tuple[float, float] = (10,6), transparency: tuple[float, float] = [0.4, 0.4], save:bool = False) ->plt.figure:
+         fig_size: tuple[float, float] = (10,6), transparency: tuple[float, float] = [0.4, 0.4], save:bool = False,
+         save_as:str = None) ->plt.figure:
     """ Create a comparison time series line plot of simulated and observed time series data with optional
     upper and lower bounds 
 
@@ -358,7 +374,12 @@ def bounded_plot(lines: Union[list[pd.DataFrame]], upper_bounds: list[pd.DataFra
 
     save: bool
         If True, the plot images will be saved as png files in the format plot_1.png, plot_2.png,
-        etc., depending how many plots are generated.
+        etc., depending how many plots are generated or with the names specified in the save_as 
+        variable
+    
+    save_as: str or list[str]
+        If provided these wil be the naming nomenclature used to save the figures as specified by the
+        save variable 
 
     Returns
     -------
@@ -516,7 +537,19 @@ def bounded_plot(lines: Union[list[pd.DataFrame]], upper_bounds: list[pd.DataFra
                 # save to file if requested 
                 if save:
                     fig.set_facecolor('gainsboro')
-                    plt.savefig(f"bounded_plot_{i+1}.png")
+                    ## Check that the title is a list of strings or a single string
+                    if isinstance(save_as, list):
+                        try:
+                            if save_as[i] == '':
+                                plt.savefig(f"plot_{i+1}.png")
+                            else:
+                                plt.savefig(f"{save_as[i]}.png")
+                        except IndexError:
+                            plt.savefig(f"plot_{i+1}.png")                        
+                    elif isinstance(save_as, str):
+                        plt.savefig(f"{save_as}_{i+1}.png")
+                    else:
+                        plt.savefig(f"plot_{i+1}.png")
         else:
             for i in range (0, len(line_obs.columns)):
                 fig = plt.figure(figsize=fig_size, facecolor='gainsboro', edgecolor='k')
@@ -611,8 +644,7 @@ def bounded_plot(lines: Union[list[pd.DataFrame]], upper_bounds: list[pd.DataFra
                             else:
                                 ax.set_title(label=title[i], fontdict=title_dict, pad=25)
                         except IndexError:
-                            ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
-                            
+                            ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)                            
                     elif isinstance(title, str):
                         ax.set_title(label=title, fontdict=title_dict, pad=25)
 
@@ -633,7 +665,7 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
          fig_size: tuple[float, float] = (10,6), best_fit: bool=False, line45: bool=False,
 
          merged_df: pd.DataFrame = None, obs_df: pd.DataFrame =  None, sim_df: pd.DataFrame = None,
-         metrices: list[str] = None, markerstyle: str = 'ko', save: bool=False,
+         metrices: list[str] = None, markerstyle: str = 'ko', save: bool=False, save_as:str = None,
          metrics_adjust: tuple[float, float] = (1.05, 0.5), plot_adjust: float = 0.2,
 
          shapefile_path: str = "", x_axis : pd.DataFrame=None, y_axis : pd.DataFrame=None,
@@ -692,7 +724,12 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
         
     save: bool
         If True, the plot images will be saved as png files in the format plot_1.png, plot_2.png,
-        etc., depending how many plots are generated.
+        etc., depending how many plots are generated or with the names specified in the save_as 
+        variable
+    
+    save_as: str or list[str]
+        If provided these wil be the naming nomenclature used to save the figures as specified by the
+        save variable 
 
     shapefile_path : str
         Tha path to a shapefile on top of which you will be plotting the scatter plot
@@ -829,8 +866,7 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
                             else:
                                 ax.set_title(label=title[i], fontdict=title_dict, pad=25)
                         except IndexError:
-                            ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
-                            
+                            ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)                            
                     elif isinstance(title, str):
                         ax.set_title(label=title, fontdict=title_dict, pad=25)
 
@@ -859,13 +895,23 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
                         bbox = dict(boxstyle = "round4, pad = 0.6,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
 
                     plt.subplots_adjust(right = 1-plot_adjust)
-                
-                # plt.subplots_adjust(bottom= plot_adjust)
 
                 # save to file if requested 
                 if save:
-                    fig.set_facecolor("gainsboro")
-                    plt.savefig(f"plot_{i+1}.png")
+                    fig.set_facecolor('gainsboro')
+                    ## Check that the title is a list of strings or a single string
+                    if isinstance(save_as, list):
+                        try:
+                            if save_as[i] == '':
+                                plt.savefig(f"plot_{i+1}.png")
+                            else:
+                                plt.savefig(f"{save_as[i]}.png")
+                        except IndexError:
+                            plt.savefig(f"plot_{i+1}.png")                        
+                    elif isinstance(save_as, str):
+                        plt.savefig(f"{save_as}_{i+1}.png")
+                    else:
+                        plt.savefig(f"plot_{i+1}.png")
         else:
             for i in range (0, len(obs.columns)):
                 # Plotting the Data
@@ -919,8 +965,7 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
                             else:
                                 ax.set_title(label=title[i], fontdict=title_dict, pad=25)
                         except IndexError:
-                            ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
-                            
+                            ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)                            
                     elif isinstance(title, str):
                         ax.set_title(label=title, fontdict=title_dict, pad=25)
 
