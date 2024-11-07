@@ -52,8 +52,8 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
     grid: bool
         If True, adds a grid to the plot.
 
-    title: str
-        If given, adds a title to the plot.
+    title: str or list[str]
+        If given, adds a titles to the plots.
 
     labels: tuple[str, str]
         List of two string inputs specifying x-axis labels and y-axis labels, respectively.
@@ -194,7 +194,18 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
                             'weight': 'normal',
                             'size': 20,
                             }
-                ax.set_title(label=title, fontdict=title_dict, pad=25)
+                ## Check that the title is a list of strings or a single string
+                if isinstance(title, list):
+                    try:
+                        if title[i] == '':
+                                ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
+                        else:
+                            ax.set_title(label=title[i], fontdict=title_dict, pad=25)
+                    except IndexError:
+                        ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
+                        
+                elif isinstance(title, str):
+                    ax.set_title(label=title, fontdict=title_dict, pad=25)
 
             # Placing a grid if requested
             if grid:
@@ -254,7 +265,18 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
                             'weight': 'normal',
                             'size': 20,
                             }
-                ax.set_title(label=title, fontdict=title_dict, pad=25)
+                ## Check that the title is a list of strings or a single string
+                if isinstance(title, list):
+                    try:
+                        if title[i] == '':
+                                ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
+                        else:
+                            ax.set_title(label=title[i], fontdict=title_dict, pad=25)
+                    except IndexError:
+                        ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
+                        
+                elif isinstance(title, str):
+                    ax.set_title(label=title, fontdict=title_dict, pad=25)
 
             # Placing a grid if requested
             if grid:
@@ -392,7 +414,7 @@ def bounded_plot(lines: Union[list[pd.DataFrame]], upper_bounds: list[pd.DataFra
 
                 # Plotting the line data
                 plt.plot(time, line_obs[line_obs.columns[i]], linestyles[1], label=legend[1], linewidth = 1.5)
-                plt.plot(time, line_sim[line_sim.columns[i]], linestyles[0], label=legend[0], linewidth = 1.25)
+                plt.plot(time, line_sim[line_sim.columns[i]], linestyles[0], label=legend[0], linewidth = 1.5)
                 plt.legend(fontsize=15)
                         
                 # check that there are bounds
@@ -471,7 +493,17 @@ def bounded_plot(lines: Union[list[pd.DataFrame]], upper_bounds: list[pd.DataFra
                                 'weight': 'normal',
                                 'size': 20,
                                 }
-                    ax.set_title(label=title, fontdict=title_dict, pad=25)
+                    ## Check that the title is a list of strings or a single string
+                    if isinstance(title, list):
+                        try:
+                            if title[i] == '':
+                                ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
+                            else:
+                                ax.set_title(label=title[i], fontdict=title_dict, pad=25)
+                        except IndexError:
+                            ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
+                    elif isinstance(title, str):
+                        ax.set_title(label=title, fontdict=title_dict, pad=25)
 
                 # Placing a grid if requested
                 if grid:
@@ -570,7 +602,18 @@ def bounded_plot(lines: Union[list[pd.DataFrame]], upper_bounds: list[pd.DataFra
                                 'weight': 'normal',
                                 'size': 20,
                                 }
-                    ax.set_title(label=title, fontdict=title_dict, pad=25)
+                    ## Check that the title is a list of strings or a single string
+                    if isinstance(title, list):
+                        try:
+                            if title[i] == '':
+                                ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
+                            else:
+                                ax.set_title(label=title[i], fontdict=title_dict, pad=25)
+                        except IndexError:
+                            ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
+                            
+                    elif isinstance(title, str):
+                        ax.set_title(label=title, fontdict=title_dict, pad=25)
 
                 # Placing a grid if requested
                 if grid:
@@ -777,7 +820,18 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
                                 'weight': 'normal',
                                 'size': 20,
                                 }
-                    ax.set_title(label=title, fontdict=title_dict, pad=25)
+                    ## Check that the title is a list of strings or a single string
+                    if isinstance(title, list):
+                        try:
+                            if title[i] == '':
+                                ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
+                            else:
+                                ax.set_title(label=title[i], fontdict=title_dict, pad=25)
+                        except IndexError:
+                            ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
+                            
+                    elif isinstance(title, str):
+                        ax.set_title(label=title, fontdict=title_dict, pad=25)
 
                 # Placing a grid if requested
                 if grid:
@@ -856,7 +910,18 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
                                 'weight': 'normal',
                                 'size': 20,
                                 }
-                    ax.set_title(label=title, fontdict=title_dict, pad=25)
+                    ## Check that the title is a list of strings or a single string
+                    if isinstance(title, list):
+                        try:
+                            if title[i] == '':
+                                ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
+                            else:
+                                ax.set_title(label=title[i], fontdict=title_dict, pad=25)
+                        except IndexError:
+                            ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
+                            
+                    elif isinstance(title, str):
+                        ax.set_title(label=title, fontdict=title_dict, pad=25)
 
                 # Placing a grid if requested
                 if grid:
