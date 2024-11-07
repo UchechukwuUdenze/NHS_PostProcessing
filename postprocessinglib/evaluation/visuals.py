@@ -312,7 +312,7 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
 def bounded_plot(lines: Union[list[pd.DataFrame]], upper_bounds: list[pd.DataFrame] = None, lower_bounds: list[pd.DataFrame] = None,
          legend: tuple[str, str] = ('Simulated Data', 'Observed Data'), grid: bool = False, title: str = None,
          labels: tuple[str, str] = None, linestyles: tuple[str, str] = ('r-', 'b-'), padding: bool = False ,
-         fig_size: tuple[float, float] = (10,6), transparency: float = 0.4, save:bool = False) ->plt.figure:
+         fig_size: tuple[float, float] = (10,6), transparency: tuple[float, float] = [0.4, 0.4], save:bool = False) ->plt.figure:
     """ Create a comparison time series line plot of simulated and observed time series data with optional
     upper and lower bounds 
 
@@ -352,8 +352,9 @@ def bounded_plot(lines: Union[list[pd.DataFrame]], upper_bounds: list[pd.DataFra
         Tuple of length two that specifies the horizontal and vertical lengths of the plot in
         inches, respectively.
     
-    transparency: float
-        a float between 0 and 0.9 that represents how bold the shaded bounds will be
+    transparency: tuple[float, float]
+        a float between 0 and 0.9 that represents how bold the shaded bounds will be of the simulated
+        and observed ranges respectively
 
     save: bool
         If True, the plot images will be saved as png files in the format plot_1.png, plot_2.png,
@@ -456,22 +457,22 @@ def bounded_plot(lines: Union[list[pd.DataFrame]], upper_bounds: list[pd.DataFra
                     while idx > 0:
                         # Observed Data
                         plt.fill_between(time, upper_obs[idx-1][upper_obs[idx-1].columns[i]], upper_obs[idx][upper_obs[idx].columns[i]],
-                                        alpha=(transparency/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[1][0])
+                                        alpha=(transparency[1]/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[1][0])
                         plt.fill_between(time, lower_obs[idx][lower_obs[idx].columns[i]], lower_obs[idx-1][lower_obs[idx-1].columns[i]],
-                                        alpha=(transparency/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[1][0])
+                                        alpha=(transparency[1]/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[1][0])
                         # Simulated Data
                         plt.fill_between(time, upper_sim[idx-1][upper_sim[idx-1].columns[i]], upper_sim[idx][upper_sim[idx].columns[i]],
-                                        alpha=(transparency/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[0][0])
+                                        alpha=(transparency[0]/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[0][0])
                         plt.fill_between(time, lower_sim[idx][lower_sim[idx].columns[i]], lower_sim[idx-1][lower_sim[idx-1].columns[i]],
-                                        alpha=(transparency/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[0][0])
+                                        alpha=(transparency[0]/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[0][0])
                         idx-=1
                     
                     # Observed Data
-                    plt.fill_between(time, line_obs[line_obs.columns[i]], upper_obs[0][upper_obs[0].columns[i]], alpha=transparency, color=linestyles[1][0])
-                    plt.fill_between(time, lower_obs[0][lower_obs[0].columns[i]], line_obs[line_obs.columns[i]], alpha=transparency, color=linestyles[1][0])
+                    plt.fill_between(time, line_obs[line_obs.columns[i]], upper_obs[0][upper_obs[0].columns[i]], alpha=transparency[1], color=linestyles[1][0])
+                    plt.fill_between(time, lower_obs[0][lower_obs[0].columns[i]], line_obs[line_obs.columns[i]], alpha=transparency[1], color=linestyles[1][0])
                     # Simulated Data
-                    plt.fill_between(time, line_sim[line_sim.columns[i]], upper_sim[0][upper_sim[0].columns[i]], alpha=transparency, color=linestyles[0][0])
-                    plt.fill_between(time, lower_sim[0][lower_sim[0].columns[i]], line_sim[line_sim.columns[i]], alpha=transparency, color=linestyles[0][0])
+                    plt.fill_between(time, line_sim[line_sim.columns[i]], upper_sim[0][upper_sim[0].columns[i]], alpha=transparency[0], color=linestyles[0][0])
+                    plt.fill_between(time, lower_sim[0][lower_sim[0].columns[i]], line_sim[line_sim.columns[i]], alpha=transparency[0], color=linestyles[0][0])
 
 
                     
@@ -565,22 +566,22 @@ def bounded_plot(lines: Union[list[pd.DataFrame]], upper_bounds: list[pd.DataFra
                     while idx > 0:
                         # Observed Data
                         plt.fill_between(time, upper_obs[idx-1][upper_obs[idx-1].columns[i]], upper_obs[idx][upper_obs[idx].columns[i]],
-                                        alpha=(transparency/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[1][0])
+                                        alpha=(transparency[1]/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[1][0])
                         plt.fill_between(time, lower_obs[idx][lower_obs[idx].columns[i]], lower_obs[idx-1][lower_obs[idx-1].columns[i]],
-                                        alpha=(transparency/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[1][0])
+                                        alpha=(transparency[1]/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[1][0])
                         # Simulated Data
                         plt.fill_between(time, upper_sim[idx-1][upper_sim[idx-1].columns[i]], upper_sim[idx][upper_sim[idx].columns[i]],
-                                        alpha=(transparency/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[0][0])
+                                        alpha=(transparency[0]/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[0][0])
                         plt.fill_between(time, lower_sim[idx][lower_sim[idx].columns[i]], lower_sim[idx-1][lower_sim[idx-1].columns[i]],
-                                        alpha=(transparency/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[0][0])
+                                        alpha=(transparency[0]/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[0][0])
                         idx-=1
                     
                     # Observed Data
-                    plt.fill_between(time, line_obs[line_obs.columns[i]], upper_obs[0][upper_obs[0].columns[i]], alpha=transparency, color=linestyles[1][0])
-                    plt.fill_between(time, lower_obs[0][lower_obs[0].columns[i]], line_obs[line_obs.columns[i]], alpha=transparency, color=linestyles[1][0])
+                    plt.fill_between(time, line_obs[line_obs.columns[i]], upper_obs[0][upper_obs[0].columns[i]], alpha=transparency[1], color=linestyles[1][0])
+                    plt.fill_between(time, lower_obs[0][lower_obs[0].columns[i]], line_obs[line_obs.columns[i]], alpha=transparency[1], color=linestyles[1][0])
                     # Simulated Data
-                    plt.fill_between(time, line_sim[line_sim.columns[i]], upper_sim[0][upper_sim[0].columns[i]], alpha=transparency, color=linestyles[0][0])
-                    plt.fill_between(time, lower_sim[0][lower_sim[0].columns[i]], line_sim[line_sim.columns[i]], alpha=transparency, color=linestyles[0][0])
+                    plt.fill_between(time, line_sim[line_sim.columns[i]], upper_sim[0][upper_sim[0].columns[i]], alpha=transparency[0], color=linestyles[0][0])
+                    plt.fill_between(time, lower_sim[0][lower_sim[0].columns[i]], line_sim[line_sim.columns[i]], alpha=transparency[0], color=linestyles[0][0])
 
 
                     
