@@ -903,7 +903,7 @@ def generate_dataframes(csv_fpath: str='', sim_fpath: str='', obs_fpath: str='',
     if long_term:
         DATAFRAMES["LONG_TERM_MIN"] = long_term_seasonal(df=DATAFRAMES["DF"], method="min")
         DATAFRAMES["LONG_TERM_MAX"] = long_term_seasonal(df=DATAFRAMES["DF"], method="max")
-        DATAFRAMES["LONG_TERM_MEAN"] = long_term_seasonal(df=DATAFRAMES["DF"], method="mean")
+        DATAFRAMES["LONG_TERM_MEDIAN"] = long_term_seasonal(df=DATAFRAMES["DF"], method="median")
         if lt_method is None:
             lt_method = []
         elif isinstance(lt_method, str):
