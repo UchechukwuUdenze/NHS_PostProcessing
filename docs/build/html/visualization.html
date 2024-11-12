@@ -20,10 +20,11 @@
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="histogram" href="api/postprocessinglib.evaluation.visuals.histogram.html" />
+    <link rel="next" title="bounded_plot" href="api/postprocessinglib.evaluation.visuals.bounded_plot.html" />
     <link rel="prev" title="time_to_peak" href="api/postprocessinglib.evaluation.metrics.time_to_peak.html" /> 
 </head>
 
@@ -55,9 +56,9 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Visualization</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-postprocessinglib.evaluation.visuals">postprocessinglib.evaluation.visuals Module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#functions">Functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/postprocessinglib.evaluation.visuals.bounded_plot.html">bounded_plot</a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/postprocessinglib.evaluation.visuals.histogram.html">histogram</a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/postprocessinglib.evaluation.visuals.plot.html">plot</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/postprocessinglib.evaluation.visuals.plot_seasonal.html">plot_seasonal</a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/postprocessinglib.evaluation.visuals.qqplot.html">qqplot</a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/postprocessinglib.evaluation.visuals.scatter.html">scatter</a></li>
 </ul>
@@ -106,13 +107,13 @@ the time-series data</p>
 <h3>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h3>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/postprocessinglib.evaluation.visuals.histogram.html#postprocessinglib.evaluation.visuals.histogram" title="postprocessinglib.evaluation.visuals.histogram"><code class="xref py py-obj docutils literal notranslate"><span class="pre">histogram</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/postprocessinglib.evaluation.visuals.bounded_plot.html#postprocessinglib.evaluation.visuals.bounded_plot" title="postprocessinglib.evaluation.visuals.bounded_plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bounded_plot</span></code></a>(lines[, upper_bounds, ...])</p></td>
+<td><p>Create a comparison time series line plot of simulated and observed time series data with optional upper and lower bounds</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="api/postprocessinglib.evaluation.visuals.histogram.html#postprocessinglib.evaluation.visuals.histogram" title="postprocessinglib.evaluation.visuals.histogram"><code class="xref py py-obj docutils literal notranslate"><span class="pre">histogram</span></code></a>()</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/postprocessinglib.evaluation.visuals.plot.html#postprocessinglib.evaluation.visuals.plot" title="postprocessinglib.evaluation.visuals.plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot</span></code></a>([merged_df, obs_df, sim_df, legend, ...])</p></td>
-<td><p>Create a comparison time series line plot of simulated and observed time series data</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/postprocessinglib.evaluation.visuals.plot_seasonal.html#postprocessinglib.evaluation.visuals.plot_seasonal" title="postprocessinglib.evaluation.visuals.plot_seasonal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_seasonal</span></code></a>([merged_df, obs_df, sim_df, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/postprocessinglib.evaluation.visuals.plot.html#postprocessinglib.evaluation.visuals.plot" title="postprocessinglib.evaluation.visuals.plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot</span></code></a>([merged_df, obs_df, sim_df, legend, ...])</p></td>
 <td><p>Create a comparison time series line plot of simulated and observed time series data</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="api/postprocessinglib.evaluation.visuals.qqplot.html#postprocessinglib.evaluation.visuals.qqplot" title="postprocessinglib.evaluation.visuals.qqplot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">qqplot</span></code></a>()</p></td>
@@ -132,7 +133,7 @@ the time-series data</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="api/postprocessinglib.evaluation.metrics.time_to_peak.html" class="btn btn-neutral float-left" title="time_to_peak" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="api/postprocessinglib.evaluation.visuals.histogram.html" class="btn btn-neutral float-right" title="histogram" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="api/postprocessinglib.evaluation.visuals.bounded_plot.html" class="btn btn-neutral float-right" title="bounded_plot" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
