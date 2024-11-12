@@ -202,7 +202,7 @@ def long_term_seasonal(df: pd.DataFrame, method: str= 'mean')-> pd.DataFrame:
     return df_copy
 
 def seasonal_period(df: pd.DataFrame, daily_period: tuple[str, str],
-                              subset: tuple[str, str]=None) -> pd.DataFrame:
+                    subset: tuple[str, str]=None, years: list[int]=None) -> pd.DataFrame:
     """Creates a dataframe with a specified seasonal period
 
     Parameters
@@ -214,6 +214,8 @@ def seasonal_period(df: pd.DataFrame, daily_period: tuple[str, str],
         (01-01, 01-31) for Jan 1 to Jan 31.
     subset: tuple(str, str)
         A tuple of string values representing the start and end dates of the subset. Format is YYYY-MM-DD.
+    years: list[int]
+        A list of years to filter the dataframe by. If provided, only data from these years will be included.
 
     Returns
     -------
@@ -242,7 +244,7 @@ def seasonal_period(df: pd.DataFrame, daily_period: tuple[str, str],
     2017-12-30             NaN       4.343699             NaN       1.356237
     2017-12-31             NaN       4.319275             NaN       1.348359
     
-    >>> # Extract the time period
+    >>> # Extract the time period - January 1st till 31st - using the subset
     >>> seasonal_p = data.seasonal_period(df=merged_df, daily_period=('01-01', '01-31'),
                             subset = ('1981-01-01', '1985-12-31'))
     >>> print(seasonal_p)
@@ -259,6 +261,42 @@ def seasonal_period(df: pd.DataFrame, daily_period: tuple[str, str],
     1985-01-30           11.60       2.694749             NaN       0.797410
     1985-01-31           11.60       2.681550             NaN       0.793556
 
+    >>> # Extract the time period - January 1st till 10th - using the years
+    >>> seasonal_p = data.seasonal_period(df=merged_df, daily_period=('01-01', '01-10'),
+                            year = [1981, 1983, 1985])
+    >>> print(seasonal_p)
+                QOMEAS_05BB001  QOSIM_05BB001  QOMEAS_05BA001  QOSIM_05BA001
+    1981-01-01            9.85       2.518999             NaN       1.001954
+    1981-01-02           10.20       2.507289             NaN       0.997078
+    1981-01-03           10.00       2.495637             NaN       0.992233
+    1981-01-04           10.10       2.484073             NaN       0.987417
+    1981-01-05            9.99       2.472571             NaN       0.982631
+    1981-01-06            9.69       2.461128             NaN       0.977875
+    1981-01-07            9.51       2.449758             NaN       0.973148
+    1981-01-08            8.90       2.438459             NaN       0.968450
+    1981-01-09            8.70       2.427217             NaN       0.963778
+    1981-01-10            9.00       2.416050             NaN       0.959137
+    1983-01-01            8.98       5.371416             NaN       2.441398
+    1983-01-02            8.89       5.340234             NaN       2.426411
+    1983-01-03            9.12       5.309281             NaN       2.411540
+    1983-01-04            9.37       5.278562             NaN       2.396784
+    1983-01-05            9.40       5.248067             NaN       2.382142
+    1983-01-06            9.54       5.217788             NaN       2.367613
+    1983-01-07            9.44       5.187746             NaN       2.353197
+    1983-01-08            9.21       5.157917             NaN       2.338891
+    1983-01-09            9.03       5.128305             NaN       2.324696
+    1983-01-10            8.35       5.098919             NaN       2.310610
+    1985-01-01           10.10       3.116840             NaN       0.920429
+    1985-01-02           10.20       3.100937             NaN       0.915796
+    1985-01-03           10.70       3.085116             NaN       0.911193
+    1985-01-04            9.90       3.069416             NaN       0.906620
+    1985-01-05            9.51       3.053805             NaN       0.902076
+    1985-01-06            9.27       3.038310             NaN       0.897561
+    1985-01-07            9.55       3.022904             NaN       0.893076
+    1985-01-08           10.10       3.007609             NaN       0.888619
+    1985-01-09           10.00       2.992402             NaN       0.884191
+    1985-01-10           10.00       2.977300             NaN       0.879791
+
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
     
     """
@@ -268,6 +306,10 @@ def seasonal_period(df: pd.DataFrame, daily_period: tuple[str, str],
     if subset:
         # Setting the time range
         df_copy = df_copy.loc[subset[0]: subset[1]]
+    
+    if years:
+        # Filtering by the specified years
+        df_copy = df_copy[df_copy.index.year.isin(years)]
     
     # Setting a placeholder for the datetime string values
     df_copy.insert(loc=0, column='placeholder', value=df_copy.index.strftime('%m-%d'))
