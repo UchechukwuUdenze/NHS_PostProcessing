@@ -174,9 +174,10 @@ def sig_figs(x: float, precision: int)-> float:
     float:
         the number rounded to the requested significant figures
     """
-    if x != np.nan:
+    if not np.isnan(x):
         x = float(x)
         precision = int(precision)
-
         return round(x, -int(floor(log10(abs(x)))) + (precision - 1))
+    else:
+        return np.nan
     
