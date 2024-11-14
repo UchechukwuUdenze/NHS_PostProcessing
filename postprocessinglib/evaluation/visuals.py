@@ -240,7 +240,7 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
 
             # save to file if requested 
             if save:
-                fig.set_facecolor('gainsboro')
+                # fig.set_facecolor('gainsboro')
                 ## Check that the title is a list of strings or a single string
                 if isinstance(save_as, list):
                     try:
@@ -257,7 +257,7 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
     else:
         for i in range (0, len(obs.columns)):
             # Plotting the Data     
-            fig = plt.figure(figsize=fig_size, facecolor='gainsboro', edgecolor='k')
+            fig = plt.figure(figsize=fig_size, facecolor = 'w', edgecolor='k')
             ax = fig.add_subplot(111)                       
             plt.plot(time, obs[obs.columns[i]], linestyles[1], label=legend[1], linewidth = linewidth[1])
             plt.plot(time, sim[sim.columns[i]], linestyles[0], label=legend[0], linewidth = linewidth[0])
@@ -536,23 +536,23 @@ def bounded_plot(lines: Union[list[pd.DataFrame]], upper_bounds: list[pd.DataFra
 
                 # save to file if requested 
                 if save:
-                    fig.set_facecolor('gainsboro')
+                    # fig.set_facecolor('gainsboro')
                     ## Check that the title is a list of strings or a single string
                     if isinstance(save_as, list):
                         try:
                             if save_as[i] == '':
-                                plt.savefig(f"plot_{i+1}.png")
+                                plt.savefig(f"bounded-plot_{i+1}.png")
                             else:
                                 plt.savefig(f"{save_as[i]}.png")
                         except IndexError:
-                            plt.savefig(f"plot_{i+1}.png")                        
+                            plt.savefig(f"bounded-plot_{i+1}.png")                        
                     elif isinstance(save_as, str):
                         plt.savefig(f"{save_as}_{i+1}.png")
                     else:
-                        plt.savefig(f"plot_{i+1}.png")
+                        plt.savefig(f"bounded-plot_{i+1}.png")
         else:
             for i in range (0, len(line_obs.columns)):
-                fig = plt.figure(figsize=fig_size, facecolor='gainsboro', edgecolor='k')
+                fig = plt.figure(figsize=fig_size, facecolor='w', edgecolor='k')
                 ax = fig.add_subplot(111)        
 
                 # Plotting the line data
@@ -654,7 +654,7 @@ def bounded_plot(lines: Union[list[pd.DataFrame]], upper_bounds: list[pd.DataFra
 
                 # Fixes issues with parts of plot being cut off
                 plt.tight_layout()
-                plt.savefig(f"bounded_plot_{i+1}.png")
+                plt.savefig(f"bounded-plot_{i+1}.png")
                 plt.close(fig)
         
 
@@ -898,24 +898,24 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
 
                 # save to file if requested 
                 if save:
-                    fig.set_facecolor('gainsboro')
+                    # fig.set_facecolor('gainsboro')
                     ## Check that the title is a list of strings or a single string
                     if isinstance(save_as, list):
                         try:
                             if save_as[i] == '':
-                                plt.savefig(f"plot_{i+1}.png")
+                                plt.savefig(f"scatter-plot_{i+1}.png")
                             else:
                                 plt.savefig(f"{save_as[i]}.png")
                         except IndexError:
-                            plt.savefig(f"plot_{i+1}.png")                        
+                            plt.savefig(f"scatter-plot_{i+1}.png")                        
                     elif isinstance(save_as, str):
                         plt.savefig(f"{save_as}_{i+1}.png")
                     else:
-                        plt.savefig(f"plot_{i+1}.png")
+                        plt.savefig(f"scatter-plot_{i+1}.png")
         else:
             for i in range (0, len(obs.columns)):
                 # Plotting the Data
-                fig = plt.figure(figsize=fig_size, facecolor="gainsboro", edgecolor='k')
+                fig = plt.figure(figsize=fig_size, facecolor="w", edgecolor='k')
                 ax = fig.add_subplot(111) 
                 plt.plot(sim[sim.columns[i]], obs[obs.columns[i]], markerstyle)
                 plt.xticks(fontsize=15, rotation=45)
@@ -994,7 +994,7 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
                         bbox = dict(boxstyle = "round4, pad = 0.6,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
 
                     plt.subplots_adjust(right = 1-plot_adjust)
-                plt.savefig(f"plot_{i+1}.png")
+                plt.savefig(f"scatter-plot_{i+1}.png")
                 plt.close(fig)
     else:
         metr = metrics.calculate_metrics(observed=observed, simulated=simulated, metrices=[metric])
