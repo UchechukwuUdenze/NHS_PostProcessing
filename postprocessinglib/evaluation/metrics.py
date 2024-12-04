@@ -1111,23 +1111,32 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
                 if hlp.is_leap_year(year):
                     num_of_days = 366
 
+                # Check for number of days in the year
                 valid_values = np.sum(np.fromiter((df.index[i].year == year for i in range(first, num_of_days+first)), int))
+                # print(f"valid values {valid_values}")
 
-                if valid_values > 200 and np.nansum(df.iloc[first:num_of_days+first, j]) > 0.0:
-                    mean = np.nanmean(df.iloc[first:num_of_days+first, j])
+                if valid_values > 200 and np.nansum(df.iloc[first:first+valid_values, j]) > 0.0 and not pd.isna(df.iloc[first:first+valid_values, j]).any():
+                    # print(np.sum(df.iloc[first:first+valid_values, j]))
+                    mean = np.nanmean(df.iloc[first:valid_values+first, j])
+                    # print(mean)
                     minimum_cumulative = 1.0E38         # Some Arbitrarily large number
                     cumulative = 0
                     onset_day = 0
-                    for index in range(first, num_of_days+first):
+                    for index in range(first, valid_values+first):
+                        # if not np.isnan(df.iloc[index, j]):
                         cumulative += (df.iloc[index, j] - mean)
                         if cumulative < minimum_cumulative:
                             minimum_cumulative = cumulative
+                            # onset_day = (index % valid_values) + (num_of_days-valid_values) + 1
                             onset_day = (index % num_of_days) + 1
                     yearly_spod.append(onset_day)
+                    # print(yearly_spod)
+                    # print("/n")
                 first += valid_values
                 year += 1          
             spod = np.mean(yearly_spod)
             SPOD.append(hlp.sig_figs(spod, 3))
+            SPOD.append(spod)
     else:
         for j in stations:
             # Adjust for zero indexing
@@ -1142,19 +1151,27 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
                 if hlp.is_leap_year(year):
                     num_of_days = 366
 
+                # Check for number of days in the year
                 valid_values = np.sum(np.fromiter((df.index[i].year == year for i in range(first, num_of_days+first)), int))
+                # print(f"valid values {valid_values}")
 
-                if valid_values > 200 and np.nansum(df.iloc[first:num_of_days+first, j]) > 0.0:
-                    mean = np.nanmean(df.iloc[first:num_of_days+first, j])
+                if valid_values > 200 and np.nansum(df.iloc[first:first+valid_values, j]) > 0.0 and not pd.isna(df.iloc[first:first+valid_values, j]).any():
+                    # print(np.sum(df.iloc[first:first+valid_values, j]))
+                    mean = np.nanmean(df.iloc[first:valid_values+first, j])
+                    # print(mean)
                     minimum_cumulative = 1.0E38         # Some Arbitrarily large number
                     cumulative = 0
                     onset_day = 0
-                    for index in range(first, num_of_days+first):
+                    for index in range(first, valid_values+first):
+                        # if not np.isnan(df.iloc[index, j]):
                         cumulative += (df.iloc[index, j] - mean)
                         if cumulative < minimum_cumulative:
                             minimum_cumulative = cumulative
+                            # onset_day = (index % valid_values) + (num_of_days-valid_values) + 1
                             onset_day = (index % num_of_days) + 1
                     yearly_spod.append(onset_day)
+                    # print(yearly_spod)
+                    # print("/n")
                 first += valid_values
                 year += 1          
             spod = np.mean(yearly_spod)

@@ -18,7 +18,7 @@ from shapely.geometry import Point
 from postprocessinglib.evaluation import metrics
 from postprocessinglib.utilities import helper_functions as hlp
 
-def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd.DataFrame = None,
+def plot(merged_df: pd.DataFrame = None, df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd.DataFrame = None,
          legend: tuple[str, str] = ('Simulated Data', 'Observed Data'), metrices: list[str] = None,
          grid: bool = False, title: str = None, labels: tuple[str, str] = None, padding: bool = False ,
          linestyles: tuple[str, str] = ('r-', 'b-'), linewidth: tuple[float, float] = (1.5, 1.25),
@@ -40,6 +40,11 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
     sim_df : pd.DataFrame
         A DataFrame conataning rows of predicted/simulated data. It must have a datetime index. if it is
         present it is accompanied by the obs_df and the merged_df must be None.
+
+    df : pd.DataFrame
+        A single dataframe rows of data. It must have a datetime index. if it is present obs_df, sim_df
+        and the merged_df must be None. It is to be used in cases where the user wishes to plot only
+        one of either simulated or observed data.
 
     legend: tuple[str, str]
         Adds a Legend in the 'best' location determined by matplotlib.
@@ -134,7 +139,7 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
          
     """
-    if merged_df is not None and sim_df is None and obs_df is None:
+    if merged_df is not None and sim_df is None and obs_df is None and df is None:
         # Setting Variable for the simulated data, observed data, and time stamps
         obs = merged_df.iloc[:, [0]]
         sim = merged_df.iloc[:, [1]]
@@ -142,12 +147,15 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
             obs = pd.concat([obs, merged_df.iloc[:, j]], axis = 1)
             sim = pd.concat([sim, merged_df.iloc[:, j+1]], axis = 1)
         time = merged_df.index
-    elif sim_df is not None and obs_df is not None and merged_df is None:
+    elif sim_df is not None and obs_df is not None and merged_df is None and df is None:
         obs = obs_df
         sim = sim_df
         time = obs_df.index
+    elif sim_df is None and obs_df is None and merged_df is None and df is not None:
+        time = df.index
+        line_df = df
     else:
-        raise RuntimeError('either sim_df and obs_df or merged_df are required inputs.')
+        raise RuntimeError('either sim_df and obs_df or merged_df or df are required inputs.')
 
     # Convert time index to float or int if not datetime
     if not isinstance(time, pd.DatetimeIndex):
@@ -171,156 +179,263 @@ def plot(merged_df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd
                 time = [pd.Timestamp(datetime.datetime.strptime(week, '%Y-%m').date()) for week in time]
             else: # yearly
                 time = np.asarray(time, dtype='float')
+    if df is None:
+        if len(obs.columns) <= 5:
+            for i in range (0, len(obs.columns)):
+                # Plotting the Data     
+                fig = plt.figure(figsize=fig_size, facecolor='w', edgecolor='k')
+                ax = fig.add_subplot(111)                       
+                plt.plot(time, obs[obs.columns[i]], linestyles[1], label=legend[1], linewidth = linewidth[1])
+                plt.plot(time, sim[sim.columns[i]], linestyles[0], label=legend[0], linewidth = linewidth[0])
+                plt.legend(fontsize=15)
 
-    if len(obs.columns) <= 5:
-        for i in range (0, len(obs.columns)):
-            # Plotting the Data     
-            fig = plt.figure(figsize=fig_size, facecolor='w', edgecolor='k')
-            ax = fig.add_subplot(111)                       
-            plt.plot(time, obs[obs.columns[i]], linestyles[1], label=legend[1], linewidth = linewidth[1])
-            plt.plot(time, sim[sim.columns[i]], linestyles[0], label=legend[0], linewidth = linewidth[0])
-            plt.legend(fontsize=15)
+                # Adjusting the plot if user wants tight x axis limits
+                if padding:
+                    plt.xlim(time[0], time[-1])
 
-            # Adjusting the plot if user wants tight x axis limits
-            if padding:
-                plt.xlim(time[0], time[-1])
+                plt.xticks(fontsize=15, rotation=45)
+                plt.yticks(fontsize=15)
 
-            plt.xticks(fontsize=15, rotation=45)
-            plt.yticks(fontsize=15)
+                # Placing Labels if requested
+                if labels:
+                    # Plotting Labels
+                    plt.xlabel(labels[0], fontsize=18)
+                    plt.ylabel(labels[1], fontsize=18)
+                if title:
+                    title_dict = {'family': 'sans-serif',
+                                'color': 'black',
+                                'weight': 'normal',
+                                'size': 20,
+                                }
+                    ## Check that the title is a list of strings or a single string
+                    if isinstance(title, list):
+                        try:
+                            if title[i] == '':
+                                    ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
+                            else:
+                                ax.set_title(label=title[i], fontdict=title_dict, pad=25)
+                        except IndexError:
+                            ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)                        
+                    elif isinstance(title, str):
+                        ax.set_title(label=title, fontdict=title_dict, pad=25)
 
-            # Placing Labels if requested
-            if labels:
-                # Plotting Labels
-                plt.xlabel(labels[0], fontsize=18)
-                plt.ylabel(labels[1], fontsize=18)
-            if title:
-                title_dict = {'family': 'sans-serif',
-                            'color': 'black',
+                # Placing a grid if requested
+                if grid:
+                    plt.grid(True)
+
+                # Fixes issues with parts of plot being cut off
+                plt.tight_layout()
+
+                # Placing Metrics on the Plot if requested
+                if metrices:
+                    formatted_selected_metrics = 'Metrics:\n'
+                    if metrices == 'all':
+                        for key, value in metrics.calculate_all_metrics(observed=obs, simulated=sim).items():
+                            formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
+                    else: 
+                        assert isinstance(metrices, list)
+                        for key, value in metrics.calculate_metrics(observed=obs, simulated=sim, metrices=metrices).items():
+                            formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
+
+                    font = {'family': 'sans-serif',
                             'weight': 'normal',
-                            'size': 20,
-                            }
-                ## Check that the title is a list of strings or a single string
-                if isinstance(title, list):
-                    try:
-                        if title[i] == '':
-                                ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
-                        else:
-                            ax.set_title(label=title[i], fontdict=title_dict, pad=25)
-                    except IndexError:
-                        ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)                        
-                elif isinstance(title, str):
-                    ax.set_title(label=title, fontdict=title_dict, pad=25)
+                            'size': 12}
+                    plt.text(metrics_adjust[0], metrics_adjust[1], formatted_selected_metrics, ha='left',
+                            va='center', transform=ax.transAxes, fontdict=font, #mouseover = True,
+                            bbox = dict(boxstyle = "round, pad = 0.5,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
 
-            # Placing a grid if requested
-            if grid:
-                plt.grid(True)
+                    plt.subplots_adjust(right = 1-plot_adjust)
 
-            # Fixes issues with parts of plot being cut off
-            plt.tight_layout()
+                # save to file if requested 
+                if save:
+                    ## Check that the title is a list of strings or a single string
+                    if isinstance(save_as, list):
+                        try:
+                            if save_as[i] == '':
+                                plt.savefig(f"plot_{i+1}.png")
+                            else:
+                                plt.savefig(f"{save_as[i]}.png")
+                        except IndexError:
+                            plt.savefig(f"plot_{i+1}.png")                        
+                    elif isinstance(save_as, str):
+                        plt.savefig(f"{save_as}_{i+1}.png")
+                    else:
+                        plt.savefig(f"plot_{i+1}.png")
+        else:
+            for i in range (0, len(obs.columns)):
+                # Plotting the Data     
+                fig = plt.figure(figsize=fig_size, facecolor = 'w', edgecolor='k')
+                ax = fig.add_subplot(111)                       
+                plt.plot(time, obs[obs.columns[i]], linestyles[1], label=legend[1], linewidth = linewidth[1])
+                plt.plot(time, sim[sim.columns[i]], linestyles[0], label=legend[0], linewidth = linewidth[0])
+                plt.legend(fontsize=15)
 
-            # Placing Metrics on the Plot if requested
-            if metrices:
-                formatted_selected_metrics = 'Metrics:\n'
-                if metrices == 'all':
-                    for key, value in metrics.calculate_all_metrics(observed=obs, simulated=sim).items():
-                        formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
-                else: 
-                    assert isinstance(metrices, list)
-                    for key, value in metrics.calculate_metrics(observed=obs, simulated=sim, metrices=metrices).items():
-                        formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
+                # Adjusting the plot if user wants tight x axis limits
+                if padding:
+                    plt.xlim(time[0], time[-1])
 
-                font = {'family': 'sans-serif',
-                        'weight': 'normal',
-                        'size': 12}
-                plt.text(metrics_adjust[0], metrics_adjust[1], formatted_selected_metrics, ha='left',
-                        va='center', transform=ax.transAxes, fontdict=font, mouseover = True,
-                        bbox = dict(boxstyle = "round, pad = 0.5,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
+                plt.xticks(fontsize=15, rotation=45)
+                plt.yticks(fontsize=15)
 
-                plt.subplots_adjust(right = 1-plot_adjust)
+                # Placing Labels if requested
+                if labels:
+                    # Plotting Labels
+                    plt.xlabel(labels[0], fontsize=18)
+                    plt.ylabel(labels[1], fontsize=18)
+                if title:
+                    title_dict = {'family': 'sans-serif',
+                                'color': 'black',
+                                'weight': 'normal',
+                                'size': 20,
+                                }
+                    ## Check that the title is a list of strings or a single string
+                    if isinstance(title, list):
+                        try:
+                            if title[i] == '':
+                                    ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
+                            else:
+                                ax.set_title(label=title[i], fontdict=title_dict, pad=25)
+                        except IndexError:
+                            ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)                        
+                    elif isinstance(title, str):
+                        ax.set_title(label=title, fontdict=title_dict, pad=25)
 
-            # save to file if requested 
-            if save:
-                # fig.set_facecolor('gainsboro')
-                ## Check that the title is a list of strings or a single string
-                if isinstance(save_as, list):
-                    try:
-                        if save_as[i] == '':
-                            plt.savefig(f"plot_{i+1}.png")
-                        else:
-                            plt.savefig(f"{save_as[i]}.png")
-                    except IndexError:
-                        plt.savefig(f"plot_{i+1}.png")                        
-                elif isinstance(save_as, str):
-                    plt.savefig(f"{save_as}_{i+1}.png")
-                else:
-                    plt.savefig(f"plot_{i+1}.png")
+                # Placing a grid if requested
+                if grid:
+                    plt.grid(True)
+
+                # Fixes issues with parts of plot being cut off
+                plt.tight_layout()
+
+                # Placing Metrics on the Plot if requested
+                if metrices:
+                    formatted_selected_metrics = 'Metrics:\n'
+                    if metrices == 'all':
+                        for key, value in metrics.calculate_all_metrics(observed=obs, simulated=sim).items():
+                            formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
+                    else: 
+                        assert isinstance(metrices, list)
+                        for key, value in metrics.calculate_metrics(observed=obs, simulated=sim, metrices=metrices).items():
+                            formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
+
+                    font = {'family': 'sans-serif',
+                            'weight': 'normal',
+                            'size': 12}
+                    plt.text(metrics_adjust[0], metrics_adjust[1], formatted_selected_metrics, ha='left',
+                            va='center', transform=ax.transAxes, fontdict=font, #mouseover = True,
+                            bbox = dict(boxstyle = "round, pad = 0.5,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
+
+                    plt.subplots_adjust(right = 1-plot_adjust)
+                plt.savefig(f"plot_{i+1}.png")
+                plt.close(fig)
     else:
-        for i in range (0, len(obs.columns)):
-            # Plotting the Data     
-            fig = plt.figure(figsize=fig_size, facecolor = 'w', edgecolor='k')
-            ax = fig.add_subplot(111)                       
-            plt.plot(time, obs[obs.columns[i]], linestyles[1], label=legend[1], linewidth = linewidth[1])
-            plt.plot(time, sim[sim.columns[i]], linestyles[0], label=legend[0], linewidth = linewidth[0])
-            plt.legend(fontsize=15)
+        if len(line_df.columns) <= 5:
+            for i in range (0, len(line_df.columns)):
+                # Plotting the Data     
+                fig = plt.figure(figsize=fig_size, facecolor='w', edgecolor='k')
+                ax = fig.add_subplot(111)                       
+                plt.plot(time, line_df[line_df.columns[i]], linestyles[0], label=legend[0], linewidth = linewidth[0])
+                plt.legend(fontsize=15)
 
-            # Adjusting the plot if user wants tight x axis limits
-            if padding:
-                plt.xlim(time[0], time[-1])
+                # Adjusting the plot if user wants tight x axis limits
+                if padding:
+                    plt.xlim(time[0], time[-1])
 
-            plt.xticks(fontsize=15, rotation=45)
-            plt.yticks(fontsize=15)
+                plt.xticks(fontsize=15, rotation=45)
+                plt.yticks(fontsize=15)
 
-            # Placing Labels if requested
-            if labels:
-                # Plotting Labels
-                plt.xlabel(labels[0], fontsize=18)
-                plt.ylabel(labels[1], fontsize=18)
-            if title:
-                title_dict = {'family': 'sans-serif',
-                            'color': 'black',
-                            'weight': 'normal',
-                            'size': 20,
-                            }
-                ## Check that the title is a list of strings or a single string
-                if isinstance(title, list):
-                    try:
-                        if title[i] == '':
-                                ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
-                        else:
-                            ax.set_title(label=title[i], fontdict=title_dict, pad=25)
-                    except IndexError:
-                        ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)                        
-                elif isinstance(title, str):
-                    ax.set_title(label=title, fontdict=title_dict, pad=25)
+                # Placing Labels if requested
+                if labels:
+                    # Plotting Labels
+                    plt.xlabel(labels[0], fontsize=18)
+                    plt.ylabel(labels[1], fontsize=18)
+                if title:
+                    title_dict = {'family': 'sans-serif',
+                                'color': 'black',
+                                'weight': 'normal',
+                                'size': 20,
+                                }
+                    ## Check that the title is a list of strings or a single string
+                    if isinstance(title, list):
+                        try:
+                            if title[i] == '':
+                                    ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
+                            else:
+                                ax.set_title(label=title[i], fontdict=title_dict, pad=25)
+                        except IndexError:
+                            ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)                        
+                    elif isinstance(title, str):
+                        ax.set_title(label=title, fontdict=title_dict, pad=25)
 
-            # Placing a grid if requested
-            if grid:
-                plt.grid(True)
+                # Placing a grid if requested
+                if grid:
+                    plt.grid(True)
 
-            # Fixes issues with parts of plot being cut off
-            plt.tight_layout()
+                # Fixes issues with parts of plot being cut off
+                plt.tight_layout()
 
-            # Placing Metrics on the Plot if requested
-            if metrices:
-                formatted_selected_metrics = 'Metrics:\n'
-                if metrices == 'all':
-                    for key, value in metrics.calculate_all_metrics(observed=obs, simulated=sim).items():
-                        formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
-                else: 
-                    assert isinstance(metrices, list)
-                    for key, value in metrics.calculate_metrics(observed=obs, simulated=sim, metrices=metrices).items():
-                        formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
+                # save to file if requested 
+                if save:
+                    ## Check that the title is a list of strings or a single string
+                    if isinstance(save_as, list):
+                        try:
+                            if save_as[i] == '':
+                                plt.savefig(f"plot_{i+1}.png")
+                            else:
+                                plt.savefig(f"{save_as[i]}.png")
+                        except IndexError:
+                            plt.savefig(f"plot_{i+1}.png")                        
+                    elif isinstance(save_as, str):
+                        plt.savefig(f"{save_as}_{i+1}.png")
+                    else:
+                        plt.savefig(f"plot_{i+1}.png")
+        else:
+            for i in range (0, len(line_df.columns)):
+                # Plotting the Data     
+                fig = plt.figure(figsize=fig_size, facecolor = 'w', edgecolor='k')
+                ax = fig.add_subplot(111)                       
+                plt.plot(time, line_df[line_df.columns[i]], linestyles[0], label=legend[0], linewidth = linewidth[0])
+                plt.legend(fontsize=15)
 
-                font = {'family': 'sans-serif',
-                        'weight': 'normal',
-                        'size': 12}
-                plt.text(metrics_adjust[0], metrics_adjust[1], formatted_selected_metrics, ha='left',
-                        va='center', transform=ax.transAxes, fontdict=font, mouseover = True,
-                        bbox = dict(boxstyle = "round, pad = 0.5,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
+                # Adjusting the plot if user wants tight x axis limits
+                if padding:
+                    plt.xlim(time[0], time[-1])
 
-                plt.subplots_adjust(right = 1-plot_adjust)
-            plt.savefig(f"plot_{i+1}.png")
-            plt.close(fig)
+                plt.xticks(fontsize=15, rotation=45)
+                plt.yticks(fontsize=15)
+
+                # Placing Labels if requested
+                if labels:
+                    # Plotting Labels
+                    plt.xlabel(labels[0], fontsize=18)
+                    plt.ylabel(labels[1], fontsize=18)
+                if title:
+                    title_dict = {'family': 'sans-serif',
+                                'color': 'black',
+                                'weight': 'normal',
+                                'size': 20,
+                                }
+                    ## Check that the title is a list of strings or a single string
+                    if isinstance(title, list):
+                        try:
+                            if title[i] == '':
+                                    ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
+                            else:
+                                ax.set_title(label=title[i], fontdict=title_dict, pad=25)
+                        except IndexError:
+                            ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)                        
+                    elif isinstance(title, str):
+                        ax.set_title(label=title, fontdict=title_dict, pad=25)
+
+                # Placing a grid if requested
+                if grid:
+                    plt.grid(True)
+
+                # Fixes issues with parts of plot being cut off
+                plt.tight_layout()
+                plt.savefig(f"plot_{i+1}.png")
+                plt.close(fig)
+
 
 
 
@@ -443,8 +558,8 @@ def bounded_plot(lines: Union[list[pd.DataFrame]], upper_bounds: list[pd.DataFra
                 if upper_bounds or lower_bounds:
                     # lists to store all bounds
                     upper_obs = []
-                    upper_sim = []
                     lower_obs = []
+                    upper_sim = []
                     lower_sim = []
 
                     for j in range(0, len(upper_bounds)):
@@ -665,8 +780,8 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
          fig_size: tuple[float, float] = (10,6), best_fit: bool=False, line45: bool=False,
 
          merged_df: pd.DataFrame = None, obs_df: pd.DataFrame =  None, sim_df: pd.DataFrame = None,
-         metrices: list[str] = None, markerstyle: str = 'ko', save: bool=False, save_as:str = None,
-         metrics_adjust: tuple[float, float] = (1.05, 0.5), plot_adjust: float = 0.2,
+         metrices: list[str] = None, markerstyle: str = 'ko', save: bool=False, plot_adjust: float = 0.2,
+         save_as:str = None, metrics_adjust: tuple[float, float] = (1.05, 0.5), 
 
          shapefile_path: str = "", x_axis : pd.DataFrame=None, y_axis : pd.DataFrame=None,
          metric: str="", observed: pd.DataFrame = None, simulated: pd.DataFrame = None)-> plt.figure:
@@ -891,7 +1006,7 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
                             'weight': 'normal',
                             'size': 12}
                     plt.text(metrics_adjust[0], metrics_adjust[1], formatted_selected_metrics, ha='left',
-                        va='center', transform=ax.transAxes, fontdict=font, mouseover = True,
+                        va='center', transform=ax.transAxes, fontdict=font, #mouseover = True,
                         bbox = dict(boxstyle = "round4, pad = 0.6,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
 
                     plt.subplots_adjust(right = 1-plot_adjust)
@@ -990,7 +1105,7 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
                             'weight': 'normal',
                             'size': 12}
                     plt.text(metrics_adjust[0], metrics_adjust[1], formatted_selected_metrics, ha='left',
-                        va='center', transform=ax.transAxes, fontdict=font, mouseover = True,
+                        va='center', transform=ax.transAxes, fontdict=font, #mouseover = True,
                         bbox = dict(boxstyle = "round4, pad = 0.6,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
 
                     plt.subplots_adjust(right = 1-plot_adjust)
@@ -1003,11 +1118,11 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
             'longitude': x_axis.values,
             list(metr)[0] : metr[list(metr)[0]]
         }
-        df = pd.DataFrame(data)
+        dataframe = pd.DataFrame(data)
  
         # Convert the pandas DataFrame into a GeoDataFrame
-        geometry = [Point(xy) for xy in zip(df['longitude'], df['latitude'])]
-        gdf_points = gpd.GeoDataFrame(df, geometry=geometry)
+        geometry = [Point(xy) for xy in zip(dataframe['longitude'], dataframe['latitude'])]
+        gdf_points = gpd.GeoDataFrame(dataframe, geometry=geometry)
         
         # Read the shapefile using GeoPandas
         gdf_shapefile = gpd.read_file(shapefile_path)

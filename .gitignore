@@ -2,8 +2,9 @@ TO-DO.txt
 *.egg-info/
 dist/
 build/
-*/__pychache__/
+*/__pycache__/
+*/*/__pycache__/
 tests/
 docs/source/notebooks/.ipynb_checkpoints/
+docs/source/notebooks/TEST.ipynb
 .ipynb_checkpoints
-MESH_output_streamflow.csv

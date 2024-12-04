@@ -854,6 +854,10 @@ def generate_dataframes(csv_fpath: str='', sim_fpath: str='', obs_fpath: str='',
         simulated = simulated.loc[start_date:end_date]
         observed = observed.loc[start_date:end_date]
         DATAFRAMES["DF"] = DATAFRAMES["DF"][start_date:end_date]
+
+    print(f"The start date for the Observed Data is {observed.index[0].strftime('%Y-%m-%d')}")
+    print(f"The start date for the Simulated Data is {simulated.index[0].strftime('%Y-%m-%d')}")
+    print(f"The start date for the Merged Data is {DATAFRAMES['DF'].index[0].strftime('%Y-%m-%d')}")
     
     # validate inputs
     hlp.validate_data(observed, simulated)
