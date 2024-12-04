@@ -1007,7 +1007,6 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
                             'size': 12}
                     plt.text(metrics_adjust[0], metrics_adjust[1], formatted_selected_metrics, ha='left',
                         va='center', transform=ax.transAxes, fontdict=font, #mouseover = True,
-                        va='center', transform=ax.transAxes, fontdict=font, #mouseover = True,
                         bbox = dict(boxstyle = "round4, pad = 0.6,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
 
                     plt.subplots_adjust(right = 1-plot_adjust)
@@ -1106,7 +1105,6 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
                             'weight': 'normal',
                             'size': 12}
                     plt.text(metrics_adjust[0], metrics_adjust[1], formatted_selected_metrics, ha='left',
-                        va='center', transform=ax.transAxes, fontdict=font, #mouseover = True,
                         va='center', transform=ax.transAxes, fontdict=font, #mouseover = True,
                         bbox = dict(boxstyle = "round4, pad = 0.6,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
 
