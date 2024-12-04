@@ -97,22 +97,35 @@ def station_dataframe(observed: pd.DataFrame, simulated: pd.DataFrame,
 
 
 def long_term_seasonal(df: pd.DataFrame, method: str= 'mean')-> pd.DataFrame:
-    """ Returns the long term seasonal aggregate value of a given dataframe based
-        on the chosen method over the entire data, into a single year
+    """ 
+    Computes the long-term seasonal aggregate values of a given DataFrame by 
+    applying the specified aggregation method to each day across all years in the 
+    provided time period. The resulting data is aggregated into a single year (1 to 366 days).
 
     Parameters
     ---------- 
     df: pd.DataFrame
             A pandas DataFrame with a datetime index and columns containing float type values.
-    method: string
-            string indicating the method of aggregation
-            i.e, mean, min, max, median, sum and instantaenous
-            - default is mean
+            Each column represents a time series to be aggregated.
+    method: str, optional
+        The aggregation method to apply across all years for each specific day of the year.
+        Supported methods include:
+        - 'mean': Calculate the mean value of that specific day (e.g., January 1st) 
+          across all years in the dataset (default).
+        - 'min': Calculate the minimum value of that specific day across all years.
+        - 'max': Calculate the maximum value of that specific day across all years.
+        - 'median': Calculate the median value of that specific day across all years.
+        - 'sum': Calculate the sum of that specific day across all years.
+        - 'QX': Calculate a specific quantile, where X is a number between 0 and 100
+          (e.g., 'Q75' for the 75th percentile). Use uppercase 'Q' for quantiles.
+        - default is mean
 
     Returns
     -------
     pd.DataFrame:
-            The new dataframe with the values aggregated into a 366 row Dataframe 
+        A DataFrame with 366 rows (representing days of the year, including February 29th) 
+        and the same columns as the input. Each row represents the aggregated value for 
+        that specific day across all years.
 
     Examples
     --------
