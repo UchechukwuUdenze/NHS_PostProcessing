@@ -1253,12 +1253,25 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, stati
 
     # Check for a specified format, else print to screen
     if format:
+        val = pd.DataFrame(results)
+        val.index = val.index+1 # so the index starts form 1 and not 0
         if format == "txt":
-            file = open(out+"."+format, "w")
-            for key, value in results.items():
-                file.write(f"{key}: {value}\n")
+            val_txt = val.to_csv(sep='\t', index=False, lineterminator='\n')
+            lines = val_txt.split('\n')
+            columns = [line.split('\t') for line in lines if line]
+            formatted_lines = []
+            for line in columns:
+                formatted_line = ''.join(f'{col:<{12}}' for col in line)
+                formatted_lines.append(formatted_line)            
+            # Join the formatted lines into a single string
+            formatted_str = '\n'.join(formatted_lines)
+            with open(out+"."+format, "w") as file:
+                file.write(formatted_str)
             file.close()
-            print("See metrics_out.txt file in directory")
+            print(f"See {out}.{format} file in directory")
+        elif format == "csv":
+            val.to_csv(f"{out}.{format}")
+            print(f"See {out}.{format} file in directory")            
         else:
             print("unknown or uncoded format - " + format)
     else:
@@ -1359,12 +1372,25 @@ def calculate_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, metrices:
         
     # Check for a specified format, else print to screen
     if format:
+        val = pd.DataFrame(values)
+        val.index = val.index+1 # so the index starts form 1 and not 0
         if format == "txt":
-            file = open(out+"."+format, "w")
-            for key, value in values.items():
-                file.write(f"{key}: {value}\n")
+            val_txt = val.to_csv(sep='\t', index=False, lineterminator='\n')
+            lines = val_txt.split('\n')
+            columns = [line.split('\t') for line in lines if line]
+            formatted_lines = []
+            for line in columns:
+                formatted_line = ''.join(f'{col:<{12}}' for col in line)
+                formatted_lines.append(formatted_line)            
+            # Join the formatted lines into a single string
+            formatted_str = '\n'.join(formatted_lines)
+            with open(out+"."+format, "w") as file:
+                file.write(formatted_str)
             file.close()
-            print("See metrics_out.txt file in directory")
+            print(f"See {out}.{format} file in directory")
+        elif format == "csv":
+            val.to_csv(f"{out}.{format}")
+            print(f"See {out}.{format} file in directory")            
         else:
             print("unknown or uncoded format - " + format)
     else:
