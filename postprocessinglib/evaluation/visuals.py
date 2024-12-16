@@ -511,7 +511,7 @@ def bounded_plot(lines: Union[list[pd.DataFrame]], upper_bounds: list[pd.DataFra
          legend: tuple[str, str] = ('Simulated Data', 'Observed Data'), grid: bool = False, title: str = None,
          labels: tuple[str, str] = None, linestyles: tuple[str, str] = ('r-', 'b-'), padding: bool = False ,
          fig_size: tuple[float, float] = (10,6), transparency: tuple[float, float] = [0.4, 0.4], save:bool = False,
-         save_as:str = None) ->plt.figure:
+         save_as:str = None, dir:str = ".") ->plt.figure:
     """ Create a comparison time series line plot of simulated and observed time series data with optional
     upper and lower bounds 
 
@@ -556,13 +556,18 @@ def bounded_plot(lines: Union[list[pd.DataFrame]], upper_bounds: list[pd.DataFra
         and observed ranges respectively
 
     save: bool
-        If True, the plot images will be saved as png files in the format plot_1.png, plot_2.png,
+        If True, the plot images will be saved as png files in the format bounded-plot_1.png, bounded-plot_2.png,
         etc., depending how many plots are generated or with the names specified in the save_as 
         variable
     
     save_as: str or list[str]
         If provided these wil be the naming nomenclature used to save the figures as specified by the
-        save variable 
+        save variable
+
+    dir: str
+        The directory where the plots will be saved. The current directory will be searched
+        for the spedified 'dir' directory, if none is found, it will be created. Its default is the
+        current directory represented by '.' .
 
     Returns
     -------
@@ -720,19 +725,28 @@ def bounded_plot(lines: Union[list[pd.DataFrame]], upper_bounds: list[pd.DataFra
                 # save to file if requested 
                 if save:
                     # fig.set_facecolor('gainsboro')
+                    # Check if the directory exists
+                    if not os.path.exists(dir):
+                        # If the directory does not exist, create it
+                        os.makedirs(dir)
+                        print(f"Directory '{dir}' created.")
+                    elif dir is not ".":
+                        print(f"Directory '{dir}' already exists.")
+                    else:
+                        print("Plots will be saved to current directory")
                     ## Check that the title is a list of strings or a single string
                     if isinstance(save_as, list):
                         try:
                             if save_as[i] == '':
-                                plt.savefig(f"bounded-plot_{i+1}.png")
+                                plt.savefig(os.path.join(dir, f"bounded-plot_{i+1}.png"))
                             else:
-                                plt.savefig(f"{save_as[i]}.png")
+                                plt.savefig(os.path.join(dir, f"{save_as[i]}.png"))
                         except IndexError:
-                            plt.savefig(f"bounded-plot_{i+1}.png")                        
+                            plt.savefig(os.path.join(dir, f"bounded-plot_{i+1}.png"))                        
                     elif isinstance(save_as, str):
-                        plt.savefig(f"{save_as}_{i+1}.png")
+                        plt.savefig(os.path.join(dir, f"{save_as}_{i+1}.png"))
                     else:
-                        plt.savefig(f"bounded-plot_{i+1}.png")
+                        plt.savefig(os.path.join(dir, f"bounded-plot_{i+1}.png"))
         else:
             for i in range (0, len(line_obs.columns)):
                 fig = plt.figure(figsize=fig_size, facecolor='w', edgecolor='k')
@@ -837,7 +851,29 @@ def bounded_plot(lines: Union[list[pd.DataFrame]], upper_bounds: list[pd.DataFra
 
                 # Fixes issues with parts of plot being cut off
                 plt.tight_layout()
-                plt.savefig(f"bounded-plot_{i+1}.png")
+
+                # Check if the directory exists
+                if not os.path.exists(dir):
+                    # If the directory does not exist, create it
+                    os.makedirs(dir)
+                    print(f"Directory '{dir}' created.")
+                elif dir is not ".":
+                    print(f"Directory '{dir}' already exists.")
+                else:
+                    print("Plots will be saved to current directory")
+                ## Check that the title is a list of strings or a single string
+                if isinstance(save_as, list):
+                    try:
+                        if save_as[i] == '':
+                            plt.savefig(os.path.join(dir, f"bounded-plot_{i+1}.png"))
+                        else:
+                            plt.savefig(os.path.join(dir, f"{save_as[i]}.png"))
+                    except IndexError:
+                        plt.savefig(os.path.join(dir, f"bounded-plot_{i+1}.png"))                        
+                elif isinstance(save_as, str):
+                    plt.savefig(os.path.join(dir, f"{save_as}_{i+1}.png"))
+                else:
+                    plt.savefig(os.path.join(dir, f"bounded-plot_{i+1}.png"))
                 plt.close(fig)
         
 
@@ -849,7 +885,7 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
 
          merged_df: pd.DataFrame = None, obs_df: pd.DataFrame =  None, sim_df: pd.DataFrame = None,
          metrices: list[str] = None, markerstyle: str = 'ko', save: bool=False, plot_adjust: float = 0.2,
-         save_as:str = None, metrics_adjust: tuple[float, float] = (1.05, 0.5), 
+         save_as:str = None, metrics_adjust: tuple[float, float] = (1.05, 0.5), dir:str = ".",
 
          shapefile_path: str = "", x_axis : pd.DataFrame=None, y_axis : pd.DataFrame=None,
          metric: str="", observed: pd.DataFrame = None, simulated: pd.DataFrame = None)-> plt.figure:
@@ -906,13 +942,18 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
         IF True, adds a 45 degree line to the plot and the legend. 
         
     save: bool
-        If True, the plot images will be saved as png files in the format plot_1.png, plot_2.png,
+        If True, the plot images will be saved as png files in the format scatter-plot_1.png, scatter-plot_2.png,
         etc., depending how many plots are generated or with the names specified in the save_as 
         variable
     
     save_as: str or list[str]
         If provided these wil be the naming nomenclature used to save the figures as specified by the
         save variable 
+    
+    dir: str
+        The directory where the plots will be saved. The current directory will be searched
+        for the spedified 'dir' directory, if none is found, it will be created. Its default is the
+        current directory represented by '.' .
 
     shapefile_path : str
         Tha path to a shapefile on top of which you will be plotting the scatter plot
@@ -957,8 +998,8 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
                metrices = ['KGE','MSE','BIAS']
                )
 
-    .. image:: ../Figures/plot_Station_1_1981_to_1990.png
-    .. image:: ../Figures/plot_Station_2_1981_to_1990.png
+    .. image:: ../Figures/scatter_Station_1_1981_to_1990.png
+    .. image:: ../Figures/scatter_Station_2_1981_to_1990.png
 
     >>> shapefile_path = r"SaskRB_SubDrainage2.shp"
     >>> stations_path = 'Station_data.xlsx'
@@ -1082,19 +1123,28 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
                 # save to file if requested 
                 if save:
                     # fig.set_facecolor('gainsboro')
+                    # Check if the directory exists
+                    if not os.path.exists(dir):
+                        # If the directory does not exist, create it
+                        os.makedirs(dir)
+                        print(f"Directory '{dir}' created.")
+                    elif dir is not ".":
+                        print(f"Directory '{dir}' already exists.")
+                    else:
+                        print("Plots will be saved to current directory")
                     ## Check that the title is a list of strings or a single string
                     if isinstance(save_as, list):
                         try:
                             if save_as[i] == '':
-                                plt.savefig(f"scatter-plot_{i+1}.png")
+                                plt.savefig(os.path.join(dir, f"scatter-plot_{i+1}.png"))
                             else:
-                                plt.savefig(f"{save_as[i]}.png")
+                                plt.savefig(os.path.join(dir, f"{save_as[i]}.png"))
                         except IndexError:
-                            plt.savefig(f"scatter-plot_{i+1}.png")                        
+                            plt.savefig(os.path.join(dir, f"scatter-plot_{i+1}.png"))                        
                     elif isinstance(save_as, str):
-                        plt.savefig(f"{save_as}_{i+1}.png")
+                        plt.savefig(os.path.join(dir, f"{save_as}_{i+1}.png"))
                     else:
-                        plt.savefig(f"scatter-plot_{i+1}.png")
+                        plt.savefig(os.path.join(dir, f"scatter-plot_{i+1}.png"))
         else:
             for i in range (0, len(obs.columns)):
                 # Plotting the Data
@@ -1177,7 +1227,29 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
                         bbox = dict(boxstyle = "round4, pad = 0.6,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
 
                     plt.subplots_adjust(right = 1-plot_adjust)
-                plt.savefig(f"scatter-plot_{i+1}.png")
+                
+                # Check if the directory exists
+                if not os.path.exists(dir):
+                    # If the directory does not exist, create it
+                    os.makedirs(dir)
+                    print(f"Directory '{dir}' created.")
+                elif dir is not ".":
+                    print(f"Directory '{dir}' already exists.")
+                else:
+                    print("Plots will be saved to current directory")
+                ## Check that the title is a list of strings or a single string
+                if isinstance(save_as, list):
+                    try:
+                        if save_as[i] == '':
+                            plt.savefig(os.path.join(dir, f"scatter-plot_{i+1}.png"))
+                        else:
+                            plt.savefig(os.path.join(dir, f"{save_as[i]}.png"))
+                    except IndexError:
+                        plt.savefig(os.path.join(dir, f"scatter-plot_{i+1}.png"))                        
+                elif isinstance(save_as, str):
+                    plt.savefig(os.path.join(dir, f"{save_as}_{i+1}.png"))
+                else:
+                    plt.savefig(os.path.join(dir, f"scatter-plot_{i+1}.png"))
                 plt.close(fig)
     else:
         metr = metrics.calculate_metrics(observed=observed, simulated=simulated, metrices=[metric])
