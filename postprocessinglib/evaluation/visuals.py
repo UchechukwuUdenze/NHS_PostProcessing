@@ -259,7 +259,7 @@ def plot(merged_df: pd.DataFrame = None, df: pd.DataFrame = None, obs_df: pd.Dat
                         # If the directory does not exist, create it
                         os.makedirs(dir)
                         print(f"Directory '{dir}' created.")
-                    elif dir is not ".":
+                    elif dir != ".":
                         print(f"Directory '{dir}' already exists.")
                     else:
                         print("Plots will be saved to current directory")
@@ -296,7 +296,7 @@ def plot(merged_df: pd.DataFrame = None, df: pd.DataFrame = None, obs_df: pd.Dat
                 if labels:
                     # Plotting Labels
                     plt.xlabel(labels[0], fontsize=18)
-                    plt.ylabel(labels[1], fontsize=18)
+                    plt.ylabel(labels[1]+"m\u00B3/s", fontsize=18)
                 if title:
                     title_dict = {'family': 'sans-serif',
                                 'color': 'black',
@@ -347,7 +347,7 @@ def plot(merged_df: pd.DataFrame = None, df: pd.DataFrame = None, obs_df: pd.Dat
                     # If the directory does not exist, create it
                     os.makedirs(dir)
                     print(f"Directory '{dir}' created.")
-                elif dir is not ".":
+                elif dir != ".":
                     print(f"Directory '{dir}' already exists.")
                 else:
                     print("Plots will be saved to current directory")
@@ -385,7 +385,7 @@ def plot(merged_df: pd.DataFrame = None, df: pd.DataFrame = None, obs_df: pd.Dat
                 if labels:
                     # Plotting Labels
                     plt.xlabel(labels[0], fontsize=18)
-                    plt.ylabel(labels[1], fontsize=18)
+                    plt.ylabel(labels[1]+"m\u00B3/s", fontsize=18)
                 if title:
                     title_dict = {'family': 'sans-serif',
                                 'color': 'black',
@@ -418,7 +418,7 @@ def plot(merged_df: pd.DataFrame = None, df: pd.DataFrame = None, obs_df: pd.Dat
                         # If the directory does not exist, create it
                         os.makedirs(dir)
                         print(f"Directory '{dir}' created.")
-                    elif dir is not ".":
+                    elif dir != ".":
                         print(f"Directory '{dir}' already exists.")
                     else:
                         print("Plots will be saved to current directory")
@@ -454,7 +454,7 @@ def plot(merged_df: pd.DataFrame = None, df: pd.DataFrame = None, obs_df: pd.Dat
                 if labels:
                     # Plotting Labels
                     plt.xlabel(labels[0], fontsize=18)
-                    plt.ylabel(labels[1], fontsize=18)
+                    plt.ylabel(labels[1]+"m\u00B3/s", fontsize=18)
                 if title:
                     title_dict = {'family': 'sans-serif',
                                 'color': 'black',
@@ -485,7 +485,7 @@ def plot(merged_df: pd.DataFrame = None, df: pd.DataFrame = None, obs_df: pd.Dat
                     # If the directory does not exist, create it
                     os.makedirs(dir)
                     print(f"Directory '{dir}' created.")
-                elif dir is not ".":
+                elif dir != ".":
                     print(f"Directory '{dir}' already exists.")
                 else:
                     print("Plots will be saved to current directory")
@@ -730,7 +730,7 @@ def bounded_plot(lines: Union[list[pd.DataFrame]], upper_bounds: list[pd.DataFra
                         # If the directory does not exist, create it
                         os.makedirs(dir)
                         print(f"Directory '{dir}' created.")
-                    elif dir is not ".":
+                    elif dir != ".":
                         print(f"Directory '{dir}' already exists.")
                     else:
                         print("Plots will be saved to current directory")
@@ -857,7 +857,7 @@ def bounded_plot(lines: Union[list[pd.DataFrame]], upper_bounds: list[pd.DataFra
                     # If the directory does not exist, create it
                     os.makedirs(dir)
                     print(f"Directory '{dir}' created.")
-                elif dir is not ".":
+                elif dir != ".":
                     print(f"Directory '{dir}' already exists.")
                 else:
                     print("Plots will be saved to current directory")
@@ -1128,7 +1128,7 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
                         # If the directory does not exist, create it
                         os.makedirs(dir)
                         print(f"Directory '{dir}' created.")
-                    elif dir is not ".":
+                    elif dir != ".":
                         print(f"Directory '{dir}' already exists.")
                     else:
                         print("Plots will be saved to current directory")
@@ -1233,7 +1233,7 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
                     # If the directory does not exist, create it
                     os.makedirs(dir)
                     print(f"Directory '{dir}' created.")
-                elif dir is not ".":
+                elif dir != ".":
                     print(f"Directory '{dir}' already exists.")
                 else:
                     print("Plots will be saved to current directory")
