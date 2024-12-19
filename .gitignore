@@ -8,5 +8,4 @@ tests/
 docs/source/notebooks/.ipynb_checkpoints/
 docs/source/notebooks/TEST.ipynb
 .ipynb_checkpoints
-CMD_Script.bat
 TEST.py
