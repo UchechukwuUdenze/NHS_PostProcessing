@@ -74,7 +74,8 @@ echo Python script executed successfully.
 :: Step 7: Deactivate the environment
 call conda deactivate
 if errorlevel 1 (
-    echo WARNING: Failed to deactivate the environment! Please manually deactivate if necessary.
+    echo WARNING: Possible Issues to related to deactivating the environment!
+    echo Please manually deactivate if necessary.
 )
 
 :: Step 8: Ensure we exit Anaconda and return to CMD
