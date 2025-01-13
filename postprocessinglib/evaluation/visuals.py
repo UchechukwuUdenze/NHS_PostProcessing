@@ -24,7 +24,7 @@ def plot(merged_df: pd.DataFrame = None, df: pd.DataFrame = None, obs_df: pd.Dat
          grid: bool = False, title: str = None, labels: tuple[str, str] = None, padding: bool = False ,
          linestyles: tuple[str, str] = ('r-', 'b-'), linewidth: tuple[float, float] = (1.5, 1.25),
          fig_size: tuple[float, float] = (10,6), metrics_adjust: tuple[float, float] = (1.05, 0.5),
-         plot_adjust: float = 0.2, save: bool=False, save_as:str = None, directory:str = ".") ->plt.figure:
+         plot_adjust: float = 0.2, save: bool=False, save_as:str = None, directory:str = os.getcwd()) ->plt.figure:
     """ Create a comparison time series line plot of simulated and observed time series data
 
     Parameters
@@ -145,6 +145,7 @@ def plot(merged_df: pd.DataFrame = None, df: pd.DataFrame = None, obs_df: pd.Dat
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
          
     """
+    print("lets go")
     if merged_df is not None and sim_df is None and obs_df is None and df is None:
         # Setting Variable for the simulated data, observed data, and time stamps
         obs = merged_df.iloc[:, [0]]
@@ -251,9 +252,11 @@ def plot(merged_df: pd.DataFrame = None, df: pd.DataFrame = None, obs_df: pd.Dat
                             bbox = dict(boxstyle = "round, pad = 0.5,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
 
                     plt.subplots_adjust(right = 1-plot_adjust)
+                    print(directory)
 
                 # save to file if requested 
                 if save:
+                    print(directory)
                     # Check if the directory exists
                     if not os.path.exists(directory):
                         # If the directory does not exist, create it
@@ -511,7 +514,7 @@ def bounded_plot(lines: Union[list[pd.DataFrame]], upper_bounds: list[pd.DataFra
          legend: tuple[str, str] = ('Simulated Data', 'Observed Data'), grid: bool = False, title: str = None,
          labels: tuple[str, str] = None, linestyles: tuple[str, str] = ('r-', 'b-'), padding: bool = False ,
          fig_size: tuple[float, float] = (10,6), transparency: tuple[float, float] = [0.4, 0.4], save:bool = False,
-         save_as:str = None, directory:str = ".") ->plt.figure:
+         save_as:str = None, directory:str = os.getcwd()) ->plt.figure:
     """ Create a comparison time series line plot of simulated and observed time series data with optional
     upper and lower bounds 
 
@@ -885,7 +888,7 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
 
          merged_df: pd.DataFrame = None, obs_df: pd.DataFrame =  None, sim_df: pd.DataFrame = None,
          metrices: list[str] = None, markerstyle: str = 'ko', save: bool=False, plot_adjust: float = 0.2,
-         save_as:str = None, metrics_adjust: tuple[float, float] = (1.05, 0.5), directory:str = ".",
+         save_as:str = None, metrics_adjust: tuple[float, float] = (1.05, 0.5), directory: str = os.getcwd(),
 
          shapefile_path: str = "", x_axis : pd.DataFrame=None, y_axis : pd.DataFrame=None,
          metric: str="", observed: pd.DataFrame = None, simulated: pd.DataFrame = None)-> plt.figure:
@@ -1297,7 +1300,7 @@ def qqplot(grid: bool = False, title: str = None, labels: tuple[str, str] = None
          fig_size: tuple[float, float] = (10,6), best_fit: bool=False,
          merged_df: pd.DataFrame = None, obs_df: pd.DataFrame =  None, sim_df: pd.DataFrame = None,
          metrices: list[str] = None, markerstyle: str = 'ko', save: bool=False, plot_adjust: float = 0.2,
-         save_as:str = None, metrics_adjust: tuple[float, float] = (1.05, 0.5), directory:str = ".")-> plt.figure:
+         save_as:str = None, metrics_adjust: tuple[float, float] = (1.05, 0.5), directory:str = os.getcwd())-> plt.figure:
     """Plots a Quantile-Quantile plot of the simulated and observed data.
 
     Parameters
