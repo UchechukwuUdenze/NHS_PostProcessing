@@ -7,7 +7,7 @@ Some of them also allow their metrics to be placed beside the plots
 
 """
 
-from typing import Union
+from typing import Union, List, Tuple
 import pandas as pd
 import geopandas as gpd
 import numpy as np
@@ -19,12 +19,37 @@ from shapely.geometry import Point
 from postprocessinglib.evaluation import metrics
 from postprocessinglib.utilities import helper_functions as hlp
 
+def save_or_display_plot(fig, save: bool, save_as: Union[str, List[str]], dir: str, i: int):
+    """Save the plot to a file or display it based on user preferences."""
+    if save:
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        filename = f"{save_as}_{i + 1}.png" if isinstance(save_as, str) else f"bounded_plot_{i + 1}.png"
+        fig.savefig(os.path.join(dir, filename))
+    else:
+        plt.show()
+
+def prepare_bounds(bounds: List[pd.DataFrame], col_index: int, observed: bool) -> List[pd.Series]:
+    """
+    Extracts the required column (observed or simulated) for all bounds.
+    
+    Args:
+        bounds (List[pd.DataFrame]): List of bound DataFrames.
+        col_index (int): Index of the column to extract.
+        observed (bool): Whether to extract the observed (True) or simulated (False) columns.
+    
+    Returns:
+        List[pd.Series]: Extracted columns from the bounds.
+    """
+    col_offset = 0 if observed else 1
+    return [b.iloc[:, col_index * 2 + col_offset] for b in bounds]
+
 def plot(merged_df: pd.DataFrame = None, df: pd.DataFrame = None, obs_df: pd.DataFrame = None, sim_df: pd.DataFrame = None,
          legend: tuple[str, str] = ('Simulated Data', 'Observed Data'), metrices: list[str] = None,
          grid: bool = False, title: str = None, labels: tuple[str, str] = None, padding: bool = False ,
          linestyles: tuple[str, str] = ('r-', 'b-'), linewidth: tuple[float, float] = (1.5, 1.25),
          fig_size: tuple[float, float] = (10,6), metrics_adjust: tuple[float, float] = (1.05, 0.5),
-         plot_adjust: float = 0.2, save: bool=False, save_as:str = None, directory:str = os.getcwd()) ->plt.figure:
+         plot_adjust: float = 0.2, save: bool=False, save_as:str = None, dir:str = os.getcwd()) ->plt.figure:
     """ Create a comparison time series line plot of simulated and observed time series data
 
     Parameters
@@ -96,10 +121,10 @@ def plot(merged_df: pd.DataFrame = None, df: pd.DataFrame = None, obs_df: pd.Dat
         If provided these wil be the naming nomenclature used to save the figures as specified by the
         save variable 
     
-    directory: str
+    dir: str
         The directory where the plots will be saved. The current directory will be searched
-        for the spedified 'directory' directory, if none is found, it will be created. Its default is the
-        current directory represented by '.' .
+        for the spedified 'dir' dir, if none is found, it will be created. Its default is the
+        current directory .
 
     Returns
     -------
@@ -252,33 +277,33 @@ def plot(merged_df: pd.DataFrame = None, df: pd.DataFrame = None, obs_df: pd.Dat
                             bbox = dict(boxstyle = "round, pad = 0.5,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
 
                     plt.subplots_adjust(right = 1-plot_adjust)
-                    print(directory)
+                    print(dir)
 
                 # save to file if requested 
                 if save:
-                    print(directory)
+                    print(dir)
                     # Check if the directory exists
-                    if not os.path.exists(directory):
+                    if not os.path.exists(dir):
                         # If the directory does not exist, create it
-                        os.makedirs(directory)
-                        print(f"Directory '{directory}' created.")
-                    elif directory != ".":
-                        print(f"Directory '{directory}' already exists.")
+                        os.makedirs(dir)
+                        print(f"Directory '{dir}' created.")
+                    elif dir != ".":
+                        print(f"Directory '{dir}' already exists.")
                     else:
-                        print("Plots will be saved to current directory")
+                        print("Plots will be saved to current dir")
                     ## Check that the title is a list of strings or a single string
                     if isinstance(save_as, list):
                         try:
                             if save_as[i] == '':
-                                plt.savefig(os.path.join(directory, f"plot_{i+1}.png"))
+                                plt.savefig(os.path.join(dir, f"plot_{i+1}.png"))
                             else:
-                                plt.savefig(os.path.join(directory, f"{save_as[i]}.png"))
+                                plt.savefig(os.path.join(dir, f"{save_as[i]}.png"))
                         except IndexError:
-                            plt.savefig(os.path.join(directory, f"plot_{i+1}.png"))                        
+                            plt.savefig(os.path.join(dir, f"plot_{i+1}.png"))                        
                     elif isinstance(save_as, str):
-                        plt.savefig(os.path.join(directory, f"{save_as}_{i+1}.png"))
+                        plt.savefig(os.path.join(dir, f"{save_as}_{i+1}.png"))
                     else:
-                        plt.savefig(os.path.join(directory, f"plot_{i+1}.png"))
+                        plt.savefig(os.path.join(dir, f"plot_{i+1}.png"))
         else:
             for i in range (0, len(obs.columns)):
                 # Plotting the Data     
@@ -346,27 +371,27 @@ def plot(merged_df: pd.DataFrame = None, df: pd.DataFrame = None, obs_df: pd.Dat
                     plt.subplots_adjust(right = 1-plot_adjust)
                 
                 # Check if the directory exists
-                if not os.path.exists(directory):
+                if not os.path.exists(dir):
                     # If the directory does not exist, create it
-                    os.makedirs(directory)
-                    print(f"Directory '{directory}' created.")
-                elif directory != ".":
-                    print(f"Directory '{directory}' already exists.")
+                    os.makedirs(dir)
+                    print(f"Directory '{dir}' created.")
+                elif dir != ".":
+                    print(f"Directory '{dir}' already exists.")
                 else:
-                    print("Plots will be saved to current directory")
+                    print("Plots will be saved to current dir")
                 ## Check that the title is a list of strings or a single string
                 if isinstance(save_as, list):
                     try:
                         if save_as[i] == '':
-                            plt.savefig(os.path.join(directory, f"plot_{i+1}.png"))
+                            plt.savefig(os.path.join(dir, f"plot_{i+1}.png"))
                         else:
-                            plt.savefig(os.path.join(directory, f"{save_as[i]}.png"))
+                            plt.savefig(os.path.join(dir, f"{save_as[i]}.png"))
                     except IndexError:
-                        plt.savefig(os.path.join(directory, f"plot_{i+1}.png"))                        
+                        plt.savefig(os.path.join(dir, f"plot_{i+1}.png"))                        
                 elif isinstance(save_as, str):
-                    plt.savefig(os.path.join(directory, f"{save_as}_{i+1}.png"))
+                    plt.savefig(os.path.join(dir, f"{save_as}_{i+1}.png"))
                 else:
-                    plt.savefig(os.path.join(directory, f"plot_{i+1}.png"))
+                    plt.savefig(os.path.join(dir, f"plot_{i+1}.png"))
                 plt.close(fig)
     else:
         if len(line_df.columns) <= 5:
@@ -417,27 +442,27 @@ def plot(merged_df: pd.DataFrame = None, df: pd.DataFrame = None, obs_df: pd.Dat
                 # save to file if requested 
                 if save:
                     # Check if the directory exists
-                    if not os.path.exists(directory):
+                    if not os.path.exists(dir):
                         # If the directory does not exist, create it
-                        os.makedirs(directory)
-                        print(f"Directory '{directory}' created.")
-                    elif directory != ".":
-                        print(f"Directory '{directory}' already exists.")
+                        os.makedirs(dir)
+                        print(f"Directory '{dir}' created.")
+                    elif dir != ".":
+                        print(f"Directory '{dir}' already exists.")
                     else:
-                        print("Plots will be saved to current directory")
+                        print("Plots will be saved to current dir")
                     ## Check that the title is a list of strings or a single string
                     if isinstance(save_as, list):
                         try:
                             if save_as[i] == '':
-                                plt.savefig(os.path.join(directory, f"plot_{i+1}.png"))
+                                plt.savefig(os.path.join(dir, f"plot_{i+1}.png"))
                             else:
-                                plt.savefig(os.path.join(directory, f"{save_as[i]}.png"))
+                                plt.savefig(os.path.join(dir, f"{save_as[i]}.png"))
                         except IndexError:
-                            plt.savefig(os.path.join(directory, f"plot_{i+1}.png"))                        
+                            plt.savefig(os.path.join(dir, f"plot_{i+1}.png"))                        
                     elif isinstance(save_as, str):
-                        plt.savefig(os.path.join(directory, f"{save_as}_{i+1}.png"))
+                        plt.savefig(os.path.join(dir, f"{save_as}_{i+1}.png"))
                     else:
-                        plt.savefig(os.path.join(directory, f"plot_{i+1}.png"))
+                        plt.savefig(os.path.join(dir, f"plot_{i+1}.png"))
         else:
             for i in range (0, len(line_df.columns)):
                 # Plotting the Data     
@@ -484,39 +509,52 @@ def plot(merged_df: pd.DataFrame = None, df: pd.DataFrame = None, obs_df: pd.Dat
                 plt.tight_layout()
                 
                 # Check if the directory exists
-                if not os.path.exists(directory):
+                if not os.path.exists(dir):
                     # If the directory does not exist, create it
-                    os.makedirs(directory)
-                    print(f"Directory '{directory}' created.")
-                elif directory != ".":
-                    print(f"Directory '{directory}' already exists.")
+                    os.makedirs(dir)
+                    print(f"Directory '{dir}' created.")
+                elif dir != ".":
+                    print(f"Directory '{dir}' already exists.")
                 else:
-                    print("Plots will be saved to current directory")
+                    print("Plots will be saved to current dir")
                 ## Check that the title is a list of strings or a single string
                 if isinstance(save_as, list):
                     try:
                         if save_as[i] == '':
-                            plt.savefig(os.path.join(directory, f"plot_{i+1}.png"))
+                            plt.savefig(os.path.join(dir, f"plot_{i+1}.png"))
                         else:
-                            plt.savefig(os.path.join(directory, f"{save_as[i]}.png"))
+                            plt.savefig(os.path.join(dir, f"{save_as[i]}.png"))
                     except IndexError:
-                        plt.savefig(os.path.join(directory, f"plot_{i+1}.png"))                        
+                        plt.savefig(os.path.join(dir, f"plot_{i+1}.png"))                        
                 elif isinstance(save_as, str):
-                    plt.savefig(os.path.join(directory, f"{save_as}_{i+1}.png"))
+                    plt.savefig(os.path.join(dir, f"{save_as}_{i+1}.png"))
                 else:
-                    plt.savefig(os.path.join(directory, f"plot_{i+1}.png"))
+                    plt.savefig(os.path.join(dir, f"plot_{i+1}.png"))
                 plt.close(fig)
 
 
+def bounded_plot(
+    lines: Union[List[pd.DataFrame], pd.DataFrame],
+    upper_bounds: List[pd.DataFrame] = None,
+    lower_bounds: List[pd.DataFrame] = None,
+    legend: Tuple[str, str] = ('Simulated Data', 'Observed Data'),
+    grid: bool = False,
+    title: Union[str, List[str]] = None,
+    labels: Tuple[str, str] = None,
+    linestyles: Tuple[str, str] = ('r-', 'b-'),
+    padding: bool = False,
+    fig_size: Tuple[float, float] = (10, 6),
+    transparency: Tuple[float, float] = (0.4, 0.4),
+    save: bool = False,
+    save_as: Union[str, List[str]] = None,
+    dir: str = os.getcwd()
+    ) -> plt.figure:
+    """ 
+    Plots time-series data with optional confidence bounds.
 
-
-def bounded_plot(lines: Union[list[pd.DataFrame]], upper_bounds: list[pd.DataFrame] = None, lower_bounds: list[pd.DataFrame] = None,
-         legend: tuple[str, str] = ('Simulated Data', 'Observed Data'), grid: bool = False, title: str = None,
-         labels: tuple[str, str] = None, linestyles: tuple[str, str] = ('r-', 'b-'), padding: bool = False ,
-         fig_size: tuple[float, float] = (10,6), transparency: tuple[float, float] = [0.4, 0.4], save:bool = False,
-         save_as:str = None, directory:str = os.getcwd()) ->plt.figure:
-    """ Create a comparison time series line plot of simulated and observed time series data with optional
-    upper and lower bounds 
+    This function generates line plots for observed and simulated data, along with shaded confidence bounds. 
+    It supports flexible customization options, such as labels, legends, line styles, gridlines, and more. 
+    If the number of columns exceeds a threshold, the plots are automatically saved instead of being displayed.
 
     Parameters
     ----------
@@ -567,9 +605,9 @@ def bounded_plot(lines: Union[list[pd.DataFrame]], upper_bounds: list[pd.DataFra
         If provided these wil be the naming nomenclature used to save the figures as specified by the
         save variable
 
-    directory: str
+    dir: str
         The directory where the plots will be saved. The current directory will be searched
-        for the spedified 'directory' directory, if none is found, it will be created. Its default is the
+        for the spedified 'dir' dir, if none is found, it will be created. Its default is the
         current directory represented by '.' .
 
     Returns
@@ -582,302 +620,81 @@ def bounded_plot(lines: Union[list[pd.DataFrame]], upper_bounds: list[pd.DataFra
     its median bounedd by its max and min 
     """
 
-    ## Check that the inputs are lists of DataFrames or DataFrames
+    ## Check that the inputs are DataFrames
     if isinstance(lines, pd.DataFrame):
         lines = [lines]
     elif not isinstance(lines, list):
         raise ValueError("Argument must be a dataframe or a list of dataframes.")
     
-    if upper_bounds is None:
-        upper_bounds = []
-    elif isinstance(upper_bounds, pd.DataFrame):
-        upper_bounds = [upper_bounds]
-    elif not isinstance(upper_bounds, list):
-        raise ValueError("Argument must be a dataframe or a list of dataframes.")
-    
-    if lower_bounds is None:
-        lower_bounds = []
-    elif isinstance(lower_bounds, pd.DataFrame):
-        lower_bounds = [lower_bounds]
-    elif not isinstance(lower_bounds, list):
-        raise ValueError("Argument must be a dataframe or a list of dataframes.")
+    upper_bounds = upper_bounds or []
+    lower_bounds = lower_bounds or []
 
-    if len(lower_bounds) != len(upper_bounds):
-        raise ValueError("You must have the same number of upper and lower bounds")
-
-
+    if not isinstance(upper_bounds, list) or not isinstance(lower_bounds, list):
+        raise ValueError("Bounds must be lists of DataFrames.")
+    if len(upper_bounds) != len(lower_bounds):
+        raise ValueError("Upper and lower bounds lists must have the same length.")
 
     # Plotting
     for line in lines:
         if not isinstance(line, pd.DataFrame):
-            raise ValueError("All items in the list must be a DataFrame.")
+            raise ValueError("All items in the 'lines' must be a DataFrame.")
         
         # Setting Variable for the simulated data, observed data, and time stamps
-        line_obs = line.iloc[:, [0]]
-        line_sim = line.iloc[:, [1]]
-        for k in range(2, len(line.columns), 2):
-            line_obs = pd.concat([line_obs, line.iloc[:, k]], axis = 1)
-            line_sim = pd.concat([line_sim, line.iloc[:, k+1]], axis = 1)
+        line_obs = line.iloc[:, ::2]
+        line_sim = line.iloc[:, 1::2]
         time = line.index
 
-        if len(line_obs.columns) <= 5:
-            for i in range (0, len(line_obs.columns)):
-                fig = plt.figure(figsize=fig_size, facecolor='w', edgecolor='k')
-                ax = fig.add_subplot(111)        
+        for i in range (0, len(line_obs.columns)):
+            fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
+            ax.plot(time, line_obs.iloc[:, i], linestyles[1], label=legend[1], linewidth = 1.5)
+            ax.plot(time, line_sim.iloc[:, i], linestyles[0], label=legend[0], linewidth = 1.5)
+            ax.legend(fontsize=15)
 
-                # Plotting the line data
-                plt.plot(time, line_obs[line_obs.columns[i]], linestyles[1], label=legend[1], linewidth = 1.5)
-                plt.plot(time, line_sim[line_sim.columns[i]], linestyles[0], label=legend[0], linewidth = 1.5)
-                plt.legend(fontsize=15)
-                        
-                # check that there are bounds
-                if upper_bounds or lower_bounds:
-                    # lists to store all bounds
-                    upper_obs = []
-                    lower_obs = []
-                    upper_sim = []
-                    lower_sim = []
+            # Prepare bounds for the current column
+            upper_obs = prepare_bounds(upper_bounds, i, observed=True)
+            lower_obs = prepare_bounds(lower_bounds, i, observed=True)
+            upper_sim = prepare_bounds(upper_bounds, i, observed=False)
+            lower_sim = prepare_bounds(lower_bounds, i, observed=False)
 
-                    for j in range(0, len(upper_bounds)):
-                        # check that the bounds are valid 
-                        if not line.index.equals(upper_bounds[j].index) or not line.index.equals(lower_bounds[j].index):
-                            raise ValueError("The lines and bounds don't have the same indexing syntax")
-                        if not isinstance(upper_bounds[j], pd.DataFrame) and not isinstance(lower_bounds[j], pd.DataFrame):
-                            raise ValueError("All items in the lists must be a DataFrame.")              
-                    
-                        # Setting Variable for the simulated data, observed data, and time stamps for the bounds
-                        # Upper bounds
-                        obs = upper_bounds[j].iloc[:, [0]]
-                        sim = upper_bounds[j].iloc[:, [1]]
-                        for k in range(2, len(upper_bounds[j].columns), 2):
-                            obs = pd.concat([obs, upper_bounds[j].iloc[:, k]], axis = 1)
-                            sim = pd.concat([sim, upper_bounds[j].iloc[:, k+1]], axis = 1)
-                        upper_sim.append(sim)
-                        upper_obs.append(obs)
+            # Plot bounds
+            for j in range(len(upper_bounds)):
+                ax.fill_between(time, lower_obs[j], upper_obs[j], alpha=transparency[1], color=linestyles[1][0])
+                ax.fill_between(time, lower_sim[j], upper_sim[j], alpha=transparency[0], color=linestyles[0][0])
+            
+            # Adjusting the plot limit and layout
+            if padding:
+                plt.xlim(time[0], time[-1])
+            plt.tight_layout()
 
-                        # Lower bounds
-                        obs = lower_bounds[j].iloc[:, [0]]
-                        sim = lower_bounds[j].iloc[:, [1]]
-                        for k in range(2, len(lower_bounds[j].columns), 2):
-                            obs = pd.concat([obs, lower_bounds[j].iloc[:, k]], axis = 1)
-                            sim = pd.concat([sim, lower_bounds[j].iloc[:, k+1]], axis = 1)
-                        lower_sim.append(sim)
-                        lower_obs.append(obs)
+            # Placing Labels, title and grid if requested
+            plt.xticks(fontsize=15, rotation=45)
+            plt.yticks(fontsize=15)
 
-                    # Plotting the range data                
-                    idx = len(upper_bounds)-1
-                    while idx > 0:
-                        # Observed Data
-                        plt.fill_between(time, upper_obs[idx-1][upper_obs[idx-1].columns[i]], upper_obs[idx][upper_obs[idx].columns[i]],
-                                        alpha=(transparency[1]/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[1][0])
-                        plt.fill_between(time, lower_obs[idx][lower_obs[idx].columns[i]], lower_obs[idx-1][lower_obs[idx-1].columns[i]],
-                                        alpha=(transparency[1]/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[1][0])
-                        # Simulated Data
-                        plt.fill_between(time, upper_sim[idx-1][upper_sim[idx-1].columns[i]], upper_sim[idx][upper_sim[idx].columns[i]],
-                                        alpha=(transparency[0]/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[0][0])
-                        plt.fill_between(time, lower_sim[idx][lower_sim[idx].columns[i]], lower_sim[idx-1][lower_sim[idx-1].columns[i]],
-                                        alpha=(transparency[0]/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[0][0])
-                        idx-=1
-                    
-                    # Observed Data
-                    plt.fill_between(time, line_obs[line_obs.columns[i]], upper_obs[0][upper_obs[0].columns[i]], alpha=transparency[1], color=linestyles[1][0])
-                    plt.fill_between(time, lower_obs[0][lower_obs[0].columns[i]], line_obs[line_obs.columns[i]], alpha=transparency[1], color=linestyles[1][0])
-                    # Simulated Data
-                    plt.fill_between(time, line_sim[line_sim.columns[i]], upper_sim[0][upper_sim[0].columns[i]], alpha=transparency[0], color=linestyles[0][0])
-                    plt.fill_between(time, lower_sim[0][lower_sim[0].columns[i]], line_sim[line_sim.columns[i]], alpha=transparency[0], color=linestyles[0][0])
-
-
-                    
-                # Adjusting the plot if user wants tight x axis limits
-                if padding:
-                    plt.xlim(time[0], time[-1])
-
-                plt.xticks(fontsize=15, rotation=45)
-                plt.yticks(fontsize=15)
-
-                # Placing Labels if requested
-                if labels:
-                    # Plotting Labels
-                    plt.xlabel(labels[0], fontsize=18)
-                    plt.ylabel(labels[1], fontsize=18)
-                if title:
-                    title_dict = {'family': 'sans-serif',
-                                'color': 'black',
-                                'weight': 'normal',
-                                'size': 20,
-                                }
-                    ## Check that the title is a list of strings or a single string
-                    if isinstance(title, list):
-                        try:
-                            if title[i] == '':
-                                ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
-                            else:
-                                ax.set_title(label=title[i], fontdict=title_dict, pad=25)
-                        except IndexError:
-                            ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
-                    elif isinstance(title, str):
-                        ax.set_title(label=title, fontdict=title_dict, pad=25)
-
-                # Placing a grid if requested
-                if grid:
-                    plt.grid(True)
-
-                # Fixes issues with parts of plot being cut off
-                plt.tight_layout()
-
-                # save to file if requested 
-                if save:
-                    # fig.set_facecolor('gainsboro')
-                    # Check if the directory exists
-                    if not os.path.exists(directory):
-                        # If the directory does not exist, create it
-                        os.makedirs(directory)
-                        print(f"Directory '{directory}' created.")
-                    elif directory != ".":
-                        print(f"Directory '{directory}' already exists.")
-                    else:
-                        print("Plots will be saved to current directory")
-                    ## Check that the title is a list of strings or a single string
-                    if isinstance(save_as, list):
-                        try:
-                            if save_as[i] == '':
-                                plt.savefig(os.path.join(directory, f"bounded-plot_{i+1}.png"))
-                            else:
-                                plt.savefig(os.path.join(directory, f"{save_as[i]}.png"))
-                        except IndexError:
-                            plt.savefig(os.path.join(directory, f"bounded-plot_{i+1}.png"))                        
-                    elif isinstance(save_as, str):
-                        plt.savefig(os.path.join(directory, f"{save_as}_{i+1}.png"))
-                    else:
-                        plt.savefig(os.path.join(directory, f"bounded-plot_{i+1}.png"))
-        else:
-            for i in range (0, len(line_obs.columns)):
-                fig = plt.figure(figsize=fig_size, facecolor='w', edgecolor='k')
-                ax = fig.add_subplot(111)        
-
-                # Plotting the line data
-                plt.plot(time, line_obs[line_obs.columns[i]], linestyles[1], label=legend[1], linewidth = 1.5)
-                plt.plot(time, line_sim[line_sim.columns[i]], linestyles[0], label=legend[0], linewidth = 1.25)
-                plt.legend(fontsize=15)
-                        
-                # check that there are bounds
-                if upper_bounds or lower_bounds:
-                    # lists to store all bounds
-                    upper_obs = []
-                    upper_sim = []
-                    lower_obs = []
-                    lower_sim = []
-
-                    for j in range(0, len(upper_bounds)):
-                        # check that the bounds are valid 
-                        if not line.index.equals(upper_bounds[j].index) or not line.index.equals(lower_bounds[j].index):
-                            raise ValueError("The lines and bounds don't have the same indexing syntax")
-                        if not isinstance(upper_bounds[j], pd.DataFrame) and not isinstance(lower_bounds[j], pd.DataFrame):
-                            raise ValueError("All items in the lists must be a DataFrame.")              
-                    
-                        # Setting Variable for the simulated data, observed data, and time stamps for the bounds
-                        # Upper bounds
-                        obs = upper_bounds[j].iloc[:, [0]]
-                        sim = upper_bounds[j].iloc[:, [1]]
-                        for k in range(2, len(upper_bounds[j].columns), 2):
-                            obs = pd.concat([obs, upper_bounds[j].iloc[:, k]], axis = 1)
-                            sim = pd.concat([sim, upper_bounds[j].iloc[:, k+1]], axis = 1)
-                        upper_sim.append(sim)
-                        upper_obs.append(obs)
-
-                        # Lower bounds
-                        obs = lower_bounds[j].iloc[:, [0]]
-                        sim = lower_bounds[j].iloc[:, [1]]
-                        for k in range(2, len(lower_bounds[j].columns), 2):
-                            obs = pd.concat([obs, lower_bounds[j].iloc[:, k]], axis = 1)
-                            sim = pd.concat([sim, lower_bounds[j].iloc[:, k+1]], axis = 1)
-                        lower_sim.append(sim)
-                        lower_obs.append(obs)
-
-                    # Plotting the range data                
-                    idx = len(upper_bounds)-1
-                    while idx > 0:
-                        # Observed Data
-                        plt.fill_between(time, upper_obs[idx-1][upper_obs[idx-1].columns[i]], upper_obs[idx][upper_obs[idx].columns[i]],
-                                        alpha=(transparency[1]/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[1][0])
-                        plt.fill_between(time, lower_obs[idx][lower_obs[idx].columns[i]], lower_obs[idx-1][lower_obs[idx-1].columns[i]],
-                                        alpha=(transparency[1]/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[1][0])
-                        # Simulated Data
-                        plt.fill_between(time, upper_sim[idx-1][upper_sim[idx-1].columns[i]], upper_sim[idx][upper_sim[idx].columns[i]],
-                                        alpha=(transparency[0]/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[0][0])
-                        plt.fill_between(time, lower_sim[idx][lower_sim[idx].columns[i]], lower_sim[idx-1][lower_sim[idx-1].columns[i]],
-                                        alpha=(transparency[0]/len(upper_bounds))*(len(upper_bounds)-idx), color=linestyles[0][0])
-                        idx-=1
-                    
-                    # Observed Data
-                    plt.fill_between(time, line_obs[line_obs.columns[i]], upper_obs[0][upper_obs[0].columns[i]], alpha=transparency[1], color=linestyles[1][0])
-                    plt.fill_between(time, lower_obs[0][lower_obs[0].columns[i]], line_obs[line_obs.columns[i]], alpha=transparency[1], color=linestyles[1][0])
-                    # Simulated Data
-                    plt.fill_between(time, line_sim[line_sim.columns[i]], upper_sim[0][upper_sim[0].columns[i]], alpha=transparency[0], color=linestyles[0][0])
-                    plt.fill_between(time, lower_sim[0][lower_sim[0].columns[i]], line_sim[line_sim.columns[i]], alpha=transparency[0], color=linestyles[0][0])
-
-
-                    
-                # Adjusting the plot if user wants tight x axis limits
-                if padding:
-                    plt.xlim(time[0], time[-1])
-
-                plt.xticks(fontsize=15, rotation=45)
-                plt.yticks(fontsize=15)
-
-                # Placing Labels if requested
-                if labels:
-                    # Plotting Labels
-                    plt.xlabel(labels[0], fontsize=18)
-                    plt.ylabel(labels[1], fontsize=18)
-                if title:
-                    title_dict = {'family': 'sans-serif',
-                                'color': 'black',
-                                'weight': 'normal',
-                                'size': 20,
-                                }
-                    ## Check that the title is a list of strings or a single string
-                    if isinstance(title, list):
-                        try:
-                            if title[i] == '':
-                                ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
-                            else:
-                                ax.set_title(label=title[i], fontdict=title_dict, pad=25)
-                        except IndexError:
-                            ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)                            
-                    elif isinstance(title, str):
-                        ax.set_title(label=title, fontdict=title_dict, pad=25)
-
-                # Placing a grid if requested
-                if grid:
-                    plt.grid(True)
-
-                # Fixes issues with parts of plot being cut off
-                plt.tight_layout()
-
-                # Check if the directory exists
-                if not os.path.exists(directory):
-                    # If the directory does not exist, create it
-                    os.makedirs(directory)
-                    print(f"Directory '{directory}' created.")
-                elif directory != ".":
-                    print(f"Directory '{directory}' already exists.")
-                else:
-                    print("Plots will be saved to current directory")
+            if labels:
+                # Plotting Labels
+                plt.xlabel(labels[0], fontsize=18)
+                plt.ylabel(labels[1], fontsize=18)
+            
+            if title:
+                title_dict = {'family': 'sans-serif',
+                            'color': 'black',
+                            'weight': 'normal',
+                            'size': 20,
+                            }
                 ## Check that the title is a list of strings or a single string
-                if isinstance(save_as, list):
-                    try:
-                        if save_as[i] == '':
-                            plt.savefig(os.path.join(directory, f"bounded-plot_{i+1}.png"))
-                        else:
-                            plt.savefig(os.path.join(directory, f"{save_as[i]}.png"))
-                    except IndexError:
-                        plt.savefig(os.path.join(directory, f"bounded-plot_{i+1}.png"))                        
-                elif isinstance(save_as, str):
-                    plt.savefig(os.path.join(directory, f"{save_as}_{i+1}.png"))
-                else:
-                    plt.savefig(os.path.join(directory, f"bounded-plot_{i+1}.png"))
-                plt.close(fig)
+                if isinstance(title, list):
+                    ax.set_title(title[i] if i < len(title) else f"Plot {i + 1}", fontdict=title_dict, pad=25)
+                elif isinstance(title, str):
+                    ax.set_title(label=title, fontdict=title_dict, pad=25)
+
+            # Placing a grid if requested
+            if grid:
+                plt.grid(True)
+
+            # Save or auto-save for large column counts
+            auto_save = len(line_obs.columns) > 5
+            save_or_display_plot(fig, save or auto_save, save_as, dir, i)
+            plt.close(fig)
         
 
 def histogram():
@@ -888,7 +705,7 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
 
          merged_df: pd.DataFrame = None, obs_df: pd.DataFrame =  None, sim_df: pd.DataFrame = None,
          metrices: list[str] = None, markerstyle: str = 'ko', save: bool=False, plot_adjust: float = 0.2,
-         save_as:str = None, metrics_adjust: tuple[float, float] = (1.05, 0.5), directory: str = os.getcwd(),
+         save_as:str = None, metrics_adjust: tuple[float, float] = (1.05, 0.5), dir: str = os.getcwd(),
 
          shapefile_path: str = "", x_axis : pd.DataFrame=None, y_axis : pd.DataFrame=None,
          metric: str="", observed: pd.DataFrame = None, simulated: pd.DataFrame = None)-> plt.figure:
@@ -953,9 +770,9 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
         If provided these wil be the naming nomenclature used to save the figures as specified by the
         save variable 
     
-    directory: str
+    dir: str
         The directory where the plots will be saved. The current directory will be searched
-        for the specified 'directory'. If none is found, it will be created. Its default is the
+        for the specified 'dir'. If none is found, it will be created. Its default is the
         current directory represented by '.' .
 
     shapefile_path : str
@@ -1127,27 +944,27 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
                 if save:
                     # fig.set_facecolor('gainsboro')
                     # Check if the directory exists
-                    if not os.path.exists(directory):
+                    if not os.path.exists(dir):
                         # If the directory does not exist, create it
-                        os.makedirs(directory)
-                        print(f"Directory '{directory}' created.")
-                    elif directory != ".":
-                        print(f"Directory '{directory}' already exists.")
+                        os.makedirs(dir)
+                        print(f"Directory '{dir}' created.")
+                    elif dir != ".":
+                        print(f"Directory '{dir}' already exists.")
                     else:
-                        print("Plots will be saved to current directory")
+                        print("Plots will be saved to current dir")
                     ## Check that the title is a list of strings or a single string
                     if isinstance(save_as, list):
                         try:
                             if save_as[i] == '':
-                                plt.savefig(os.path.join(directory, f"scatter-plot_{i+1}.png"))
+                                plt.savefig(os.path.join(dir, f"scatter-plot_{i+1}.png"))
                             else:
-                                plt.savefig(os.path.join(directory, f"{save_as[i]}.png"))
+                                plt.savefig(os.path.join(dir, f"{save_as[i]}.png"))
                         except IndexError:
-                            plt.savefig(os.path.join(directory, f"scatter-plot_{i+1}.png"))                        
+                            plt.savefig(os.path.join(dir, f"scatter-plot_{i+1}.png"))                        
                     elif isinstance(save_as, str):
-                        plt.savefig(os.path.join(directory, f"{save_as}_{i+1}.png"))
+                        plt.savefig(os.path.join(dir, f"{save_as}_{i+1}.png"))
                     else:
-                        plt.savefig(os.path.join(directory, f"scatter-plot_{i+1}.png"))
+                        plt.savefig(os.path.join(dir, f"scatter-plot_{i+1}.png"))
         else:
             for i in range (0, len(obs.columns)):
                 # Plotting the Data
@@ -1232,27 +1049,27 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
                     plt.subplots_adjust(right = 1-plot_adjust)
                 
                 # Check if the directory exists
-                if not os.path.exists(directory):
+                if not os.path.exists(dir):
                     # If the directory does not exist, create it
-                    os.makedirs(directory)
-                    print(f"Directory '{directory}' created.")
-                elif directory != ".":
-                    print(f"Directory '{directory}' already exists.")
+                    os.makedirs(dir)
+                    print(f"Directory '{dir}' created.")
+                elif dir != ".":
+                    print(f"Directory '{dir}' already exists.")
                 else:
-                    print("Plots will be saved to current directory")
+                    print("Plots will be saved to current dir")
                 ## Check that the title is a list of strings or a single string
                 if isinstance(save_as, list):
                     try:
                         if save_as[i] == '':
-                            plt.savefig(os.path.join(directory, f"scatter-plot_{i+1}.png"))
+                            plt.savefig(os.path.join(dir, f"scatter-plot_{i+1}.png"))
                         else:
-                            plt.savefig(os.path.join(directory, f"{save_as[i]}.png"))
+                            plt.savefig(os.path.join(dir, f"{save_as[i]}.png"))
                     except IndexError:
-                        plt.savefig(os.path.join(directory, f"scatter-plot_{i+1}.png"))                        
+                        plt.savefig(os.path.join(dir, f"scatter-plot_{i+1}.png"))                        
                 elif isinstance(save_as, str):
-                    plt.savefig(os.path.join(directory, f"{save_as}_{i+1}.png"))
+                    plt.savefig(os.path.join(dir, f"{save_as}_{i+1}.png"))
                 else:
-                    plt.savefig(os.path.join(directory, f"scatter-plot_{i+1}.png"))
+                    plt.savefig(os.path.join(dir, f"scatter-plot_{i+1}.png"))
                 plt.close(fig)
     else:
         metr = metrics.calculate_metrics(observed=observed, simulated=simulated, metrices=[metric])
@@ -1296,11 +1113,12 @@ def scatter(grid: bool = False, title: str = None, labels: tuple[str, str] = Non
             plt.grid(True)
 
 
-def qqplot(grid: bool = False, title: str = None, labels: tuple[str, str] = None,
-         fig_size: tuple[float, float] = (10,6), best_fit: bool=False,
+def qqplot(grid: bool = False, title: str = None, labels: tuple[str, str] = None, fig_size: tuple[float, float] = (10,6),
+         interpolate: str = "linear", legend: bool = False, linewidth: tuple[float, float] = (1, 2),
          merged_df: pd.DataFrame = None, obs_df: pd.DataFrame =  None, sim_df: pd.DataFrame = None,
-         metrices: list[str] = None, markerstyle: str = 'ko', save: bool=False, plot_adjust: float = 0.2,
-         save_as:str = None, metrics_adjust: tuple[float, float] = (1.05, 0.5), directory:str = os.getcwd())-> plt.figure:
+         linestyle: tuple[str, str, str] = ['bo','r-.','r-'], quantile: tuple[int, int] = [25,75],
+         q_labels: tuple[str, str, str] = ['Quantiles','Range of Quantiles','Inter Quartile Range'],
+         save: bool=False,save_as:str = None, dir:str = os.getcwd())-> plt.figure:
     """Plots a Quantile-Quantile plot of the simulated and observed data.
 
     Parameters
@@ -1318,6 +1136,13 @@ def qqplot(grid: bool = False, title: str = None, labels: tuple[str, str] = None
         Tuple of length two that specifies the horizontal and vertical lengths of the plot in
         inches, respectively.
 
+    interpolate: str
+
+
+    legend: bool
+
+
+    linewidth: tuple[float, float]
     merged_df : pd.DataFrame
         the dataframe containing the series of observed and simulated values. It must have a datetime
         index and an even number of columns where in any two, the left column is the Measured/observed
@@ -1331,30 +1156,16 @@ def qqplot(grid: bool = False, title: str = None, labels: tuple[str, str] = None
         A DataFrame conataning rows of predicted/simulated data. It must have a datetime index. if it is
         present it is accompanied by the obs_df and the merged_df must be None.
 
-    metrices: list[str]
-        Adds Metrics to the left side of the plot. Any metric from the postprocessing.metrics library
-        can be added to the plot as the abbreviation of the function. The entries must be in a list.
-        (e.g. ['PBIAS', 'MSE', 'KGE']).
+    linestyle: tuple[str, str, str]
+        List of three strings that determine the point style and shape of the data being plotted 
 
-    markerstyle: str
-        List of two strings that determine the point style and shape of the data being plotted 
+    quantile: tuple[int, int]
 
-    metrics_adjust: tuple[float, float]
-        Tuple of length two with float inputs indicating the relative position of the text (x-coordinate,
-        y-coordinate) when adding metrics to the plot.
+    
+    q_labels: tuple[str, str, str]
 
-    plot_adjust: float
-        Specifies the relative position to shift the plot to the left when adding metrics to the
-        plot. 
-
-    best_fit: bool
-        If True, adds a best linear regression line on the graph with the equation for the line in the legend. 
-
-    line45: bool
-        IF True, adds a 45 degree line to the plot and the legend. 
-        
     save: bool
-        If True, the plot images will be saved as png files in the format scatter-plot_1.png, scatter-plot_2.png,
+        If True, the plot images will be saved as png files in the format qqplot_1.png, qqplot_2.png,
         etc., depending how many plots are generated or with the names specified in the save_as 
         variable
     
@@ -1362,14 +1173,13 @@ def qqplot(grid: bool = False, title: str = None, labels: tuple[str, str] = None
         If provided these wil be the naming nomenclature used to save the figures as specified by the
         save variable 
     
-    directory: str
+    dir: str
         The directory where the plots will be saved. The current directory will be searched
-        for the spedified 'directory' directory, if none is found, it will be created. Its default is the
-        current directory represented by '.'
+        for the spedified 'dir' directory, if none is found, it will be created. Its default is the
+        current directory
 
     Examples
-    --------
-    Visualization of a station's data using a 2D plot
+    --------    
 
     >>> from postprocessinglib.evaluation import metrics, visuals, data
     >>> path = 'MESH_output_streamflow_1.csv'
@@ -1384,18 +1194,120 @@ def qqplot(grid: bool = False, title: str = None, labels: tuple[str, str] = None
 
     if merged_df is not None and sim_df is None and obs_df is None:
         # Setting Variable for the simulated and observed data
-        obs = merged_df.iloc[:, [0]].values
-        sim = merged_df.iloc[:, [1]].values
+        obs = merged_df.iloc[:, [0]]
+        sim = merged_df.iloc[:, [1]]
         for j in range(2, len(merged_df.columns), 2):
             obs = pd.concat([obs, merged_df.iloc[:, j]], axis = 1)
             sim = pd.concat([sim, merged_df.iloc[:, j+1]], axis = 1)
     elif merged_df is None and obs_df is not None and sim_df is not None:
-        obs = obs_df.values
-        sim = sim_df.values
+        obs = obs_df
+        sim = sim_df
     else:
         raise RuntimeError('either sim_df and obs_df or merged_df are required inputs.')
     
-    print(sim)
-    print("\n centre line \n")
-    print(obs)
+    if len(obs.columns) <= 5:
+        for i in range (0, len(obs.columns)):
+            n = obs[obs.columns[i]].size
+            pvec = 100 * ((np.arange(1, n + 1) - 0.5) / n)
+            sim_perc = np.percentile(sim[sim.columns[i]], pvec, method=interpolate)
+            obs_perc = np.percentile(obs[obs.columns[i]], pvec, method=interpolate)
+
+            # Finding the interquartile range to plot the best fit line
+            quant_1_sim = np.percentile(sim[sim.columns[i]], quantile[0], interpolation=interpolate)
+            quant_3_sim = np.percentile(sim[sim.columns[i]], quantile[1], interpolation=interpolate)
+            quant_1_obs = np.percentile(obs[obs.columns[i]], quantile[0], interpolation=interpolate)
+            quant_3_obs = np.percentile(obs[obs.columns[i]], quantile[1], interpolation=interpolate)
+            quant_sim = np.array([quant_1_sim, quant_3_sim])
+            quant_obs = np.array([quant_1_obs, quant_3_obs])
+
+            dsim = quant_3_sim - quant_1_sim
+            dobs = quant_3_obs - quant_1_obs
+            slope = dobs / dsim
+            centersim = (quant_1_sim + quant_3_sim) / 2
+            centerobs = (quant_1_obs + quant_3_obs) / 2
+            maxsim = np.max(sim[sim.columns[i]])
+            minsim = np.min(sim[sim.columns[i]])
+            maxobs = centerobs + slope * (maxsim - centersim)
+            minobs = centerobs - slope * (centersim - minsim)
+            print(centerobs)
+            print(centersim)
+            print(slope)
+            print(maxsim)
+            print(quant_3_sim)
+            print(np.percentile(obs[obs.columns[i]], 50, interpolation=interpolate))
+
+            msim = np.array([minsim, maxsim])
+            mobs = np.array([minobs, maxobs])
+
+            fig = plt.figure(figsize=fig_size, facecolor='w', edgecolor='k')
+            ax = fig.add_subplot(111) 
+            
+            if not Legend:
+                plt.plot(sim_perc, obs_perc, linestyle[0], markersize=2)
+                plt.plot(msim, mobs, linestyle[1], linewidth = linewidth[0])
+                plt.plot(quant_sim, quant_obs, linestyle[2], marker='o', markerfacecolor='k', linewidth = linewidth[1])
+            else:
+                plt.plot(sim_perc, obs_perc, linestyle[0], markersize=2, label = q_labels[0])
+                plt.plot(msim, mobs, linestyle[1], linewidth = linewidth[0], label = q_labels[1])
+                plt.plot(quant_sim, quant_obs, linestyle[2], marker='o', markerfacecolor='w', linewidth = linewidth[1], label = q_labels[2])
+            plt.xticks(fontsize=15, rotation=45)
+            plt.yticks(fontsize=15)
+
+            if title:
+                title_dict = {'family': 'sans-serif',
+                            'color': 'black',
+                            'weight': 'normal',
+                            'size': 20,
+                            }
+                ## Check that the title is a list of strings or a single string
+                if isinstance(title, list):
+                    try:
+                        if title[i] == '':
+                            ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)
+                        else:
+                            ax.set_title(label=title[i], fontdict=title_dict, pad=25)
+                    except IndexError:
+                        ax.set_title(label='Hydrograph of the time series', fontdict=title_dict, pad=25)                            
+                elif isinstance(title, str):
+                    ax.set_title(label=title, fontdict=title_dict, pad=25)
+
+            # Placing a grid if requested
+            if grid:
+                plt.grid(True)
+
+            # Placing Labels if requested
+            if labels:
+                # Plotting Labels
+                plt.xlabel(labels[0], fontsize=12)
+                plt.ylabel(labels[1], fontsize=12)
+            
+            plt.tight_layout()
+
+            # save to file if requested 
+            if save:
+                # fig.set_facecolor('gainsboro')
+                # Check if the directory exists
+                if not os.path.exists(dir):
+                    # If the directory does not exist, create it
+                    os.makedirs(dir)
+                    print(f"Directory '{dir}' created.")
+                elif dir != ".":
+                    print(f"Directory '{dir}' already exists.")
+                else:
+                    print("Plots will be saved to current dir")
+                ## Check that the title is a list of strings or a single string
+                if isinstance(save_as, list):
+                    try:
+                        if save_as[i] == '':
+                            plt.savefig(os.path.join(dir, f"qqplot_{i+1}.png"))
+                        else:
+                            plt.savefig(os.path.join(dir, f"{save_as[i]}.png"))
+                    except IndexError:
+                        plt.savefig(os.path.join(dir, f"qqplot_{i+1}.png"))                        
+                elif isinstance(save_as, str):
+                    plt.savefig(os.path.join(dir, f"{save_as}_{i+1}.png"))
+                else:
+                    plt.savefig(os.path.join(dir, f"qqplot_{i+1}.png"))
+
+
     return
