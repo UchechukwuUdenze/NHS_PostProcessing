@@ -94,26 +94,22 @@ def mse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
     # validate inputs
     hlp.validate_data(observed, simulated)
 
-    MSE = []    
-    if not stations:
-        for j in range(0, observed.columns.size):
-            # Remove the invalid values from that station
-            valid_observed = hlp.filter_valid_data(observed, station_num = j)        
-        
-            summation = np.sum((abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))**2)        
-            mse = summation/len(valid_observed)  #dividing summation by total number of values to obtain average    
-            MSE.append(hlp.sig_figs(mse, 4))
-    else:
-        for j in stations:
-            # Adjust for zero indexing
-            j -= 1
+    MSE = []
 
-            # Remove the invalid values from that station
-            valid_observed = hlp.filter_valid_data(observed, station_num = j)        
+    # If no stations specified, calculate MSE for all columns
+    stations_to_process = stations if stations else range(observed.columns.size)    
+    
+    for j in stations_to_process:
+        # If using 1-indexed stations, adjust by subtracting 1 for 0-indexing
+        if stations:
+            j = j-1
+
+        # Remove the invalid values from that station
+        valid_observed = hlp.filter_valid_data(observed, station_num=j)        
         
-            summation = np.sum((abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))**2)        
-            mse = summation/len(valid_observed)  #dividing summation by total number of values to obtain average    
-            MSE.append(hlp.sig_figs(mse, 4))
+        summation = np.sum((valid_observed.iloc[:, j] - simulated.iloc[:, j])**2)        
+        mse = summation / len(valid_observed)  # Dividing summation by total number of values to obtain average    
+        MSE.append(hlp.sig_figs(mse, 4))
     
     return MSE
 
@@ -177,25 +173,21 @@ def rmse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
     hlp.validate_data(observed, simulated)
     
     RMSE =[]
-    if not stations:
-        for j in range(0, observed.columns.size):
-            # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed, station_num = j)
-            
-            summation = np.sum((abs((valid_observed.iloc[:, j]) - simulated.iloc[:, j]))**2)
-            rmse = np.sqrt(summation/len(valid_observed)) #dividing summation by total number of values to obtain average    
-            RMSE.append(hlp.sig_figs(rmse, 4))
-    else:
-        for j in stations:
-            # Adjust for zero indexing
-            j -= 1
 
-            # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed, station_num = j)
-            
-            summation = np.sum((abs((valid_observed.iloc[:, j]) - simulated.iloc[:, j]))**2)
-            rmse = np.sqrt(summation/len(valid_observed)) #dividing summation by total number of values to obtain average    
-            RMSE.append(hlp.sig_figs(rmse, 4))
+    # If no stations specified, calculate MSE for all columns
+    stations_to_process = stations if stations else range(observed.columns.size)    
+    
+    for j in stations_to_process:
+        # If using 1-indexed stations, adjust by subtracting 1 for 0-indexing
+        if stations:
+            j = j-1
+
+        # Remove the invalid values from that station 
+        valid_observed = hlp.filter_valid_data(observed, station_num = j)
+        
+        summation = np.sum((abs((valid_observed.iloc[:, j]) - simulated.iloc[:, j]))**2)
+        rmse = np.sqrt(summation/len(valid_observed)) #dividing summation by total number of values to obtain average    
+        RMSE.append(hlp.sig_figs(rmse, 4))
 
     return RMSE
 
@@ -259,25 +251,21 @@ def mae(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
     hlp.validate_data(observed, simulated)
     
     MAE = []
-    if not stations:
-        for j in range(0, observed.columns.size): 
-            # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed, station_num = j)
-            
-            summation = np.sum(abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))
-            mae = summation/len(valid_observed)  #dividing summation by total number of values to obtain average   
-            MAE.append(hlp.sig_figs(mae, 4))
-    else:
-        for j in stations:
-            # Adjust for zero indexing
-            j -= 1
+    
+    # If no stations specified, calculate MSE for all columns
+    stations_to_process = stations if stations else range(observed.columns.size)    
+    
+    for j in stations_to_process:
+        # If using 1-indexed stations, adjust by subtracting 1 for 0-indexing
+        if stations:
+            j = j-1
 
-            # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed, station_num = j)
-            
-            summation = np.sum(abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))
-            mae = summation/len(valid_observed)  #dividing summation by total number of values to obtain average   
-            MAE.append(hlp.sig_figs(mae, 4))
+        # Remove the invalid values from that station 
+        valid_observed = hlp.filter_valid_data(observed, station_num = j)
+        
+        summation = np.sum(abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))
+        mae = summation/len(valid_observed)  #dividing summation by total number of values to obtain average   
+        MAE.append(hlp.sig_figs(mae, 4))
 
     return MAE
 
@@ -341,37 +329,27 @@ def nse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
     hlp.validate_data(observed, simulated)
 
     NSE = []
-    if not stations:
-        for j in range(0, observed.columns.size):  
-            # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed, station_num = j)
-            
-            num_valid = len(valid_observed.iloc[:, j])
-            observed_mean = np.sum(valid_observed.iloc[:, j])
-            observed_mean = observed_mean/num_valid
+    
+    # If no stations specified, calculate MSE for all columns
+    stations_to_process = stations if stations else range(observed.columns.size)    
+    
+    for j in stations_to_process:
+        # If using 1-indexed stations, adjust by subtracting 1 for 0-indexing
+        if stations:
+            j = j-1
 
-            summation_num = np.sum((abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))**2)
-            summation_denom = np.sum((abs(valid_observed.iloc[:, j] - observed_mean))**2)
-            
-            nse = (1 - (summation_num/summation_denom))  #dividing summation by total number of values to obtain average
-            NSE.append(hlp.sig_figs(nse, 4))
-    else:
-        for j in stations:
-            # Adjust for zero indexing
-            j -= 1
+        # Remove the invalid values from that station 
+        valid_observed = hlp.filter_valid_data(observed, station_num = j)
+        
+        num_valid = len(valid_observed.iloc[:, j])
+        observed_mean = np.sum(valid_observed.iloc[:, j])
+        observed_mean = observed_mean/num_valid
 
-            # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed, station_num = j)
-            
-            num_valid = len(valid_observed.iloc[:, j])
-            observed_mean = np.sum(valid_observed.iloc[:, j])
-            observed_mean = observed_mean/num_valid
-
-            summation_num = np.sum((abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))**2)
-            summation_denom = np.sum((abs(valid_observed.iloc[:, j] - observed_mean))**2)
-            
-            nse = (1 - (summation_num/summation_denom))  #dividing summation by total number of values to obtain average
-            NSE.append(hlp.sig_figs(nse, 4))
+        summation_num = np.sum((abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))**2)
+        summation_denom = np.sum((abs(valid_observed.iloc[:, j] - observed_mean))**2)
+        
+        nse = (1 - (summation_num/summation_denom))  #dividing summation by total number of values to obtain average
+        NSE.append(hlp.sig_figs(nse, 4))
         
     return NSE
 
@@ -434,37 +412,27 @@ def lognse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=
     hlp.validate_data(observed, simulated)
 
     LOGNSE = []
-    if not stations:
-        for j in range(0, observed.columns.size):  
-            # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed, station_num = j)
-            
-            num_valid = len(valid_observed.iloc[:, j])
-            observed_mean = np.sum(np.log(valid_observed.iloc[:, j]))
-            observed_mean = observed_mean/num_valid
+    
+    # If no stations specified, calculate MSE for all columns
+    stations_to_process = stations if stations else range(observed.columns.size)    
+    
+    for j in stations_to_process:
+        # If using 1-indexed stations, adjust by subtracting 1 for 0-indexing
+        if stations:
+            j = j-1
 
-            summation_num = np.sum((abs(np.log(valid_observed.iloc[:, j]) - np.log(simulated.iloc[:, j])))**2)
-            summation_denom = np.sum((abs(np.log(valid_observed.iloc[:, j]) - observed_mean))**2)
-            
-            lognse = (1 - (summation_num/summation_denom))  #dividing summation by total number of values to obtain average
-            LOGNSE.append(hlp.sig_figs(lognse, 4))
-    else:
-        for j in stations:
-            # Adjust for zero indexing
-            j -= 1
+        # Remove the invalid values from that station 
+        valid_observed = hlp.filter_valid_data(observed, station_num = j)
+        
+        num_valid = len(valid_observed.iloc[:, j])
+        observed_mean = np.sum(np.log(valid_observed.iloc[:, j]))
+        observed_mean = observed_mean/num_valid
 
-            # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed, station_num = j)
-            
-            num_valid = len(valid_observed.iloc[:, j])
-            observed_mean = np.sum(np.log(valid_observed.iloc[:, j]))
-            observed_mean = observed_mean/num_valid
-
-            summation_num = np.sum((abs(np.log(valid_observed.iloc[:, j]) - np.log(simulated.iloc[:, j])))**2)
-            summation_denom = np.sum((abs(np.log(valid_observed.iloc[:, j]) - observed_mean))**2)
-            
-            lognse = (1 - (summation_num/summation_denom))  #dividing summation by total number of values to obtain average
-            LOGNSE.append(hlp.sig_figs(lognse, 4))
+        summation_num = np.sum((abs(np.log(valid_observed.iloc[:, j]) - np.log(simulated.iloc[:, j])))**2)
+        summation_denom = np.sum((abs(np.log(valid_observed.iloc[:, j]) - observed_mean))**2)
+        
+        lognse = (1 - (summation_num/summation_denom))  #dividing summation by total number of values to obtain average
+        LOGNSE.append(hlp.sig_figs(lognse, 4))
 
     return LOGNSE
 
@@ -532,67 +500,42 @@ def kge(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[],
     hlp.validate_data(observed, simulated)
 
     KGE = []
-    if not stations:
-        for j in range(0, observed.columns.size): 
-            # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed, station_num = j)
-            
-            num_valid = len(valid_observed.iloc[:, j])
-            mean_observed = np.sum(valid_observed.iloc[:, j]) 
-            mean_simulated = np.sum(simulated.iloc[:, j][valid_observed.iloc[:, j].index])
-            mean_observed = mean_observed / num_valid
-            mean_simulated = mean_simulated / num_valid
-            
-            
-            std_observed = np.sum((valid_observed.iloc[:, j] - mean_observed)**2) 
-            std_simulated = np.sum((simulated.iloc[:, j][valid_observed.iloc[:, j].index] - mean_simulated)**2)
-            sum = np.sum((valid_observed.iloc[:, j] - mean_observed) * (simulated.iloc[:, j] - mean_simulated))
-            
-            # r: Pearson's Correlation Coefficient
-            r = sum / np.sqrt(std_simulated * std_observed)
-            
-            std_observed = np.sqrt(std_observed/(num_valid - 1))
-            std_simulated = np.sqrt(std_simulated/(num_valid - 1))
+    
+    # If no stations specified, calculate MSE for all columns
+    stations_to_process = stations if stations else range(observed.columns.size)    
+    
+    for j in stations_to_process:
+        # If using 1-indexed stations, adjust by subtracting 1 for 0-indexing
+        if stations:
+            j = j-1
 
-            # a: A term representing the variability of prediction errors,
-            # b: A bias term
-            b = mean_simulated / mean_observed
-            a = std_simulated / std_observed
-            
-            kge = 1 - np.sqrt((scale[0]*(r - 1))**2 + (scale[1]*(a - 1))**2 + (scale[2]*(b - 1))**2)
-            KGE.append(hlp.sig_figs(kge, 4))
-    else:
-        for j in stations:
-            # Adjust for zero indexing
-            j -= 1
+        # Remove the invalid values from that station 
+        valid_observed = hlp.filter_valid_data(observed, station_num = j)
+        
+        num_valid = len(valid_observed.iloc[:, j])
+        mean_observed = np.sum(valid_observed.iloc[:, j]) 
+        mean_simulated = np.sum(simulated.iloc[:, j][valid_observed.iloc[:, j].index])
+        mean_observed = mean_observed / num_valid
+        mean_simulated = mean_simulated / num_valid
+        
+        
+        std_observed = np.sum((valid_observed.iloc[:, j] - mean_observed)**2) 
+        std_simulated = np.sum((simulated.iloc[:, j][valid_observed.iloc[:, j].index] - mean_simulated)**2)
+        sum = np.sum((valid_observed.iloc[:, j] - mean_observed) * (simulated.iloc[:, j] - mean_simulated))
+        
+        # r: Pearson's Correlation Coefficient
+        r = sum / np.sqrt(std_simulated * std_observed)
+        
+        std_observed = np.sqrt(std_observed/(num_valid - 1))
+        std_simulated = np.sqrt(std_simulated/(num_valid - 1))
 
-            # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed, station_num = j)
-            
-            num_valid = len(valid_observed.iloc[:, j])
-            mean_observed = np.sum(valid_observed.iloc[:, j]) 
-            mean_simulated = np.sum(simulated.iloc[:, j][valid_observed.iloc[:, j].index])
-            mean_observed = mean_observed / num_valid
-            mean_simulated = mean_simulated / num_valid
-            
-            
-            std_observed = np.sum((valid_observed.iloc[:, j] - mean_observed)**2) 
-            std_simulated = np.sum((simulated.iloc[:, j][valid_observed.iloc[:, j].index] - mean_simulated)**2)
-            sum = np.sum((valid_observed.iloc[:, j] - mean_observed) * (simulated.iloc[:, j] - mean_simulated))
-            
-            # r: Pearson's Correlation Coefficient
-            r = sum / np.sqrt(std_simulated * std_observed)
-            
-            std_observed = np.sqrt(std_observed/(num_valid - 1))
-            std_simulated = np.sqrt(std_simulated/(num_valid - 1))
-
-            # a: A term representing the variability of prediction errors,
-            # b: A bias term
-            b = mean_simulated / mean_observed
-            a = std_simulated / std_observed
-            
-            kge = 1 - np.sqrt((scale[0]*(r - 1))**2 + (scale[1]*(a - 1))**2 + (scale[2]*(b - 1))**2)
-            KGE.append(hlp.sig_figs(kge, 4))
+        # a: A term representing the variability of prediction errors,
+        # b: A bias term
+        b = mean_simulated / mean_observed
+        a = std_simulated / std_observed
+        
+        kge = 1 - np.sqrt((scale[0]*(r - 1))**2 + (scale[1]*(a - 1))**2 + (scale[2]*(b - 1))**2)
+        KGE.append(hlp.sig_figs(kge, 4))
 
     return KGE
 
@@ -665,67 +608,42 @@ def kge_2012(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int
     hlp.validate_data(observed, simulated)
 
     KGE = []
-    if not stations:
-        for j in range(0, observed.columns.size):
-            # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed, station_num = j)
-            
-            num_valid = len(valid_observed.iloc[:, j])
-            mean_observed = np.sum(valid_observed.iloc[:, j]) 
-            mean_simulated = np.sum(simulated.iloc[:, j][valid_observed.iloc[:, j].index])
-            mean_observed = mean_observed / num_valid
-            mean_simulated = mean_simulated / num_valid
-            
-            
-            std_observed = np.sum((valid_observed.iloc[:, j] - mean_observed)**2) 
-            std_simulated = np.sum((simulated.iloc[:, j][valid_observed.iloc[:, j].index] - mean_simulated)**2)
-            sum = np.sum((valid_observed.iloc[:, j] - mean_observed) * (simulated.iloc[:, j] - mean_simulated))
-            
-            # r: Pearson's Correlation Coefficient
-            r = sum / np.sqrt(std_simulated * std_observed)
-            
-            std_observed = np.sqrt(std_observed/(num_valid - 1))
-            std_simulated = np.sqrt(std_simulated/(num_valid - 1))
+    
+    # If no stations specified, calculate MSE for all columns
+    stations_to_process = stations if stations else range(observed.columns.size)    
+    
+    for j in stations_to_process:
+        # If using 1-indexed stations, adjust by subtracting 1 for 0-indexing
+        if stations:
+            j = j-1
 
-            # a: A term representing the variability of prediction errors,
-            # b: A bias term
-            b = mean_simulated / mean_observed
-            a =  (std_simulated/ mean_simulated)/(std_observed / mean_observed)
-            
-            kge = 1 - np.sqrt((scale[0]*(r - 1))**2 + (scale[1]*(a - 1))**2 + (scale[2]*(b - 1))**2)
-            KGE.append(hlp.sig_figs(kge, 4))
-    else:
-        for j in stations:
-            # Adjust for zero indexing
-            j -= 1
+        # Remove the invalid values from that station 
+        valid_observed = hlp.filter_valid_data(observed, station_num = j)
+        
+        num_valid = len(valid_observed.iloc[:, j])
+        mean_observed = np.sum(valid_observed.iloc[:, j]) 
+        mean_simulated = np.sum(simulated.iloc[:, j][valid_observed.iloc[:, j].index])
+        mean_observed = mean_observed / num_valid
+        mean_simulated = mean_simulated / num_valid
+        
+        
+        std_observed = np.sum((valid_observed.iloc[:, j] - mean_observed)**2) 
+        std_simulated = np.sum((simulated.iloc[:, j][valid_observed.iloc[:, j].index] - mean_simulated)**2)
+        sum = np.sum((valid_observed.iloc[:, j] - mean_observed) * (simulated.iloc[:, j] - mean_simulated))
+        
+        # r: Pearson's Correlation Coefficient
+        r = sum / np.sqrt(std_simulated * std_observed)
+        
+        std_observed = np.sqrt(std_observed/(num_valid - 1))
+        std_simulated = np.sqrt(std_simulated/(num_valid - 1))
 
-            # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed, station_num = j)
-            
-            num_valid = len(valid_observed.iloc[:, j])
-            mean_observed = np.sum(valid_observed.iloc[:, j]) 
-            mean_simulated = np.sum(simulated.iloc[:, j][valid_observed.iloc[:, j].index])
-            mean_observed = mean_observed / num_valid
-            mean_simulated = mean_simulated / num_valid
-            
-            
-            std_observed = np.sum((valid_observed.iloc[:, j] - mean_observed)**2) 
-            std_simulated = np.sum((simulated.iloc[:, j][valid_observed.iloc[:, j].index] - mean_simulated)**2)
-            sum = np.sum((valid_observed.iloc[:, j] - mean_observed) * (simulated.iloc[:, j] - mean_simulated))
-            
-            # r: Pearson's Correlation Coefficient
-            r = sum / np.sqrt(std_simulated * std_observed)
-            
-            std_observed = np.sqrt(std_observed/(num_valid - 1))
-            std_simulated = np.sqrt(std_simulated/(num_valid - 1))
-
-            # a: A term representing the variability of prediction errors,
-            # b: A bias term
-            b = mean_simulated / mean_observed
-            a =  (std_simulated/ mean_simulated)/(std_observed / mean_observed)
-            
-            kge = 1 - np.sqrt((scale[0]*(r - 1))**2 + (scale[1]*(a - 1))**2 + (scale[2]*(b - 1))**2)
-            KGE.append(hlp.sig_figs(kge, 4))
+        # a: A term representing the variability of prediction errors,
+        # b: A bias term
+        b = mean_simulated / mean_observed
+        a =  (std_simulated/ mean_simulated)/(std_observed / mean_observed)
+        
+        kge = 1 - np.sqrt((scale[0]*(r - 1))**2 + (scale[1]*(a - 1))**2 + (scale[2]*(b - 1))**2)
+        KGE.append(hlp.sig_figs(kge, 4))
 
     return KGE
 
@@ -789,23 +707,20 @@ def bias(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
     hlp.validate_data(observed, simulated)
     
     BIAS = []
-    if not stations:
-        for j in range(0, observed.columns.size):   
-            # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed, station_num = j)
-            
-            bias = np.sum(simulated.iloc[:, j] - valid_observed.iloc[:, j])/np.sum(abs(valid_observed.iloc[:, j])) * 100
-            BIAS.append(hlp.sig_figs(bias, 4))
-    else:
-        for j in stations:
-            # Adjust for zero indexing
-            j -= 1
+    
+    # If no stations specified, calculate MSE for all columns
+    stations_to_process = stations if stations else range(observed.columns.size)    
+    
+    for j in stations_to_process:
+        # If using 1-indexed stations, adjust by subtracting 1 for 0-indexing
+        if stations:
+            j = j-1
 
-            # Remove the invalid values from that station 
-            valid_observed = hlp.filter_valid_data(observed, station_num = j)
-            
-            bias = np.sum(simulated.iloc[:, j] - valid_observed.iloc[:, j])/np.sum(abs(valid_observed.iloc[:, j])) * 100
-            BIAS.append(hlp.sig_figs(bias, 4))
+        # Remove the invalid values from that station 
+        valid_observed = hlp.filter_valid_data(observed, station_num = j)
+        
+        bias = np.sum(simulated.iloc[:, j] - valid_observed.iloc[:, j])/np.sum(abs(valid_observed.iloc[:, j])) * 100
+        BIAS.append(hlp.sig_figs(bias, 4))
 
     return BIAS
         
