@@ -19,9 +19,10 @@ from shapely.geometry import Point
 from postprocessinglib.evaluation import metrics
 from postprocessinglib.utilities import helper_functions as hlp
 
-def save_or_display_plot(fig, save: bool, save_as: Union[str, List[str]], dir: str, i: int, type: str):
+def _save_or_display_plot(fig, save: bool, save_as: Union[str, List[str]], dir: str, i: int, type: str):
     """Save the plot to a file or display it based on user preferences."""
     if save:
+        plt.tight_layout()
         if not os.path.exists(dir):
             os.makedirs(dir)
         filename = f"{save_as}_{i + 1}.png" if isinstance(save_as, str) else f"{type}_{i + 1}.png"
@@ -30,7 +31,7 @@ def save_or_display_plot(fig, save: bool, save_as: Union[str, List[str]], dir: s
     else:
         plt.show()
 
-def prepare_bounds(bounds: List[pd.DataFrame], col_index: int, observed: bool) -> List[pd.Series]:
+def _prepare_bounds(bounds: List[pd.DataFrame], col_index: int, observed: bool) -> List[pd.Series]:
     """
     Extracts the required column (observed or simulated) for all bounds.
     
@@ -129,40 +130,30 @@ def plot(
     
     Examples
     --------
-    Visualization of a set of data from two stations using a 2D line plot
 
     >>> from postprocessinglib.evaluation import metrics, visuals, data
-    >>> path = 'MESH_output_streamflow_1.csv'
-    >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365, monthly_agg = True)
-    >>> observed = DATAFRAMES["DF_OBSERVED"] 
-    >>> simulated = DATAFRAMES["DF_SIMULATED"]
-    >>> merged_df = DATAFRAMES["DF"]
-    >>> monthly_df = DATAFRAMES["DF_MONTHLY"]
-    >>> .
-    >>> # plot of the stations in the dataframe from 1981 till 1990
-    >>> visuals.plot(merged_df = merged_df['1981-01-01':'1990-12-31'],
-                    title='Hydrograph of the daily time series from 1981-1990',
-                    linestyles=['r-', 'b-'],
-                    labels=['Datetime', 'Streamflow'],
-                    metrices=['RMSE', 'MAE', 'KGE'],
-                    linewidth = [.75, 1.25],
-                    grid=True
-                    )
+    >>> # Example 1: Plotting merged data with simulated and observed values
+    >>> merged_data = pd.DataFrame({...})  # Your merged dataframe
+    >>> visuals.plot(merged_df = merged_data,
+                    title='Simulated vs Observed',
+                    labels=['Time', 'Value'], grid=True,
+                    metrices = ['KGE','RMSE'])
 
-    .. image:: ../Figures/plot_Station_1_1981_to_1990.png
-    .. image:: ../Figures/plot_Station_2_1981_to_1990.png
+    .. image:: ../Figures/plot1_example.png
 
-    >>> # plot of the stations in the dataframe from 1981 till 1990 aggregated monthly by mean(default)
-    >>> visuals.plot(merged_df = monthly_df['1981-01':'1990-12'],
-                    title='Hydrograph of the time series aggregated monthly from 1981-1990',
-                    linestyles=['r-', 'b-'],
-                    labels=['Datetime', 'Streamflow'],
-                    metrices=['RMSE', 'MSE', 'PBIAS'],
-                    grid=True
-                    )
+    >>> # Example 2: Plotting only observed and simulated data with custom linestyles and saving the plot
+    >>> obs_data = pd.DataFrame({...})  # Your observed data
+    >>> sim_data = pd.DataFrame({...})  # Your simulated data
+    >>> visuals.plot(obs_df = obs_data, sim_df = sim_data, linestyles=('g-', 'b-'),
+                    save=True, save_as="sim_vs_obs_plot", dir="./plots")
 
-    .. image:: ../Figures/plot_monthly_Station_1_1981_to_1990.png
-    .. image:: ../Figures/plot_monthly_Station_2_1981_to_1990.png
+    .. image:: ../Figures/plot2_example.png
+
+    >>> # Example 3: Plotting a single dataframe
+    >>> single_data = pd.DataFrame({...})  # Your single dataframe (either simulated or observed)
+    >>> visuals.plot(df=single_data, grid=True, title="Single Line Plot", labels=("Time", "Value"))
+
+    .. image:: ../Figures/plot3_example.png
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
          
@@ -180,13 +171,9 @@ def plot(
         time = obs_df.index
     elif df is not None:
         # If only df is provided, treat it as both observed and simulated data
-        obs = df
-        sim = df
+        obs = df # to keep the future for loop valid
+        line_df = df
         time = df.index
-        # Use the same linestyle, linewidth, and legend for both lines
-        linestyles = (linestyles[0], linestyles[0])
-        linewidth = (linewidth[0], linewidth[0])
-        legend = (legend[0], legend[0])
     else:
         raise RuntimeError('Please provide valid data (merged_df, obs_df, sim_df, or df)')
 
@@ -216,18 +203,21 @@ def plot(
 
     for i in range (0, len(obs.columns)):
         # Plotting the Data     
-        fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')                       
-        ax.plot(time, obs.iloc[:, i], linestyles[1], label=legend[1], linewidth = linewidth[1])
-        ax.plot(time, sim.iloc[:, i], linestyles[0], label=legend[0], linewidth = linewidth[0])
+        fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
+        if df is not None:
+            ax.plot(time, line_df.iloc[:, i], linestyles[0], label=legend[0], linewidth = linewidth[0])
+        else:                                   
+            ax.plot(time, obs.iloc[:, i], linestyles[1], label=legend[1], linewidth = linewidth[1])
+            ax.plot(time, sim.iloc[:, i], linestyles[0], label=legend[0], linewidth = linewidth[0])
         ax.legend(fontsize=15)
 
         # Adjusting the plot limit and layout
         if padding:
             plt.xlim(time[0], time[-1])
-        plt.tight_layout()
 
         # Placing Labels, title and grid if requested
-        plt.xticks(fontsize=15, rotation=45)
+        plt.xticks(fontsize=10,
+                   rotation=45)
         plt.yticks(fontsize=15)
 
         if labels:
@@ -254,13 +244,15 @@ def plot(
         # Placing Metrics on the Plot if requested
         if metrices:
             formatted_selected_metrics = 'Metrics:\n'
-            if metrices == 'all':
-                for key, value in metrics.calculate_all_metrics(observed=obs, simulated=sim).items():
-                    formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
-            else: 
-                assert isinstance(metrices, list)
-                for key, value in metrics.calculate_metrics(observed=obs, simulated=sim, metrices=metrices).items():
-                    formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
+            if df is None:
+                if metrices == 'all':
+                    for key, value in metrics.calculate_all_metrics(observed=obs, simulated=sim).items():
+                        formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
+                else: 
+                    assert isinstance(metrices, list)
+                    for key, value in metrics.calculate_metrics(observed=obs, simulated=sim, metrices=metrices).items():
+                        formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
+
 
             font = {'family': 'sans-serif',
                     'weight': 'normal',
@@ -273,7 +265,7 @@ def plot(
 
         # Save or auto-save for large column counts
         auto_save = len(obs.columns) > 5
-        save_or_display_plot(fig, save or auto_save, save_as, dir, i, "plot")
+        _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "plot")
 
 
 def bounded_plot(
@@ -347,10 +339,40 @@ def bounded_plot(
     -------
     fig : Matplotlib figure instance
     
-    Examples
-    --------
-    Visualization of the bounded long term seasonal data of a station with
-    its median bounedd by its max and min 
+    Example
+    -------
+    Generate a bounded plot using observed and simulated data:
+
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from postprocessinglib.evaluation import metrics
+    >>> #
+    >>> # Create test data
+    >>> index = pd.date_range(start="2022-01-01", periods=10, freq="D")
+    >>> obs_df = pd.DataFrame({
+    >>>     "Station1": np.random.rand(10),
+    >>>     "Station2": np.random.rand(10)
+    >>> }, index=index)
+    >>> #
+    >>> sim_df = pd.DataFrame({
+    >>>     "Station1": np.random.rand(10),
+    >>>     "Station2": np.random.rand(10)
+    >>> }, index=index)
+    >>> #
+    >>> # Call the bounded plot function
+    >>> metrics.bounded_plot(
+    >>>     obs_df=obs_df,
+    >>>     sim_df=sim_df,
+    >>>     title="Bounded Plot Example",
+    >>>     labels=("Date", "Streamflow (m³/s)"),
+    >>>     save=True,
+    >>>     save_as="bounded_plot_example.png"
+    >>> ) 
+
+    .. image:: ../Figures/bounded_plot_example.png
+
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+    
     """
 
     ## Check that the inputs are DataFrames
@@ -384,10 +406,10 @@ def bounded_plot(
             ax.legend(fontsize=15)
 
             # Prepare bounds for the current column
-            upper_obs = prepare_bounds(upper_bounds, i, observed=True)
-            lower_obs = prepare_bounds(lower_bounds, i, observed=True)
-            upper_sim = prepare_bounds(upper_bounds, i, observed=False)
-            lower_sim = prepare_bounds(lower_bounds, i, observed=False)
+            upper_obs = _prepare_bounds(upper_bounds, i, observed=True)
+            lower_obs = _prepare_bounds(lower_bounds, i, observed=True)
+            upper_sim = _prepare_bounds(upper_bounds, i, observed=False)
+            lower_sim = _prepare_bounds(lower_bounds, i, observed=False)
 
             # Plot bounds
             for j in range(len(upper_bounds)):
@@ -397,7 +419,6 @@ def bounded_plot(
             # Adjusting the plot limit and layout
             if padding:
                 plt.xlim(time[0], time[-1])
-            plt.tight_layout()
 
             # Placing Labels, title and grid if requested
             plt.xticks(fontsize=15, rotation=45)
@@ -426,7 +447,7 @@ def bounded_plot(
 
             # Save or auto-save for large column counts
             auto_save = len(line_obs.columns) > 5
-            save_or_display_plot(fig, save or auto_save, save_as, dir, i, "bounded-plot")        
+            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "bounded-plot")        
 
 def histogram():
     return
@@ -531,29 +552,39 @@ def scatter(
     -------
     fig : Matplotlib figure instance
 
-    Examples
-    --------
-    Visualization of a station's data using a 2D plot
+    Example
+    -------
+    Generate a scatter plot using observed and simulated data:
 
-    >>> from postprocessinglib.evaluation import metrics, visuals, data
-    >>> path = 'MESH_output_streamflow_1.csv'
-    >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365)
-    >>> observed = DATAFRAMES["DF_OBSERVED"] 
-    >>> simulated = DATAFRAMES["DF_SIMULATED"]
-    >>> merged_df = DATAFRAMES["DF"]
-    >>> .
-    >>> # plot of the stations in the dataframe from 1981 - 1985
-    >>> visuals.scatter(merged_df = merged_df['1981-01-01':'1985-12-31'],
-               grid = True,
-               labels = ("Simulated Data", "Observed Data"),
-               markerstyle = 'b.',
-               line45 = True,
-               title = "Scatterplot of 1981 - 1985"
-               metrices = ['KGE','MSE','BIAS']
-               )
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from postprocessinglib.evaluation import metrics
+    >>> #
+    >>> # Create test data
+    >>> index = pd.date_range(start="2022-01-01", periods=10, freq="D")
+    >>> obs_df = pd.DataFrame({
+    >>>     "Station1": np.random.rand(10),
+    >>>     "Station2": np.random.rand(10)
+    >>> }, index=index)
+    >>> #
+    >>> sim_df = pd.DataFrame({
+    >>>     "Station1": np.random.rand(10),
+    >>>     "Station2": np.random.rand(10)
+    >>> }, index=index)
+    >>> #
+    >>> # Call the scatter plot function
+    >>> metrics.scatter(
+    >>>     obs_df=obs_df,
+    >>>     sim_df=sim_df,
+    >>>     labels=("Observed", "Simulated"),
+    >>>     title="Scatter Plot Example",
+    >>>     best_fit=True,
+    >>>     line45=True,
+    >>>     save=True,
+    >>>     save_as="scatter_plot_example.png"
+    >>> )
 
-    .. image:: ../Figures/scatter_Station_1_1981_to_1990.png
-    .. image:: ../Figures/scatter_Station_2_1981_to_1990.png
+    .. image:: ../Figures/scatter_plot_example.png
 
     >>> shapefile_path = r"SaskRB_SubDrainage2.shp"
     >>> stations_path = 'Station_data.xlsx'
@@ -621,7 +652,6 @@ def scatter(
             # Placing Labels, title and grid if requested
             plt.xticks(fontsize=15, rotation=45)
             plt.yticks(fontsize=15)
-            plt.tight_layout()
 
             # Placing a grid if requested
             if grid:
@@ -666,7 +696,7 @@ def scatter(
 
             # Save or auto-save for large column counts
             auto_save = len(obs.columns) > 5
-            save_or_display_plot(fig, save or auto_save, save_as, dir, i, "scatter-plot")
+        _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "scatter-plot")
     else:
         metr = metrics.calculate_metrics(observed=observed, simulated=simulated, metrices=[metric])
         data = {
@@ -779,17 +809,39 @@ def qqplot(
     dir : str, optional
         The directory to save the plot to, default is the current working directory.
 
-    Examples
-    --------    
+    Example
+    -------
+    Generate a QQ plot to compare observed and simulated data distributions:
 
-    >>> from postprocessinglib.evaluation import metrics, visuals, data
-    >>> path = 'MESH_output_streamflow_1.csv'
-    >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365)
-    >>> observed = DATAFRAMES["DF_OBSERVED"] 
-    >>> simulated = DATAFRAMES["DF_SIMULATED"]
-    >>> merged_df = DATAFRAMES["DF"]
-    >>> .
-    >>> # plot of the stations in the dataframe from 1981 - 1985
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from postprocessinglib.evaluation import metrics
+    >>> #
+    >>> # Create test data
+    >>> index = pd.date_range(start="2022-01-01", periods=10, freq="D")
+    >>> obs_df = pd.DataFrame({
+    >>>     "Station1": np.random.rand(10),
+    >>>     "Station2": np.random.rand(10)
+    >>> }, index=index)
+    >>> #
+    >>> sim_df = pd.DataFrame({
+    >>>     "Station1": np.random.rand(10),
+    >>>     "Station2": np.random.rand(10)
+    >>> }, index=index)
+    >>> #
+    >>> # Call the QQ plot function
+    >>> metrics.qqplot(
+    >>>     obs_df=obs_df,
+    >>>     sim_df=sim_df,
+    >>>     labels=("Quantiles (Simulated)", "Quantiles (Observed)"),
+    >>>     title="QQ Plot Example",
+    >>>     save=True,
+    >>>     save_as="qqplot_example.png"
+    >>> )
+
+    .. image:: ../Figures/qqplot_example.png
+
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
 
     """
 
@@ -819,7 +871,7 @@ def qqplot(
         dsim = quant_3_sim - quant_1_sim
         dobs = quant_3_obs - quant_1_obs
         slope = dobs / dsim
-        
+
         centersim = (quant_1_sim + quant_3_sim) / 2
         centerobs = (quant_1_obs + quant_3_obs) / 2
         maxsim = np.max(obs.iloc[:, i])
@@ -847,7 +899,6 @@ def qqplot(
         # Placing Labels, title and grid if requested
         plt.xticks(fontsize=15, rotation=45)
         plt.yticks(fontsize=15)
-        plt.tight_layout()
 
         if labels:
             # Plotting Labels
@@ -872,7 +923,7 @@ def qqplot(
 
         # Save or auto-save for large column counts
         auto_save = len(obs.columns) > 5
-        save_or_display_plot(fig, save or auto_save, save_as, dir, i, "qqplot")  
+        _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "qqplot")  
 
 
     return
