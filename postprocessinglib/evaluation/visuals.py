@@ -393,7 +393,7 @@ def bounded_plot(
     ...     dir = '../Figures'
     ... )
 
-    .. image:: ../Figures/bounded_plot_example.png
+    .. image:: ../Figures/bounded_plot_example_1.png
 
     # Adjust a few other metrics
     >>> visuals.bounded_plot(
@@ -837,7 +837,8 @@ def qqplot(
         List of three strings that determine the point style and shape of the data being plotted 
 
     quantile: tuple[int, int]
-
+        Range of quantiles to plot, with values between 0 and 1. The first value is the lower quantile,
+        and the second is the upper. Default is (25, 75).
     
     q_labels: tuple[str, str, str]
 
