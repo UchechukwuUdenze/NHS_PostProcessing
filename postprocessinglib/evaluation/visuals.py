@@ -841,6 +841,8 @@ def qqplot(
         and the second is the upper. Default is (25, 75).
     
     q_labels: tuple[str, str, str]
+        Labels for the x-axis (simulated quantiles) and y-axis (observed quantiles).
+        Default is ['Quantiles', 'Range of Quantiles', 'Inter Quartile Range'].
 
     save : bool, optional
         Whether to save the plot to a file, default is False.
