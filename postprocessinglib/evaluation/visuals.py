@@ -25,7 +25,7 @@ def _save_or_display_plot(fig, save: bool, save_as: Union[str, List[str]], dir: 
         plt.tight_layout()
         if not os.path.exists(dir):
             os.makedirs(dir)
-        filename = f"{save_as}_{i + 1}.png" if isinstance(save_as, str) else f"{type}_{i + 1}.png"
+        filename = f"{save_as}.png" if isinstance(save_as, str) else f"{type}_{i + 1}.png"
         fig.savefig(os.path.join(dir, filename))
         plt.close(fig)
     else:
@@ -131,7 +131,7 @@ def plot(
     Examples
     --------
 
-    >>> from postprocessinglib.evaluation import metrics, visuals, data
+    >>> from postprocessinglib.evaluation import visuals
     >>> # Example 1: Plotting merged data with simulated and observed values
     >>> merged_data = pd.DataFrame({...})  # Your merged dataframe
     >>> visuals.plot(merged_df = merged_data,
@@ -145,7 +145,7 @@ def plot(
     >>> obs_data = pd.DataFrame({...})  # Your observed data
     >>> sim_data = pd.DataFrame({...})  # Your simulated data
     >>> visuals.plot(obs_df = obs_data, sim_df = sim_data, linestyles=('g-', 'b-'),
-                    save=True, save_as="sim_vs_obs_plot", dir="./plots")
+                    save=True, save_as="plot2_example", dir="../Figures")
 
     .. image:: ../Figures/plot2_example.png
 
@@ -341,35 +341,73 @@ def bounded_plot(
     
     Example
     -------
-    Generate a bounded plot using observed and simulated data:
+    Generate a bounded plot with simulated and observed data, along with upper and lower bounds.
 
-    >>> import numpy as np
     >>> import pandas as pd
-    >>> from postprocessinglib.evaluation import metrics
-    >>> #
-    >>> # Create test data
-    >>> index = pd.date_range(start="2022-01-01", periods=10, freq="D")
-    >>> obs_df = pd.DataFrame({
-    >>>     "Station1": np.random.rand(10),
-    >>>     "Station2": np.random.rand(10)
-    >>> }, index=index)
-    >>> #
-    >>> sim_df = pd.DataFrame({
-    >>>     "Station1": np.random.rand(10),
-    >>>     "Station2": np.random.rand(10)
-    >>> }, index=index)
-    >>> #
-    >>> # Call the bounded plot function
-    >>> metrics.bounded_plot(
-    >>>     obs_df=obs_df,
-    >>>     sim_df=sim_df,
-    >>>     title="Bounded Plot Example",
-    >>>     labels=("Date", "Streamflow (m³/s)"),
-    >>>     save=True,
-    >>>     save_as="bounded_plot_example.png"
-    >>> ) 
+    >>> import numpy as np
+    >>> from postprocessinglib.evaluation import visuals
+
+    # Create an index for the data
+    >>> time_index = pd.date_range(start='2025-01-01', periods=50, freq='D')
+
+    # Generate sample observed and simulated data
+    >>> obs_data = pd.DataFrame({
+    ...     "Station1_Observed": np.random.rand(50),
+    ...     "Station2_Observed": np.random.rand(50)
+    ... }, index=time_index)
+
+    >>> sim_data = pd.DataFrame({
+    ...     "Station1_Simulated": np.random.rand(50),
+    ...     "Station2_Simulated": np.random.rand(50)
+    ... }, index=time_index)
+
+    # Combine observed and simulated data
+    >>> data = pd.concat([obs_data, sim_data], axis=1)
+
+    # Generate sample bounds
+    >>> upper_bounds = [
+    ...     pd.DataFrame({
+    ...         "Station1_Upper": np.random.rand(50) + 0.5,
+    ...         "Station2_Upper": np.random.rand(50) + 0.5
+    ...     }, index=time_index)
+    ... ]
+
+    >>> lower_bounds = [
+    ...     pd.DataFrame({
+    ...         "Station1_Lower": np.random.rand(50) - 0.5,
+    ...         "Station2_Lower": np.random.rand(50) - 0.5
+    ...     }, index=time_index)
+    ... ]
+
+    # Plot the data with bounds
+    >>> visuals.bounded_plot(
+    ...     lines=data,
+    ...     upper_bounds=upper_bounds,
+    ...     lower_bounds=lower_bounds,
+    ...     legend=('Simulated Data', 'Observed Data'),
+    ...     labels=('Datetime', 'Streamflow'),
+    ...     transparency = [0.4, 0.3],
+    ...     grid=True,
+    ...     save=True,
+    ...     save_as = 'bounded_plot_example',
+    ...     dir = '../Figures'
+    ... )
 
     .. image:: ../Figures/bounded_plot_example.png
+
+    # Adjust a few other metrics
+    >>> visuals.bounded_plot(
+    ...     lines = merged_df,
+    ...     upper_bounds = upper_bounds,
+    ...     lower_bounds = lower_bounds,
+    ...     title=['Long Term Aggregation by days of the Year'],
+    ...     legend = ['Predicted Streamflow','Recorded Streamflow'],
+    ...     linestyles=['k', 'r-'],
+    ...     labels=['Days of the year', 'Streamflow Values'],
+    ...     transparency = [0.4, 0.7],
+    ... )
+
+    .. image:: ../Figures/bounded_plot_example_2.png
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
     
@@ -558,7 +596,7 @@ def scatter(
 
     >>> import numpy as np
     >>> import pandas as pd
-    >>> from postprocessinglib.evaluation import metrics
+    >>> from postprocessinglib.evaluation import visuals
     >>> #
     >>> # Create test data
     >>> index = pd.date_range(start="2022-01-01", periods=10, freq="D")
@@ -775,7 +813,10 @@ def qqplot(
         inches, respectively.
 
     interpolate: str
-
+        Determines whether the quantiles should be interpolated when the data length differs.
+        If True, the quantiles are interpolated to align the data lengths between the observed
+        and simulated data, ensuring accurate comparison.
+        Default is False.
 
     legend: bool
         Whether to display the legend or not. Default is False
