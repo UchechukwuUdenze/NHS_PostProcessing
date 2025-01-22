@@ -77,18 +77,15 @@ def station_dataframe(observed: pd.DataFrame, simulated: pd.DataFrame,
     hlp.validate_data(observed, simulated)
 
     Stations = []
-    if not stations:
-        for j in range(0, observed.columns.size):
-            station_df =  observed.copy()
-            station_df.drop(station_df.iloc[:, 0:], inplace=True, axis=1)
-            station_df = pd.concat([station_df, observed.iloc[:, j], simulated.iloc[:, j]], axis = 1)
-            Stations.append(station_df)
-        return Stations
-    else:
-        for j in stations:
-            # Adjust for zero indexing
-            j -= 1
 
+    # If no stations specified, Seperate all columns
+    stations_to_process = stations if stations else range(observed.columns.size)
+
+    for j in stations_to_process:
+        # If using 1-indexed stations, adjust by subtracting 1 for 0-indexing
+        if stations:
+            j = j-1
+            
             station_df =  observed.copy()
             station_df.drop(station_df.iloc[:, 0:], inplace=True, axis=1)
             station_df = pd.concat([station_df, observed.iloc[:, j], simulated.iloc[:, j]], axis = 1)
@@ -811,12 +808,8 @@ def generate_dataframes(csv_fpath: str='', sim_fpath: str='', obs_fpath: str='',
         
         # Take off the warm up time
         DATAFRAMES["DF"] = df[warm_up:]    
-        simulated = observed = df[warm_up:].copy()
-        simulated.drop(simulated.iloc[:, 0:], inplace=True, axis=1)
-        observed.drop(observed.iloc[:, 0:], inplace=True, axis=1)
-        for j in range(0, len(df.columns), 2):
-            observed = pd.concat([observed, df.iloc[warm_up:, j]], axis = 1)
-            simulated = pd.concat([simulated, df.iloc[warm_up:, j+1]], axis = 1)
+        observed = df[warm_up:].iloc[:, ::2] 
+        simulated = df[warm_up:].iloc[:, 1::2]
 
     elif sim_fpath and obs_fpath:
         # read the simulated and observed csv files into dataframes

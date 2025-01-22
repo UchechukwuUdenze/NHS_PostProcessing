@@ -107,7 +107,7 @@ def mse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
         # Remove the invalid values from that station
         valid_observed = hlp.filter_valid_data(observed, station_num=j)        
         
-        summation = np.sum((valid_observed.iloc[:, j] - simulated.iloc[:, j])**2)        
+        summation = np.sum((valid_observed.iloc[:, j] - simulated.loc[valid_observed.index].iloc[:, j])**2)      
         mse = summation / len(valid_observed)  # Dividing summation by total number of values to obtain average    
         MSE.append(hlp.sig_figs(mse, 4))
     
@@ -185,7 +185,7 @@ def rmse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
         # Remove the invalid values from that station 
         valid_observed = hlp.filter_valid_data(observed, station_num = j)
         
-        summation = np.sum((abs((valid_observed.iloc[:, j]) - simulated.iloc[:, j]))**2)
+        summation = np.sum((abs((valid_observed.iloc[:, j]) - simulated.loc[valid_observed.index].iloc[:, j]))**2)
         rmse = np.sqrt(summation/len(valid_observed)) #dividing summation by total number of values to obtain average    
         RMSE.append(hlp.sig_figs(rmse, 4))
 
@@ -252,7 +252,7 @@ def mae(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
     
     MAE = []
     
-    # If no stations specified, calculate MSE for all columns
+    # If no stations specified, calculate RMSE for all columns
     stations_to_process = stations if stations else range(observed.columns.size)    
     
     for j in stations_to_process:
@@ -263,7 +263,7 @@ def mae(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
         # Remove the invalid values from that station 
         valid_observed = hlp.filter_valid_data(observed, station_num = j)
         
-        summation = np.sum(abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))
+        summation = np.sum(abs(valid_observed.iloc[:, j] - simulated.loc[valid_observed.index].iloc[:, j]))
         mae = summation/len(valid_observed)  #dividing summation by total number of values to obtain average   
         MAE.append(hlp.sig_figs(mae, 4))
 
@@ -330,7 +330,7 @@ def nse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
 
     NSE = []
     
-    # If no stations specified, calculate MSE for all columns
+    # If no stations specified, calculate NSE for all columns
     stations_to_process = stations if stations else range(observed.columns.size)    
     
     for j in stations_to_process:
@@ -345,7 +345,7 @@ def nse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
         observed_mean = np.sum(valid_observed.iloc[:, j])
         observed_mean = observed_mean/num_valid
 
-        summation_num = np.sum((abs(valid_observed.iloc[:, j] - simulated.iloc[:, j]))**2)
+        summation_num = np.sum((abs(valid_observed.iloc[:, j] - simulated.loc[valid_observed.index].iloc[:, j]))**2)
         summation_denom = np.sum((abs(valid_observed.iloc[:, j] - observed_mean))**2)
         
         nse = (1 - (summation_num/summation_denom))  #dividing summation by total number of values to obtain average
@@ -413,7 +413,7 @@ def lognse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=
 
     LOGNSE = []
     
-    # If no stations specified, calculate MSE for all columns
+    # If no stations specified, calculate LOGNSE for all columns
     stations_to_process = stations if stations else range(observed.columns.size)    
     
     for j in stations_to_process:
@@ -428,7 +428,7 @@ def lognse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=
         observed_mean = np.sum(np.log(valid_observed.iloc[:, j]))
         observed_mean = observed_mean/num_valid
 
-        summation_num = np.sum((abs(np.log(valid_observed.iloc[:, j]) - np.log(simulated.iloc[:, j])))**2)
+        summation_num = np.sum((abs(np.log(valid_observed.iloc[:, j]) - np.log(simulated.loc[valid_observed.index].iloc[:, j])))**2)
         summation_denom = np.sum((abs(np.log(valid_observed.iloc[:, j]) - observed_mean))**2)
         
         lognse = (1 - (summation_num/summation_denom))  #dividing summation by total number of values to obtain average
@@ -501,7 +501,7 @@ def kge(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[],
 
     KGE = []
     
-    # If no stations specified, calculate MSE for all columns
+    # If no stations specified, calculate KGE for all columns
     stations_to_process = stations if stations else range(observed.columns.size)    
     
     for j in stations_to_process:
@@ -521,7 +521,7 @@ def kge(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[],
         
         std_observed = np.sum((valid_observed.iloc[:, j] - mean_observed)**2) 
         std_simulated = np.sum((simulated.iloc[:, j][valid_observed.iloc[:, j].index] - mean_simulated)**2)
-        sum = np.sum((valid_observed.iloc[:, j] - mean_observed) * (simulated.iloc[:, j] - mean_simulated))
+        sum = np.sum((valid_observed.iloc[:, j] - mean_observed) * (simulated.loc[valid_observed.index].iloc[:, j] - mean_simulated))
         
         # r: Pearson's Correlation Coefficient
         r = sum / np.sqrt(std_simulated * std_observed)
@@ -609,7 +609,7 @@ def kge_2012(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int
 
     KGE = []
     
-    # If no stations specified, calculate MSE for all columns
+    # If no stations specified, calculate KGE_2012 for all columns
     stations_to_process = stations if stations else range(observed.columns.size)    
     
     for j in stations_to_process:
@@ -629,7 +629,7 @@ def kge_2012(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int
         
         std_observed = np.sum((valid_observed.iloc[:, j] - mean_observed)**2) 
         std_simulated = np.sum((simulated.iloc[:, j][valid_observed.iloc[:, j].index] - mean_simulated)**2)
-        sum = np.sum((valid_observed.iloc[:, j] - mean_observed) * (simulated.iloc[:, j] - mean_simulated))
+        sum = np.sum((valid_observed.iloc[:, j] - mean_observed) * (simulated.loc[valid_observed.index].iloc[:, j] - mean_simulated))
         
         # r: Pearson's Correlation Coefficient
         r = sum / np.sqrt(std_simulated * std_observed)
@@ -708,7 +708,7 @@ def bias(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
     
     BIAS = []
     
-    # If no stations specified, calculate MSE for all columns
+    # If no stations specified, calculate BIAS for all columns
     stations_to_process = stations if stations else range(observed.columns.size)    
     
     for j in stations_to_process:

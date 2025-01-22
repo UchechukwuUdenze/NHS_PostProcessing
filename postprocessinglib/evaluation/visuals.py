@@ -347,10 +347,10 @@ def bounded_plot(
     >>> import numpy as np
     >>> from postprocessinglib.evaluation import visuals
 
-    # Create an index for the data
+    >>> # Create an index for the data
     >>> time_index = pd.date_range(start='2025-01-01', periods=50, freq='D')
 
-    # Generate sample observed and simulated data
+    >>> # Generate sample observed and simulated data
     >>> obs_data = pd.DataFrame({
     ...     "Station1_Observed": np.random.rand(50),
     ...     "Station2_Observed": np.random.rand(50)
@@ -361,10 +361,10 @@ def bounded_plot(
     ...     "Station2_Simulated": np.random.rand(50)
     ... }, index=time_index)
 
-    # Combine observed and simulated data
+    >>> # Combine observed and simulated data
     >>> data = pd.concat([obs_data, sim_data], axis=1)
 
-    # Generate sample bounds
+    >>> # Generate sample bounds
     >>> upper_bounds = [
     ...     pd.DataFrame({
     ...         "Station1_Upper": np.random.rand(50) + 0.5,
@@ -379,7 +379,7 @@ def bounded_plot(
     ...     }, index=time_index)
     ... ]
 
-    # Plot the data with bounds
+    >>> # Plot the data with bounds
     >>> visuals.bounded_plot(
     ...     lines=data,
     ...     upper_bounds=upper_bounds,
@@ -395,7 +395,7 @@ def bounded_plot(
 
     .. image:: ../Figures/bounded_plot_example_1.png
 
-    # Adjust a few other metrics
+    >>> # Adjust a few other metrics
     >>> visuals.bounded_plot(
     ...     lines = merged_df,
     ...     upper_bounds = upper_bounds,
@@ -514,7 +514,10 @@ def scatter(
   y_axis: pd.DataFrame = None,
   metric: str = "", 
   observed: pd.DataFrame = None, 
-  simulated: pd.DataFrame = None
+  simulated: pd.DataFrame = None,
+  cmap: str='jet',
+  vmin: float=None,
+  vmax:float=None
   ) -> plt.figure:
     """ Creates a scatter plot of the observed and simulated data.
 
@@ -586,6 +589,15 @@ def scatter(
     simulated : pd.DataFrame, optional
         Used to calculate the metric for the scatter plot.
     
+    cmap: string, optional
+        Used to determine the color scheme of the color map for the shapefile plot 
+
+    vmin: float, optional
+        Minimum colormap value
+    
+    vmax float, optional
+        Maximum colormap value
+    
     Returns
     -------
     fig : Matplotlib figure instance
@@ -616,8 +628,10 @@ def scatter(
     >>>     sim_df=sim_df,
     >>>     labels=("Observed", "Simulated"),
     >>>     title="Scatter Plot Example",
-    >>>     best_fit=True,
+    >>>     grid=True,
+    >>>     metrices = ['KGE','RMSE'],
     >>>     line45=True,
+    >>>     markerstyle = 'b.',
     >>>     save=True,
     >>>     save_as="scatter_plot_example.png"
     >>> )
@@ -638,6 +652,7 @@ def scatter(
                         observed = DATA_2["DF_OBSERVED"],
                         simulated = DATA_2["DF_SIMULATED"],
                         labels=['Longitude', 'Latitude'],
+                        cmap = 'jet'
                     )
 
     .. image:: ../Figures/SRB_subDrainage_showing_KGE.png
@@ -756,7 +771,7 @@ def scatter(
         gdf_shapefile.plot(ax=ax, edgecolor='black', facecolor= "None", linewidth=0.5, legend=True)
         
         # Plot the points with color based on 'kge' column
-        sc = gdf_points.plot(ax=ax, column=list(metr)[0], cmap='jet', legend=True, markersize=40, legend_kwds={'label': list(metr)[0]+" Value", "orientation": "vertical"})
+        sc = gdf_points.plot(ax=ax, column=list(metr)[0], cmap=cmap, vmin = vmin, vmax=vmax,legend=True, markersize=40, legend_kwds={'label': list(metr)[0]+" Value", "orientation": "vertical"})
 
         # Placing Labels if requested
         if labels:
@@ -936,9 +951,10 @@ def qqplot(
             plt.plot(msim, mobs, linestyle[1], linewidth = linewidth[0])
             plt.plot(quant_sim, quant_obs, linestyle[2], marker='o', markerfacecolor='k', linewidth = linewidth[1])
         else:
-            plt.plot(sim_perc, obs_perc, linestyle[0], markersize=2, label = q_labels[0])
-            plt.plot(msim, mobs, linestyle[1], linewidth = linewidth[0], label = q_labels[1])
-            plt.plot(quant_sim, quant_obs, linestyle[2], marker='o', markerfacecolor='w', linewidth = linewidth[1], label = q_labels[2])
+            plt.plot(sim_perc, obs_perc, linestyle[0],  label = q_labels[0], markersize=2)
+            plt.plot(msim, mobs, linestyle[1], label = q_labels[1], linewidth = linewidth[0])
+            plt.plot(quant_sim, quant_obs, linestyle[2], label = q_labels[2], marker='o', markerfacecolor='w', linewidth = linewidth[1])
+            plt.legend(fontsize=12)
 
         # Placing Labels, title and grid if requested
         plt.xticks(fontsize=15, rotation=45)
@@ -947,7 +963,7 @@ def qqplot(
         if labels:
             # Plotting Labels
             plt.xlabel(labels[0], fontsize=18)
-            plt.ylabel(labels[1]+" (m\u00B3/s)", fontsize=18)
+            plt.ylabel(labels[1], fontsize=18)
         
         if title:
             title_dict = {'family': 'sans-serif',
