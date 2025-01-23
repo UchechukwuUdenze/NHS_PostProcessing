@@ -17,7 +17,7 @@ import os
 from shapely.geometry import Point
 
 from postprocessinglib.evaluation import metrics
-from postprocessinglib.utilities import helper_functions as hlp
+from postprocessinglib.utilities import _helper_functions as hlp
 
 def _save_or_display_plot(fig, save: bool, save_as: Union[str, List[str]], dir: str, i: int, type: str):
     """Save the plot to a file or display it based on user preferences."""
@@ -349,13 +349,11 @@ def bounded_plot(
 
     >>> # Create an index for the data
     >>> time_index = pd.date_range(start='2025-01-01', periods=50, freq='D')
-
     >>> # Generate sample observed and simulated data
     >>> obs_data = pd.DataFrame({
     ...     "Station1_Observed": np.random.rand(50),
     ...     "Station2_Observed": np.random.rand(50)
     ... }, index=time_index)
-
     >>> sim_data = pd.DataFrame({
     ...     "Station1_Simulated": np.random.rand(50),
     ...     "Station2_Simulated": np.random.rand(50)
@@ -363,7 +361,6 @@ def bounded_plot(
 
     >>> # Combine observed and simulated data
     >>> data = pd.concat([obs_data, sim_data], axis=1)
-
     >>> # Generate sample bounds
     >>> upper_bounds = [
     ...     pd.DataFrame({
@@ -371,7 +368,6 @@ def bounded_plot(
     ...         "Station2_Upper": np.random.rand(50) + 0.5
     ...     }, index=time_index)
     ... ]
-
     >>> lower_bounds = [
     ...     pd.DataFrame({
     ...         "Station1_Lower": np.random.rand(50) - 0.5,
@@ -595,7 +591,7 @@ def scatter(
     vmin: float, optional
         Minimum colormap value
     
-    vmax float, optional
+    vmax: float, optional
         Maximum colormap value
     
     Returns
@@ -632,6 +628,7 @@ def scatter(
     >>>     metrices = ['KGE','RMSE'],
     >>>     line45=True,
     >>>     markerstyle = 'b.',
+    >>>     metrices = ['KGE','RMSE']
     >>>     save=True,
     >>>     save_as="scatter_plot_example.png"
     >>> )

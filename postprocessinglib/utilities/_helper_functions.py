@@ -9,7 +9,7 @@ import pandas as pd
 from datetime import datetime
 from math import floor, log10
 
-from postprocessinglib.utilities.errors import AllInvalidError
+from postprocessinglib.utilities._errors import AllInvalidError
 
 def check_valid_dataframe(observed: pd.DataFrame, simulated: pd.DataFrame):
     """Check if all observations or simulations are invalid and raise an exception if this is the case.

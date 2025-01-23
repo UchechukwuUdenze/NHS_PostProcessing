@@ -8,7 +8,7 @@ reading and preparation of data to be evaluated.
 import numpy as np
 import pandas as pd
 
-from postprocessinglib.utilities import helper_functions as hlp
+from postprocessinglib.utilities import _helper_functions as hlp
 
 def available_metrics() -> list[int]:
     """ Get a list of currently available metrics

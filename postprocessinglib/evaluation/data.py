@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import re
 
-from postprocessinglib.utilities import helper_functions as hlp
+from postprocessinglib.utilities import _helper_functions as hlp
 
 def station_dataframe(observed: pd.DataFrame, simulated: pd.DataFrame,
                stations: list[int]=[]) -> list[pd.DataFrame]:
@@ -85,7 +85,7 @@ def station_dataframe(observed: pd.DataFrame, simulated: pd.DataFrame,
         # If using 1-indexed stations, adjust by subtracting 1 for 0-indexing
         if stations:
             j = j-1
-            
+
             station_df =  observed.copy()
             station_df.drop(station_df.iloc[:, 0:], inplace=True, axis=1)
             station_df = pd.concat([station_df, observed.iloc[:, j], simulated.iloc[:, j]], axis = 1)
