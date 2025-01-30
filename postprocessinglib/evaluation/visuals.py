@@ -981,6 +981,84 @@ def qqplot(
         # Save or auto-save for large column counts
         auto_save = len(obs.columns) > 5
         _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "qqplot")  
+def flow_duration_curve(
+    merged_df: pd.DataFrame = None, 
+    obs_df: pd.DataFrame = None, 
+    sim_df: pd.DataFrame = None,
+    legend: tuple[str, str] = ('Simulated Data', 'Observed Data'), 
+    grid: bool = False, 
+    title: str = None, 
+    labels: tuple[str, str] = ('Exceedance Probability (%)', 'Flow (m³/s)'),
+    linestyles: tuple[str, str] = ('r-', 'b-'), 
+    linewidth: tuple[float, float] = (1.5, 1.25),
+    fig_size: tuple[float, float] = (10, 6), 
+    save: bool = False, 
+    save_as: str = None, 
+    dir: str = os.getcwd()
+    ) -> plt.figure:
+    """
+    Generate a Flow Duration Curve (FDC) comparing observed and simulated streamflow.
+    
+    Parameters
+    ----------
+    merged_df : pd.DataFrame, optional
+        The dataframe containing observed and simulated values with a datetime index.
+    obs_df : pd.DataFrame, optional
+        Observed data series if separate from simulated.
+    sim_df : pd.DataFrame, optional
+        Simulated data series if separate from observed.
+    legend : tuple of str, optional
+        Labels for the simulated and observed data.
+    grid : bool, optional
+        Whether to display a grid.
+    title : str, optional
+        The title of the plot.
+    labels : tuple of str, optional
+        Labels for the x and y axes.
+    linestyles : tuple of str, optional
+        Line styles for the simulated and observed data.
+    linewidth : tuple of float, optional
+        Line widths for the simulated and observed data.
+    fig_size : tuple of float, optional
+        Figure size.
+    save : bool, optional
+        Whether to save the plot.
+    save_as : str, optional
+        File name to save the plot.
+    dir : str, optional
+        Directory to save the plot.
 
+    Returns
+    -------
+    fig : Matplotlib figure instance
+    """
+    if merged_df is not None:
+        obs = merged_df.iloc[:, ::2]
+        sim = merged_df.iloc[:, 1::2]
+    elif sim_df is not None and obs_df is not None:
+        obs = obs_df
+        sim = sim_df
+    else:
+        raise RuntimeError('Provide valid data (merged_df, obs_df, sim_df)')
+
+    for i in range(len(obs.columns)):
+        fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
+        
+        obs_sorted = np.sort(obs.iloc[:, i])[::-1]
+        sim_sorted = np.sort(sim.iloc[:, i])[::-1]
+        exceedance_prob = np.linspace(0, 100, len(obs_sorted))
+        
+        ax.plot(exceedance_prob, obs_sorted, linestyles[1], label=legend[1], linewidth=linewidth[1])
+        ax.plot(exceedance_prob, sim_sorted, linestyles[0], label=legend[0], linewidth=linewidth[0])
+        ax.legend(fontsize=15)
+        
+        plt.xlabel(labels[0], fontsize=18)
+        plt.ylabel(labels[1], fontsize=18)
+        if title:
+            ax.set_title(title, fontsize=20, pad=25)
+        if grid:
+            plt.grid(True)
+        
+        _save_or_display_plot(fig, save, save_as, dir, i, "fdc-plot")
 
     return
