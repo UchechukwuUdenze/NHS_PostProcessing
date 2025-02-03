@@ -26,6 +26,7 @@ Note
    Visualization
    Analysis
    Contribute
+   Applications
 
 Indices and tables
 ==================
