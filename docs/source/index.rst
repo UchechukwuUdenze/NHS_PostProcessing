@@ -26,6 +26,7 @@ Note
    Visualization
    Analysis
    Contribute
+   ./notebooks/tutorial-visualizations.ipynb
 
 Indices and tables
 ==================
