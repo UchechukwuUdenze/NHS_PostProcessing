@@ -1094,6 +1094,52 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
 
     return SPOD
 
+def slope_fdc(data: pd.DataFrame, percentiles: tuple[float, float] = (33, 66), stations: list[int] = []) -> list[float]:
+    """
+    Calculates the slope of the Flow Duration Curve (FDC).
+
+    Parameters
+    ----------
+    data: pd.DataFrame
+        Streamflow values for calculating the FDC slope. Each column corresponds to a station.
+    percentiles: tuple[float, float]
+        Percentiles used for slope calculation (e.g., (33, 66) for 33rd and 66th percentiles).
+    stations: list[int]
+        List of station indices (1-indexed) for which to calculate the slope. If empty, all stations are processed.
+
+    Returns
+    -------
+    list[float]
+        Slope of the FDC for each station.
+
+    Example
+    -------
+    >>> import pandas as pd
+    >>> from metrics import slope_fdc
+    >>> data = pd.DataFrame({
+    >>>     "Station1": [1.2, 0.8, 0.6, 0.4, 0.2],
+    >>>     "Station2": [2.0, 1.5, 1.0, 0.5, 0.2]
+    >>> })
+    >>> slope_fdc(data, percentiles=(33, 66))
+    [0.693, 0.847]
+    """
+    slopes = []
+    stations_to_process = stations if stations else range(data.shape[1])
+
+    for j in stations_to_process:
+        # Adjust for 0-indexing if stations are provided
+        col_index = j - 1 if stations else j
+
+        # Calculate the required percentiles
+        q33 = data.iloc[:, col_index].quantile(percentiles[0] / 100)
+        q66 = data.iloc[:, col_index].quantile(percentiles[1] / 100)
+
+        # Compute the slope
+        slope = (np.log(q66) - np.log(q33)) / (percentiles[1] / 100 - percentiles[0] / 100)
+        slopes.append(round(slope, 4))  # Round to 4 significant figures
+
+    return slopes
+
 
 def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[],
                           format: str="", out: str='metrics_out') -> dict[str, float]:
