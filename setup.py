@@ -36,7 +36,8 @@ setup(
         'netcdf4',
         'matplotlib',
         'geopandas',
-        'shapely'
+        'shapely',
+        'openpyxl'
     ],
     test_suite='tests',
     license='MIT'

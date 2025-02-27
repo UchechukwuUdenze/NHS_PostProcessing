@@ -8,6 +8,8 @@
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b76e3c8a" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+      <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css?v=572af1d6" />
+      <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
 
   
   <!--[if lt IE 9]>
@@ -19,6 +21,9 @@
         <script src="../_static/documentation_options.js?v=29a6c3e3"></script>
         <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/thebelab-helper.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -66,6 +71,7 @@
 <li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.mse.html">mse</a></li>
 <li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.nse.html">nse</a></li>
 <li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.rmse.html">rmse</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.slope_fdc.html">slope_fdc</a></li>
 <li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.time_to_centre_of_mass.html">time_to_centre_of_mass</a></li>
 <li class="toctree-l4"><a class="reference internal" href="postprocessinglib.evaluation.metrics.time_to_peak.html">time_to_peak</a></li>
 </ul>
@@ -77,6 +83,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../Visualization.html">Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Analysis.html">Analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Contribute.html">Contribution</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Jupyter Notebook Tutorials:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/tutorial-data-manipulation.html">Data Manipulations Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/tutorial-visualizations.html">Visualizations Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/tutorial-metrics.html">Metrics Tutorial</a></li>
 </ul>
 
         </div>
@@ -121,8 +133,15 @@
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">postprocessinglib.evaluation</span> <span class="kn">import</span> <span class="n">metrics</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">metrics</span><span class="o">.</span><span class="n">available_metrics</span><span class="p">())</span>
-<span class="go">    [&#39;MSE&#39;, &#39;RMSE&#39;, &#39;MAE&#39;, &#39;NSE&#39;, &#39;NegNSE&#39;, &#39;LogNSE&#39;, &#39;NegLogNSE&#39;, &#39;KGE&#39;, &#39;NegKGE&#39;,</span>
-<span class="go">    &#39;KGE 2012&#39;, &#39;BIAS&#39;, &#39;AbsBIAS&#39;, &#39;TTP&#39;, &#39;TTCoM&#39;, &#39;SPOD&#39;]</span>
+<span class="go">    [&quot;MSE - Mean Square Error&quot;, &quot;RMSE - Roor Mean Square Error&quot;,</span>
+<span class="go">    &quot;MAE - Mean Average Error&quot;, &quot;NSE - Nash-Sutcliffe Efficiency &quot;,</span>
+<span class="go">    &quot;NegNSE - Nash-Sutcliffe Efficiency * -1&quot;, &quot;LogNSE - Log of Nash-Sutcliffe Efficiency&quot;,</span>
+<span class="go">    &quot;NegLogNSE - Log of Nash-Sutcliffe Efficiency * -1&quot;,</span>
+<span class="go">    &quot;KGE - Kling-Gupta Efficiency&quot;, &quot;NegKGE - Kling-Gupta Efficiency * -1&quot;,</span>
+<span class="go">    &quot;KGE 2012 - Kling-Gupta Efficiency modified as of 2012&quot;, &quot;BIAS- Prcentage Bias&quot;,</span>
+<span class="go">    &quot;AbsBIAS - Absolute Value of the Percentage Bias&quot;, &quot;TTP - Time to Peak&quot;,</span>
+<span class="go">    &quot;TTCoM - Time to Centre of Mass&quot;, &quot;SPOD - Spring Pulse ONset Delay&quot;,</span>
+<span class="go">    &#39;FDC Slope - Slope of the Flow Duration Curve&#39; ]</span>
 </pre></div>
 </div>
 <p><a class="reference external" href="https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb">JUPYTER NOTEBOOK Examples</a></p>
@@ -141,7 +160,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Uchechukwu Udenze.</p>
+    <p>&#169; Copyright 2025, Uchechukwu Udenze.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

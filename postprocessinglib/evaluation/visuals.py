@@ -155,7 +155,7 @@ def plot(
 
     .. image:: ../Figures/plot3_example.png
 
-    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-visualizations.ipynb>`_
          
     """
      # Assign the data based on inputs
@@ -405,7 +405,7 @@ def bounded_plot(
 
     .. image:: ../Figures/bounded_plot_example_2.png
 
-    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-visualizations.ipynb>`_
     
     """
 
@@ -654,7 +654,7 @@ def scatter(
 
     .. image:: ../Figures/SRB_subDrainage_showing_KGE.png
 
-    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-visualizations.ipynb>`_
 
     """     
     # Plotting the Data
@@ -746,7 +746,7 @@ def scatter(
 
             # Save or auto-save for large column counts
             auto_save = len(obs.columns) > 5
-        _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "scatter-plot")
+            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "scatter-plot")
     else:
         metr = metrics.calculate_metrics(observed=observed, simulated=simulated, metrices=[metric])
         data = {
@@ -787,6 +787,9 @@ def scatter(
         # Placing a grid if requested
         if grid:
             plt.grid(True)
+        
+        # Save or auto-save for large column counts
+        _save_or_display_plot(fig, save, save_as, dir, i=0, type="shapefile-plot")
 
 
 def qqplot(
@@ -874,15 +877,15 @@ def qqplot(
     >>> from postprocessinglib.evaluation import metrics
     >>> #
     >>> # Create test data
-    >>> index = pd.date_range(start="2022-01-01", periods=10, freq="D")
+    >>> index = pd.date_range(start="2022-01-01", periods=50, freq="D")
     >>> obs_df = pd.DataFrame({
-    >>>     "Station1": np.random.rand(10),
-    >>>     "Station2": np.random.rand(10)
+    >>>     "Station1": np.random.rand(50),
+    >>>     "Station2": np.random.rand(50)
     >>> }, index=index)
     >>> #
     >>> sim_df = pd.DataFrame({
-    >>>     "Station1": np.random.rand(10),
-    >>>     "Station2": np.random.rand(10)
+    >>>     "Station1": np.random.rand(50),
+    >>>     "Station2": np.random.rand(50)
     >>> }, index=index)
     >>> #
     >>> # Call the QQ plot function
@@ -897,7 +900,7 @@ def qqplot(
 
     .. image:: ../Figures/qqplot_example.png
 
-    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-visualizations.ipynb>`_
 
     """
 
@@ -981,6 +984,8 @@ def qqplot(
         # Save or auto-save for large column counts
         auto_save = len(obs.columns) > 5
         _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "qqplot")  
+
+
 def flow_duration_curve(
     merged_df: pd.DataFrame = None, 
     obs_df: pd.DataFrame = None, 

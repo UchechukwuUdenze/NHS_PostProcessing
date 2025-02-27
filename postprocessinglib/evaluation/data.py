@@ -69,7 +69,7 @@ def station_dataframe(observed: pd.DataFrame, simulated: pd.DataFrame,
         2017-12-31             NaN       1.348359
         [13515 rows x 2 columns]
 
-    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-data-manipulation.ipynb>`_
 
     """
 
@@ -163,8 +163,8 @@ def long_term_seasonal(df: pd.DataFrame, method: str= 'mean')-> pd.DataFrame:
     365         9.516875       4.115805             NaN       1.148535
     366         9.936000       4.243073             NaN       1.173174
 
-    >>> # Obtain the Upper Quartile - Q3
-    >>> long_term_seasonal = data.long_term_seasonal(df=merged_df, method = 'Q3')
+    >>> # Obtain the Upper Quartile - Q75
+    >>> long_term_seasonal = data.long_term_seasonal(df=merged_df, method = 'Q75')
     >>> print(long_term_seasonal)
           QOMEAS_05BB001  QOSIM_05BB001  QOMEAS_05BA001  QOSIM_05BA001
     jday
@@ -307,7 +307,7 @@ def seasonal_period(df: pd.DataFrame, daily_period: tuple[str, str],
     1985-01-09           10.00       2.992402             NaN       0.884191
     1985-01-10           10.00       2.977300             NaN       0.879791
 
-    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-data-manipulation.ipynb>`_
     
     """
     # Making a copy to avoid changing the original df
@@ -397,7 +397,7 @@ def daily_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
         2017/364             NaN       4.343699             NaN       1.356237
         2017/365             NaN       4.319275             NaN       1.348359
 
-    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-data-manipulation.ipynb>`_
 
     """
     # Check that there is a chosen method else return error
@@ -479,7 +479,7 @@ def weekly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
         2017.52             NaN       4.343699             NaN       1.356237
         2017.53             NaN       4.319275             NaN       1.348359
 
-    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-data-manipulation.ipynb>`_
 
     """
     # Check that there is a chosen method else return error
@@ -562,7 +562,7 @@ def monthly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
     2017-11             NaN       5.164804            NaN       1.621027
     2017-12             NaN       4.319275            NaN       1.348359
 
-    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-data-manipulation.ipynb>`_
 
     """
     # Check that there is a chosen method else return error
@@ -671,7 +671,7 @@ def yearly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
         2016            0.00    9989.779678            0.00    4269.909376
         2017            0.00    8801.897128            0.00    4226.258100
 
-    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-data-manipulation.ipynb>`_
 
     """
     # Check that there is a chosen method else return error
@@ -789,7 +789,7 @@ def generate_dataframes(csv_fpath: str='', sim_fpath: str='', obs_fpath: str='',
 
     Example
     -------
-    See linked jupyter `notebook <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_ file for usage instances
+    See linked jupyter `notebook <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-data-manipulation.ipynb>`_ file for usage instances
             
     """
 

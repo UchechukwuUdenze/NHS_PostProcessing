@@ -23,15 +23,29 @@ def available_metrics() -> list[int]:
     
     >>> from postprocessinglib.evaluation import metrics
     >>> print(metrics.available_metrics())
-        ['MSE', 'RMSE', 'MAE', 'NSE', 'NegNSE', 'LogNSE', 'NegLogNSE', 'KGE', 'NegKGE',
-        'KGE 2012', 'BIAS', 'AbsBIAS', 'TTP', 'TTCoM', 'SPOD']
+        ["MSE - Mean Square Error", "RMSE - Roor Mean Square Error", 
+        "MAE - Mean Average Error", "NSE - Nash-Sutcliffe Efficiency ", 
+        "NegNSE - Nash-Sutcliffe Efficiency * -1", "LogNSE - Log of Nash-Sutcliffe Efficiency", 
+        "NegLogNSE - Log of Nash-Sutcliffe Efficiency * -1",
+        "KGE - Kling-Gupta Efficiency", "NegKGE - Kling-Gupta Efficiency * -1", 
+        "KGE 2012 - Kling-Gupta Efficiency modified as of 2012", "BIAS- Prcentage Bias", 
+        "AbsBIAS - Absolute Value of the Percentage Bias", "TTP - Time to Peak", 
+        "TTCoM - Time to Centre of Mass", "SPOD - Spring Pulse ONset Delay", 
+        'FDC Slope - Slope of the Flow Duration Curve' ]
 
-    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
 
     """
     metrics = [
-        "MSE", "RMSE", "MAE", "NSE", "NegNSE", "LogNSE", "NegLogNSE",
-        "KGE", "NegKGE", "KGE 2012", "BIAS", "AbsBIAS", "TTP", "TTCoM", "SPOD" 
+        "MSE - Mean Square Error", "RMSE - Roor Mean Square Error", 
+        "MAE - Mean Average Error", "NSE - Nash-Sutcliffe Efficiency ", 
+        "NegNSE - Nash-Sutcliffe Efficiency * -1", "LogNSE - Log of Nash-Sutcliffe Efficiency", 
+        "NegLogNSE - Log of Nash-Sutcliffe Efficiency * -1",
+        "KGE - Kling-Gupta Efficiency", "NegKGE - Kling-Gupta Efficiency * -1", 
+        "KGE 2012 - Kling-Gupta Efficiency modified as of 2012", "BIAS- Prcentage Bias", 
+        "AbsBIAS - Absolute Value of the Percentage Bias", "TTP - Time to Peak", 
+        "TTCoM - Time to Centre of Mass", "SPOD - Spring Pulse ONset Delay", 
+        'FDC Slope - Slope of the Flow Duration Curve'
     ]
     
     return metrics
@@ -88,7 +102,7 @@ def mse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
     >>> print(mse)
         [0.08408, 0.2463]
 
-    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
 
     """     
     # validate inputs
@@ -166,7 +180,7 @@ def rmse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
     >>> print(rmse)
         [0.3760, 0.3398]
 
-    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
 
     """   
     # validate inputs
@@ -244,7 +258,7 @@ def mae(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
     >>> print(mae)
         [0.3132, 0.2709]
 
-    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
 
     """
     # validate inputs
@@ -322,7 +336,7 @@ def nse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
     >>> print(nse)
         [-0.9713, 0.01669]
 
-    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
 
     """       
     # validate inputs
@@ -405,7 +419,7 @@ def lognse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=
     >>> print(lognse)
         [-0.4923, -0.4228]
 
-    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
 
     """       
     # validate inputs
@@ -493,7 +507,7 @@ def kge(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[],
     >>> print(kge)
         [-0.02108, 0.4929]
     
-    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
 
     """
     # validate inputs
@@ -601,7 +615,7 @@ def kge_2012(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int
     >>> print(kge_2012)
         [-0.02567, 0.4894]
 
-    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
 
     """
     # validate inputs
@@ -700,7 +714,7 @@ def bias(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
     >>> print(bias)
         [-22.92, 3.873]
 
-    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
 
     """    
     # validate inputs
@@ -786,7 +800,7 @@ def time_to_peak(df: pd.DataFrame, stations: list[int]=[])->float:
     >>> print(ttp)
         [167, 171]   
 
-    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_ 
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_ 
     
     """
     TTP = []
@@ -897,7 +911,7 @@ def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[])->float:
     >>> print(ttcom)
         [194, 203]
 
-    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
 
     """
     TTCoM = []
@@ -1010,7 +1024,7 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
     >>> print(spod)
         [136, 143]
 
-    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
 
     """
     SPOD = []
@@ -1094,13 +1108,13 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
 
     return SPOD
 
-def slope_fdc(data: pd.DataFrame, percentiles: tuple[float, float] = (33, 66), stations: list[int] = []) -> list[float]:
+def slope_fdc(df: pd.DataFrame, percentiles: tuple[float, float] = (33, 66), stations: list[int] = []) -> list[float]:
     """
     Calculates the slope of the Flow Duration Curve (FDC).
 
     Parameters
     ----------
-    data: pd.DataFrame
+    df: pd.DataFrame
         Streamflow values for calculating the FDC slope. Each column corresponds to a station.
     percentiles: tuple[float, float]
         Percentiles used for slope calculation (e.g., (33, 66) for 33rd and 66th percentiles).
@@ -1115,24 +1129,25 @@ def slope_fdc(data: pd.DataFrame, percentiles: tuple[float, float] = (33, 66), s
     Example
     -------
     >>> import pandas as pd
+    >>> from postprocessinglib.evaluation import metrics
     >>> from metrics import slope_fdc
     >>> data = pd.DataFrame({
     >>>     "Station1": [1.2, 0.8, 0.6, 0.4, 0.2],
     >>>     "Station2": [2.0, 1.5, 1.0, 0.5, 0.2]
     >>> })
-    >>> slope_fdc(data, percentiles=(33, 66))
+    >>> slope_fdc(df=data, percentiles=(33, 66))
     [0.693, 0.847]
     """
     slopes = []
-    stations_to_process = stations if stations else range(data.shape[1])
+    stations_to_process = stations if stations else range(df.shape[1])
 
     for j in stations_to_process:
         # Adjust for 0-indexing if stations are provided
         col_index = j - 1 if stations else j
 
         # Calculate the required percentiles
-        q33 = data.iloc[:, col_index].quantile(percentiles[0] / 100)
-        q66 = data.iloc[:, col_index].quantile(percentiles[1] / 100)
+        q33 = df.iloc[:, col_index].quantile(percentiles[0] / 100)
+        q66 = df.iloc[:, col_index].quantile(percentiles[1] / 100)
 
         # Compute the slope
         slope = (np.log(q66) - np.log(q33)) / (percentiles[1] / 100 - percentiles[0] / 100)
@@ -1182,7 +1197,7 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, stati
         'TTP_obs': [155], 'TTP_sim': [181], 'TTCoM_obs': [185], 'TTCoM_sim': [191], 'SPOD_obs': [72.0],
         'SPOD_sim': [76.1]} 
 
-    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
             
     """
     # validate inputs
@@ -1210,6 +1225,8 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, stati
         "TTCoM_sim" : time_to_centre_of_mass(simulated, stations),
         "SPOD_obs" : SpringPulseOnset(observed, stations),
         "SPOD_sim" : SpringPulseOnset(simulated, stations),
+        "FDC_Slope_obs": slope_fdc(observed, stations=stations),
+        "FDC_Slope_sim": slope_fdc(simulated, stations=stations),
     }
 
     # Check for a specified format, else print to screen
@@ -1276,7 +1293,7 @@ def calculate_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, metrices:
     >>> print(metrics.calculate_metrics(observed=DATAFRAMES["DF_OBSERVED"], simulated=DATAFRAMES["DF_SIMULATED"], metrices=list_of_metrics))
         {'MSE': [1890, 665.9], 'NSE': [0.09948, -3.583], 'KGE 2012': [0.3130, -0.1483]} 
 
-    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/Examples.ipynb>`_
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
                
     """
     # validate inputs
@@ -1328,6 +1345,10 @@ def calculate_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, metrices:
             values["SPOD_obs"] = SpringPulseOnset(observed, stations)
         elif metric.lower() == "spod_sim":
             values["SPOD_sim"] = SpringPulseOnset(simulated, stations)
+        elif metric.lower() == "fdc_obs":
+            values["FDC_Slope_obs"] = slope_fdc(observed, stations=stations)
+        elif metric.lower() == "fdc_sim":
+            values["FDC_Slope_sim"] = slope_fdc(simulated, stations=stations)
         else:
             raise RuntimeError(f"Unknown metric {metric}")
         

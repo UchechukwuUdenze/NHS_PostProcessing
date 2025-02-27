@@ -27,6 +27,32 @@ Note
    Analysis
    Contribute
 
+.. toctree::
+   :maxdepth: 1
+   :caption: Jupyter Notebook Tutorials:
+
+   notebooks/tutorial-data-manipulation
+   notebooks/tutorial-visualizations
+   notebooks/tutorial-metrics
+   notebooks/Examples
+
+.. _binder-link:
+
+Interactive Notebooks
+---------------------
+
+You can run the notebooks interactively by launching them through Binder. Click the link below to open the notebook in a new tab:
+
+.. raw:: html
+   
+   <ul>
+   <li><a href="https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2Ftutorial-data-manipulation.ipynb" target="_blank">Data Manipulation Tutorials</a></li>
+   <li><a href="https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2Ftutorial-visualization.ipynb" target="_blank">Visualization Tutorials</a></li>
+   <li><a href="https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2Ftutorial-metrics.ipynb" target="_blank">Metrics Tutorials</a></li>
+   <li><a href="https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2FExamples.ipynb" target="_blank">Examples Tutorials</a></li>
+   </ul>
+
+
 Indices and tables
 ==================
 

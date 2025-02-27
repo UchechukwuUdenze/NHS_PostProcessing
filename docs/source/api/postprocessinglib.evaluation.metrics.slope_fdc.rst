@@ -1,6 +1,6 @@
-is_leap_year
-============
+slope_fdc
+=========
 
 .. currentmodule:: postprocessinglib.evaluation.metrics
 
-.. autofunction:: is_leap_year
+.. autofunction:: slope_fdc
