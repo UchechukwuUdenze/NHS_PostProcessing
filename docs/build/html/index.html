@@ -56,18 +56,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="QuickStart.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Preprocessing.html">Preprocessing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Data.html">Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Data.html">Data Processing/Manipulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Metrics.html">Metrics Calculations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Visualization.html">Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Analysis.html">Analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribution</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Jupyter Notebook Tutorials:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-data-manipulation.html">Data Manipulations Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-data-manipulation.html">Data Manipulation Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-visualizations.html">Visualizations Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-metrics.html">Metrics Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/Examples.html">NHS Post processing Library</a></li>
 </ul>
 
         </div>
@@ -96,21 +95,66 @@
              
   <section id="nhs-postprocessing-s-documentation">
 <h1>NHS_postprocessing’s documentation!<a class="headerlink" href="#nhs-postprocessing-s-documentation" title="Link to this heading"></a></h1>
-<p>This is a python Library to enable the National Hydrological Services carry out
-post processing operations quickly and efficiently by providing them with the exact
-features and packages that are required.</p>
+<p>The NHS_PostProcessing Library is a library of tools and functions for NHS(National Hydrological Services) users working with time series data.
+All of the tools contained in the library are built using a few different python libraries including numpy, scipy, pandas, matplotlib amongst
+others and it was made this way to provode a high level, interface for NHS users to perform all forms of data manipulation, analysis and visualization
+tasks.</p>
+<p>It contains tools for Preprocessing data, Manipulating and aggregating data, Visualizing data and performing all of sorts of metric calculations on
+measured and predicted time series data.</p>
+<p>It has been divided into 5 main sections:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Data processing/manipulation</dt><dd><p>The sections allows us to take in the raw data/raw model output, process it, aggregate it, and generate the data that is required as inputs to the
+rest of the library.  Its functions are available in the <a class="reference external" href="https://nhs-postprocessing.readthedocs.io/en/latest/Data.html">Data</a> section. It also has
+a runnable <strong>binder</strong> script located <a class="reference external" href="https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&amp;urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2Ftutorial-data-manipulation.ipynb">here</a></p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Model Perfromance</dt><dd><p>The use of statistical metrics to evaluate how well the model is performing in terms of being able to accurately replicate the measured Data.
+Majority of its functions are located in the <a class="reference external" href="https://nhs-postprocessing.readthedocs.io/en/latest/Metrics.html">Metrics</a> section with tutorials
+available <a class="reference external" href="https://github.com/UchechukwuUdenze/NHS_PostProcessing/blob/main/docs/source/notebooks/tutorial-metrics.ipynb">here</a> with a
+runnable <strong>binder</strong> script located <a class="reference external" href="https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&amp;urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2Ftutorial-metrics.ipynb">here</a> .</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Model Diagonistics</dt><dd><p>This section is geared towards estimating certain process based values such as the time to peak (ttp), flow duration curve, amongst many others. Its
+focus is to evaluate and inform behaviours and trends of the particular model at a particular station. Some of its functions are available in the
+<a class="reference external" href="https://nhs-postprocessing.readthedocs.io/en/latest/Data.html">Data</a> section and others in the <a class="reference external" href="https://nhs-postprocessing.readthedocs.io/en/latest/Metrics.html">Metrics</a>
+section, with their respective <strong>binder</strong> tutorials <a class="reference external" href="https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&amp;urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2Ftutorial-data-manipulation.ipynb">here</a>
+and <a class="reference external" href="https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&amp;urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2Ftutorial-metrics.ipynb">here</a> respectfully.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Multi-Model Evaluations</dt><dd><p>The multimodel evaluations section works to compare the behaviours of different models or different configuration of same model and allow us to assess ensemble performance,
+identify the uncertainty ranges.
+<strong>Insert files here.</strong></p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Visualizations</dt><dd><p>The Visualizations sections allow us to visually study, compare and interprete model output behaviour allowing instantaenous visual identifications of
+differences and discrepancies between measured data and simulated data and between various model data. Its functions are available in the <a class="reference external" href="https://nhs-postprocessing.readthedocs.io/en/latest/Visualization.html">Visualizations</a> sections with a tutorial notebook <a class="reference external" href="https://github.com/UchechukwuUdenze/NHS_PostProcessing/blob/main/docs/source/notebooks/tutorial-visualizations.ipynb">here</a>.
+There is also a runnable <strong>binder</strong> script located <a class="reference external" href="https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&amp;urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2Ftutorial-visualizations.ipynb">here</a>.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>All tutorials are available in the notebooks folder <a class="reference external" href="https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks">here</a>.</p>
 <section id="note">
 <h2>Note<a class="headerlink" href="#note" title="Link to this heading"></a></h2>
 <blockquote>
-<div><p><strong>This project is still under Active Development</strong></p>
+<div><p><strong>*This project is still under Active Development*</strong></p>
 </div></blockquote>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="QuickStart.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Preprocessing.html">Preprocessing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Data.html">Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Data.html">Data Processing/Manipulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Metrics.html">Metrics Calculations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Visualization.html">Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Analysis.html">Analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribution</a></li>
@@ -119,10 +163,9 @@ features and packages that are required.</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Jupyter Notebook Tutorials:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-data-manipulation.html">Data Manipulations Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-data-manipulation.html">Data Manipulation Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-visualizations.html">Visualizations Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-metrics.html">Metrics Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/Examples.html">NHS Post processing Library</a></li>
 </ul>
 </div>
 </section>
@@ -130,10 +173,11 @@ features and packages that are required.</p>
 <span id="binder-link"></span><h2>Interactive Notebooks<a class="headerlink" href="#interactive-notebooks" title="Link to this heading"></a></h2>
 <p>You can run the notebooks interactively by launching them through Binder. Click the link below to open the notebook in a new tab:</p>
 <ul>
-<li><a href="https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2Ftutorial-data-manipulation.ipynb" target="_blank">Data Manipulation Tutorials</a></li>
-<li><a href="https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2Ftutorial-visualization.ipynb" target="_blank">Visualization Tutorials</a></li>
-<li><a href="https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2Ftutorial-metrics.ipynb" target="_blank">Metrics Tutorials</a></li>
-<li><a href="https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2FExamples.ipynb" target="_blank">Examples Tutorials</a></li>
+<li><a href="https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2Ftutorial-data-manipulation.ipynb" target="_blank">Data Manipulation</a></li>
+<li><a href="https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2Ftutorial-visualizations.ipynb" target="_blank">Visualization</a></li>
+<li><a href="https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2Ftutorial-metrics.ipynb" target="_blank">Metrics</a></li>
+..
+   <li><a href="https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2FExamples.ipynb" target="_blank">Examples </a></li>
 </ul></section>
 </section>
 <section id="indices-and-tables">

@@ -107,6 +107,7 @@ def long_term_seasonal(df: pd.DataFrame, method: str= 'mean')-> pd.DataFrame:
     method: str, optional
         The aggregation method to apply across all years for each specific day of the year.
         Supported methods include:
+
         - 'mean': Calculate the mean value of that specific day (e.g., January 1st) 
           across all years in the dataset (default).
         - 'min': Calculate the minimum value of that specific day across all years.
@@ -115,7 +116,8 @@ def long_term_seasonal(df: pd.DataFrame, method: str= 'mean')-> pd.DataFrame:
         - 'sum': Calculate the sum of that specific day across all years.
         - 'QX': Calculate a specific quantile, where X is a number between 0 and 100
           (e.g., 'Q75' for the 75th percentile). Use uppercase 'Q' for quantiles.
-        - default is mean
+        
+        Default is mean
 
     Returns
     -------
@@ -702,7 +704,8 @@ def generate_dataframes(csv_fpath: str='', sim_fpath: str='', obs_fpath: str='',
                         monthly_agg:bool=False, ma_method:str="", yearly_agg:bool=False, ya_method:str="",
                         seasonal_p:bool=False, sp_dperiod:tuple[str, str]=[], sp_subset:tuple[str, str]=None,
                         long_term:bool=False, lt_method=None) -> dict[str, pd.DataFrame]:
-    """ Function to Generate the required dataframes
+    """ 
+    Function to Generate the required dataframes
 
     Parameters
     ----------
@@ -766,11 +769,13 @@ def generate_dataframes(csv_fpath: str='', sim_fpath: str='', obs_fpath: str='',
     -------
     dict[str, pd.dataframe]
             A dictionary containing each Dataframe requested. Its default content is:
+
             - DF = merged dataframe
             - DF_SIMULATED = all simulated data
             - DF_OBSERVED = all observed data
             
             Depending on which you requested it can also contain:
+
             - DF_DAILY = dataframe aggregated by days of the year
             - DF_WEEKLY = dataframe aggregated by the weeks of the year
             - DF_MONTHLY = dataframe aggregated by months of the year
@@ -779,7 +784,9 @@ def generate_dataframes(csv_fpath: str='', sim_fpath: str='', obs_fpath: str='',
             - DF_LONGTERM_MIN = long term seasonal dataframe aggregated using the min of its daily values 
             - DF_LONGTERM_MAX = long term seasonal dataframe aggregated using the max of its daily values
             - DF_LONGTERM_MEAN =  long term seasonal dataframe aggregated using the mean of its daily values
+              
               Depending on "lt_method," you can also request that it contain:
+
                 - DF_LONGTERM_SUM = long term seasonal dataframe aggregated using the sum of its daily values
                 - DF_LONGTERM_MEDIAN = long term seasonal dataframe aggregated using the median of its daily values
                 - DF_LONGTERM_Q1 = long term seasonal dataframe aggregated showing the first quartile of its daily

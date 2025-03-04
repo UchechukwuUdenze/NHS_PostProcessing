@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Metrics &mdash; NHS_postprocessing 1 documentation</title>
+  <title>Metrics Calculations &mdash; NHS_postprocessing 1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b76e3c8a" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
@@ -55,8 +55,8 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="QuickStart.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Preprocessing.html">Preprocessing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Data.html">Data</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Metrics</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="Data.html">Data Processing/Manipulation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Metrics Calculations</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-postprocessinglib.evaluation.metrics">postprocessinglib.evaluation.metrics Module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#functions">Functions</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="api/postprocessinglib.evaluation.metrics.SpringPulseOnset.html">SpringPulseOnset</a></li>
@@ -86,9 +86,10 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Jupyter Notebook Tutorials:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-data-manipulation.html">Data Manipulations Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-data-manipulation.html">Data Manipulation Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-visualizations.html">Visualizations Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-metrics.html">Metrics Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/Examples.html">NHS Post processing Library</a></li>
 </ul>
 
         </div>
@@ -105,7 +106,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Metrics</li>
+      <li class="breadcrumb-item active">Metrics Calculations</li>
       <li class="wy-breadcrumbs-aside">
               <a href="https://github.com/UchechukwuUdenze/NHS_PostProcessing/blob/main/docs/source/Metrics.rst" class="fa fa-github"> Edit on GitHub</a>
       </li>
@@ -115,8 +116,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="metrics">
-<h1>Metrics<a class="headerlink" href="#metrics" title="Link to this heading"></a></h1>
+  <section id="metrics-calculations">
+<h1>Metrics Calculations<a class="headerlink" href="#metrics-calculations" title="Link to this heading"></a></h1>
 <section id="module-postprocessinglib.evaluation.metrics">
 <span id="postprocessinglib-evaluation-metrics-module"></span><h2>postprocessinglib.evaluation.metrics Module<a class="headerlink" href="#module-postprocessinglib.evaluation.metrics" title="Link to this heading"></a></h2>
 <p>The metrics module contains all of the metrics required during the prost processing process.
