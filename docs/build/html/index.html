@@ -8,8 +8,6 @@
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b76e3c8a" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
-      <link rel="stylesheet" type="text/css" href="_static/jupyter-sphinx.css?v=572af1d6" />
-      <link rel="stylesheet" type="text/css" href="_static/thebelab.css" />
 
   
   <!--[if lt IE 9]>
@@ -21,9 +19,6 @@
         <script src="_static/documentation_options.js?v=29a6c3e3"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script src="_static/thebelab-helper.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
         <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -66,7 +61,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-data-manipulation.html">Data Manipulation Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-visualizations.html">Visualizations Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-metrics.html">Metrics Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-metrics.html">Metrics Calculations Tutorial</a></li>
 </ul>
 
         </div>
@@ -99,9 +94,30 @@
 All of the tools contained in the library are built using a few different python libraries including numpy, scipy, pandas, matplotlib amongst
 others and it was made this way to provode a high level, interface for NHS users to perform all forms of data manipulation, analysis and visualization
 tasks.</p>
+<p>It’s development is based on the following priciples :</p>
+<img alt="Principels of Development." src="_images/principles_of_dev.png" />
+<ul class="simple">
+<li><dl class="simple">
+<dt>Reproducibility</dt><dd><p>Its methods are made very simple and straightforward using the basic python programs ans functions so that you are able to read through the functions if
+neccessary and understand whats going on within each module. The library code is available on the <a class="reference external" href="https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/postprocessinglib">github</a> page.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Clear Documentation</dt><dd><p>The library is built on extensive easy to understand documentation using both read the docs and sphinxs to create the documentation website, jupyter notebook
+to create tutorials that are easy to follow through and binder for those who want to not just follow through but also run the code themselves.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Project Collaboration</dt><dd><p>The project is hosted on Github to allow people to contribute as needed, reques that certain features be added and even fork off it to add features of thier own.</p>
+</dd>
+</dl>
+</li>
+</ul>
 <p>It contains tools for Preprocessing data, Manipulating and aggregating data, Visualizing data and performing all of sorts of metric calculations on
-measured and predicted time series data.</p>
-<p>It has been divided into 5 main sections:</p>
+measured and predicted time series data. Its is divided into 5 broad sections:</p>
+<img alt="Sections of the Library." src="_images/library_sections.png" />
 <ul class="simple">
 <li><dl class="simple">
 <dt>Data processing/manipulation</dt><dd><p>The sections allows us to take in the raw data/raw model output, process it, aggregate it, and generate the data that is required as inputs to the
@@ -165,7 +181,7 @@ There is also a runnable <strong>binder</strong> script located <a class="refere
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-data-manipulation.html">Data Manipulation Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-visualizations.html">Visualizations Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-metrics.html">Metrics Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-metrics.html">Metrics Calculations Tutorial</a></li>
 </ul>
 </div>
 </section>
@@ -176,8 +192,7 @@ There is also a runnable <strong>binder</strong> script located <a class="refere
 <li><a href="https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2Ftutorial-data-manipulation.ipynb" target="_blank">Data Manipulation</a></li>
 <li><a href="https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2Ftutorial-visualizations.ipynb" target="_blank">Visualization</a></li>
 <li><a href="https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2Ftutorial-metrics.ipynb" target="_blank">Metrics</a></li>
-..
-   <li><a href="https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2FExamples.ipynb" target="_blank">Examples </a></li>
+<li><a href="https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2FExamples.ipynb" target="_blank">Examples </a></li>
 </ul></section>
 </section>
 <section id="indices-and-tables">
