@@ -20,7 +20,6 @@
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -84,7 +83,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-data-manipulation.html">Data Manipulation Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-visualizations.html">Visualizations Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-metrics.html">Metrics Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-metrics.html">Metrics Calculations Tutorial</a></li>
 </ul>
 
         </div>
@@ -117,7 +116,20 @@
 <span id="postprocessinglib-evaluation-metrics-module"></span><h2>postprocessinglib.evaluation.metrics Module<a class="headerlink" href="#module-postprocessinglib.evaluation.metrics" title="Link to this heading"></a></h2>
 <p>The metrics module contains all of the metrics required during the prost processing process.
 Each metric has a function and there are hepler functions that help with error checking and
-reading and preparation of data to be evaluated.</p>
+reading and preparation of data to be evaluated.
+This module contains functions evaluate single sample data  such as the</p>
+<ul class="simple">
+<li><p>Flow duration curve,</p></li>
+<li><p>Time to peak, and ,</p></li>
+<li><p>Time to centre of mass,</p></li>
+</ul>
+<p>amongst others, as well as comparison samples between the measured and predicted data such as</p>
+<ul class="simple">
+<li><p>Mean Square Error,</p></li>
+<li><p>Percentage Bias, and ,</p></li>
+<li><p>Kling Gupta Efficiency,</p></li>
+</ul>
+<p>amongst others.  All these functions along side their expected inputs and outputs are shown below:</p>
 <section id="functions">
 <h3>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h3>
 <table class="autosummary longtable docutils align-default">

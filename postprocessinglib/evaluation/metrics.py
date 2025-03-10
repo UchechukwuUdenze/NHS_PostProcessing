@@ -1,7 +1,20 @@
 """
 The metrics module contains all of the metrics required during the prost processing process.
 Each metric has a function and there are hepler functions that help with error checking and 
-reading and preparation of data to be evaluated.  
+reading and preparation of data to be evaluated.
+This module contains functions evaluate single sample data  such as the 
+
+- Flow duration curve,
+- Time to peak, and , 
+- Time to centre of mass,
+
+amongst others, as well as comparison samples between the measured and predicted data such as 
+
+- Mean Square Error,
+- Percentage Bias, and ,
+- Kling Gupta Efficiency, 
+
+amongst others.  All these functions along side their expected inputs and outputs are shown below:
 
 """
 

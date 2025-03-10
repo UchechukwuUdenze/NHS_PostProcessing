@@ -1,9 +1,16 @@
 """
 The visual module contains different plotting functions for time series visualization.
 It allows users to plot hydrographs per station for each stations to allow us visualize
-the time-series data
+the time-series data. These graphs provide a simple and clear way to immeditely identify
+patterns and discrepancies with model operation.
+They are also made to very customizable with a lot of options to suit the need of many types
+of users.   
+Some of them also allow their metrics to be placed beside the plots as shown below:
 
-Some of them also allow their metrics to be placed beside the plots
+.. image:: Visuals.png
+  :alt: graphs showing graph types
+.. image:: Visuals_m.png
+  :alt: line plot showing metrics
 
 """
 
@@ -498,7 +505,7 @@ def scatter(
   obs_df: pd.DataFrame = None, 
   sim_df: pd.DataFrame = None,
   metrices: list[str] = None, 
-  markerstyle: str = 'ko', 
+  markerstyle: str = 'bo', 
   save: bool = False, 
   plot_adjust: float = 0.2,
   save_as: str = None, 

@@ -20,7 +20,6 @@
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -75,7 +74,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-data-manipulation.html">Data Manipulation Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-visualizations.html">Visualizations Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-metrics.html">Metrics Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-metrics.html">Metrics Calculations Tutorial</a></li>
 </ul>
 
         </div>
@@ -108,8 +107,13 @@
 <span id="postprocessinglib-evaluation-visuals-module"></span><h2>postprocessinglib.evaluation.visuals Module<a class="headerlink" href="#module-postprocessinglib.evaluation.visuals" title="Link to this heading"></a></h2>
 <p>The visual module contains different plotting functions for time series visualization.
 It allows users to plot hydrographs per station for each stations to allow us visualize
-the time-series data</p>
-<p>Some of them also allow their metrics to be placed beside the plots</p>
+the time-series data. These graphs provide a simple and clear way to immeditely identify
+patterns and discrepancies with model operation.
+They are also made to very customizable with a lot of options to suit the need of many types
+of users.
+Some of them also allow their metrics to be placed beside the plots as shown below:</p>
+<img alt="graphs showing graph types" src="_images/Visuals.png" />
+<img alt="line plot showing metrics" src="_images/Visuals_m.png" />
 <section id="functions">
 <h3>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h3>
 <table class="autosummary longtable docutils align-default">
