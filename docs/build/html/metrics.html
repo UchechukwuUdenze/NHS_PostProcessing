@@ -119,17 +119,24 @@ Each metric has a function and there are hepler functions that help with error c
 reading and preparation of data to be evaluated.
 This module contains functions evaluate single sample data  such as the</p>
 <ul class="simple">
-<li><p>Flow duration curve,</p></li>
-<li><p>Time to peak, and ,</p></li>
-<li><p>Time to centre of mass,</p></li>
+<li><p>The Slope of Flow duration curve <code class="docutils literal notranslate"><span class="pre">slope_fdc</span></code>,</p></li>
+<li><p>Time to peak <code class="docutils literal notranslate"><span class="pre">ttp</span></code>,</p></li>
+<li><p>Time to centre of mass <code class="docutils literal notranslate"><span class="pre">ttcom</span></code>, and,</p></li>
+<li><p>Spring Pulse Onset Delay <code class="docutils literal notranslate"><span class="pre">spod</span></code>.</p></li>
 </ul>
-<p>amongst others, as well as comparison samples between the measured and predicted data such as</p>
+<p>as well as comparison samples between the measured and predicted data such as</p>
 <ul class="simple">
-<li><p>Mean Square Error,</p></li>
-<li><p>Percentage Bias, and ,</p></li>
-<li><p>Kling Gupta Efficiency,</p></li>
+<li><p>Mean Square Error <code class="docutils literal notranslate"><span class="pre">mse</span></code>,</p></li>
+<li><p>Percentage Bias <code class="docutils literal notranslate"><span class="pre">bias</span></code>, and ,</p></li>
+<li><p>Kling Gupta Efficiency <code class="docutils literal notranslate"><span class="pre">kge</span></code>, amongst others.</p></li>
 </ul>
-<p>amongst others.  All these functions along side their expected inputs and outputs are shown below:</p>
+<p>Finally we are also able to calculate a number of metrices at the same time or all of them at the same
+time using one of the two function below:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">calculate_metrics([list</span> <span class="pre">of</span> <span class="pre">metrics])</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">calculate_all_metrics()</span></code></p></li>
+</ul>
+<p>All these functions along side their expected inputs and outputs are shown below:</p>
 <section id="functions">
 <h3>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h3>
 <table class="autosummary longtable docutils align-default">

@@ -4,17 +4,24 @@ Each metric has a function and there are hepler functions that help with error c
 reading and preparation of data to be evaluated.
 This module contains functions evaluate single sample data  such as the 
 
-- Flow duration curve,
-- Time to peak, and , 
-- Time to centre of mass,
+- The Slope of Flow duration curve ``slope_fdc``,
+- Time to peak ``ttp``, 
+- Time to centre of mass ``ttcom``, and,
+- Spring Pulse Onset Delay ``spod``.
 
-amongst others, as well as comparison samples between the measured and predicted data such as 
+as well as comparison samples between the measured and predicted data such as 
 
-- Mean Square Error,
-- Percentage Bias, and ,
-- Kling Gupta Efficiency, 
+- Mean Square Error ``mse``,
+- Percentage Bias ``bias``, and ,
+- Kling Gupta Efficiency ``kge``, amongst others.  
 
-amongst others.  All these functions along side their expected inputs and outputs are shown below:
+Finally we are also able to calculate a number of metrices at the same time or all of them at the same
+time using one of the two function below:
+
+- ``calculate_metrics([list of metrics])``
+- ``calculate_all_metrics()``
+
+All these functions along side their expected inputs and outputs are shown below:
 
 """
 

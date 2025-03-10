@@ -1,8 +1,23 @@
 """
 This section contains code that reads the input files and from them generates dataframes that are required by the other packages in the library.
-It is the backbone of the library as its outputs are what are fed into both the metrics and visualization sections of the libabry.
+It is the backbone of the library as its outputs are what are fed into both the 'Metrics' sections for data calculations and Evaluations and
+the 'Visualization' sections for quick data plots and visual comparisons. Its major function is the ``generate_dataframes`` function which takes
+care of all the file inout and handling.
 
-It is also the section in charge of aggregating the input data into weekly, monthly and even yearly aggregates as shown visually below:
+It has other functions for aggregating the input data into aggregates 
+
+- ``daily_aggregate``
+- ``weekly_aggregate``
+- ``monthly_aggregate``
+- ``yearly_aggregate``
+- ``long_term_seasonal``
+
+and it has a few for data and time preiod selections
+
+- ``station_dataframe``
+- ``seasonal_period``
+
+A few of these are shown visually below:
 
 .. image:: Data.png
   :alt: graphs showing aggregation
