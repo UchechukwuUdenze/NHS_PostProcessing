@@ -955,7 +955,7 @@ def yearly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
     
 #     return DATAFRAMES
 
-def generate_dataframes(csv_fpath: str='', sim_fpaths: list = None, obs_fpath: str = '', warm_up: int = 0, start_date: str = "", end_date: str = "",
+def generate_dataframes(csv_fpaths: list=None, sim_fpaths: list = None, obs_fpath: str = '', warm_up: int = 0, start_date: str = "", end_date: str = "",
                         daily_agg: bool = False, da_method: str = "", weekly_agg: bool = False, wa_method: str = "",
                         monthly_agg: bool = False, ma_method: str = "", yearly_agg: bool = False, ya_method: str = "",
                         seasonal_p: bool = False, sp_dperiod: tuple[str, str] = [], sp_subset: tuple[str, str] = None,
@@ -969,76 +969,120 @@ def generate_dataframes(csv_fpath: str='', sim_fpaths: list = None, obs_fpath: s
     DATAFRAMES = {}
 
     # Step 1: Handle input dataframes
-    if csv_fpath:
-        # read the combined csv file into a dataframe
-        df = pd.read_csv(csv_fpath, skipinitialspace=True, index_col=[0, 1])
-        if len(df.columns) % 2 != 0:
-            df.drop(columns=df.columns[-1], inplace=True)
-        start_day = hlp.MultiIndex_to_datetime(df.index[0])
-        df.index = pd.to_datetime([i for i in range(len(df.index))], unit='D', origin=pd.Timestamp(start_day))
-        df = df.replace([-1, 0], np.nan)
+    if isinstance(csv_fpaths, str):
+        csv_fpaths = [csv_fpaths]  # Convert to list if it's a string
+    if csv_fpaths:
+        for i, csv_fpath in enumerate(csv_fpaths):
+            # read the combined csv file into a dataframe
+            df = pd.read_csv(csv_fpath, skipinitialspace=True, index_col=[0, 1])
+            if len(df.columns) % 2 != 0:
+                df.drop(columns=df.columns[-1], inplace=True)
+            start_day = hlp.MultiIndex_to_datetime(df.index[0])
+            df.index = pd.to_datetime([j for j in range(len(df.index))], unit='D', origin=pd.Timestamp(start_day))
+            df = df.replace([-1, 0], np.nan)
         
-        # Handle warm-up period
-        DATAFRAMES["DF"] = df[warm_up:]
-        observed = df[warm_up:].iloc[:, ::2]
-        simulated = df[warm_up:].iloc[:, 1::2]
+            # Handle warm-up period
+            DATAFRAMES[f"DF_{i+1}"] = df[warm_up:]
 
-    elif sim_fpaths and obs_fpath:
-        # read the observed data
-        obs_df = pd.read_csv(obs_fpath, skipinitialspace=True, index_col=[0, 1])
-        start_day = hlp.MultiIndex_to_datetime(obs_df.index[0])
-        obs_df.index = pd.to_datetime([i for i in range(len(obs_df.index))], unit='D', origin=pd.Timestamp(start_day))
-        obs_df = obs_df.replace([-1, 0], np.nan)
+        # Check that the 'observed' values match up
+        # Get the indices of the even rows (0, 2, 4, ...)
+        even_indices = list(range(0, len(DATAFRAMES["DF_1"]), 2))
+        # Check for consistency of Observed rows across all the DataFrames in the current state of the dictionary
+        reference_row = None
+        prev_idx = None
+        for idx in even_indices:
+            for df_name, df in DATAFRAMES.items():
+                row = df.iloc[idx]
+                if reference_row is None or prev_idx != idx:
+                    reference_row = row
+                elif not row.equals(reference_row):
+                    print(f"Previous Index is {prev_idx}.\n")
+                    print(f"Error: Row {idx} in {df_name} does not match the reference row!\n")
+                    print(f"Reference row: {reference_row}.\n")
+                    print(f"Current row: {row}\n")
+                    # You can raise an exception here or handle it differently
+                    # TODO: Decide exception or otherwise.
+                    raise ValueError(f"Inconsistent rows at index {idx} in DataFrame {df_name}")
+            prev_idx = idx            
+        print("All Observed rows are consistent across DataFrames.")
 
+        # Since they are all the same. I will read observed off one of them.
+        DATAFRAMES["DF_OBSERVED"] = DATAFRAMES["DF_1"].iloc[:, ::2]
+
+        # Assign simulated dataframes dynamically
+        for i, csv_fpath in enumerate(csv_fpaths):
+            DATAFRAMES[f"DF_SIMULATED_{i+1}"] = DATAFRAMES[f"DF_{i+1}"].iloc[:, 1::2]
+
+        merged = pd.concat([df for df in DATAFRAMES.values()], axis=1)
+        DATAFRAMES["DF_MERGED"] = merged
+
+    elif sim_fpaths:
+        if isinstance(sim_fpaths, str):
+            sim_fpaths = [sim_fpaths] # Convert to list if it's a string
         # Initialize a list for simulated data
         simulated_dfs = []
-        for sim_fpath in sim_fpaths:
+        for i, sim_fpath in enumerate(sim_fpaths):
             sim_df = pd.read_csv(sim_fpath, skipinitialspace=True, index_col=[0, 1])
             start_day = hlp.MultiIndex_to_datetime(sim_df.index[0])
-            sim_df.index = pd.to_datetime([i for i in range(len(sim_df.index))], unit='D', origin=pd.Timestamp(start_day))
+            sim_df.index = pd.to_datetime([j for j in range(len(sim_df.index))], unit='D', origin=pd.Timestamp(start_day))
             sim_df = sim_df.replace([-1, 0], np.nan)
-            simulated_dfs.append(sim_df[warm_up:])
+            DATAFRAMES[f"DF_SIMULATED_{i+1}"] = sim_df[warm_up:]
+            simulated_dfs.append(sim_df)
         
-        # Merging observed and simulated data
-        df = pd.DataFrame(index=obs_df.index)
-        df = pd.concat([df, obs_df[warm_up:]], axis=1)  # Merge observed data
+        # # Assign simulated dataframes dynamically
+        # for i, sim_df in enumerate(simulated_dfs):
+        #     DATAFRAMES[f"DF_SIMULATED_{i+1}"] = sim_df
+        
+        if obs_fpath:
+            # read the observed data
+            obs_df = pd.read_csv(obs_fpath, skipinitialspace=True, index_col=[0, 1])
+            start_day = hlp.MultiIndex_to_datetime(obs_df.index[0])
+            obs_df.index = pd.to_datetime([i for i in range(len(obs_df.index))], unit='D', origin=pd.Timestamp(start_day))
+            obs_df = obs_df.replace([-1, 0], np.nan)
+            DATAFRAMES["DF_OBSERVED"] = obs_df[warm_up:]
+
+        #### MERGE ####
+            # Merge observed and simulated data
+            df = pd.DataFrame(index=obs_df.index)  # Initialize empty df with observed index
+            df = pd.concat([df, obs_df[warm_up:]], axis=1)  # Merge observed data first
+
+        else:
+            # If no observed data, initialize df with simulated data only
+            df = pd.DataFrame(index=simulated_dfs[0].index)  # Initialize with the index of the first simulated df
 
         # Merge all simulated data
         for i, sim_df in enumerate(simulated_dfs):
             df = pd.concat([df, sim_df], axis=1)
         
         DATAFRAMES["DF"] = df[warm_up:]
-        observed = obs_df[warm_up:]
-        DATAFRAMES["DF_OBSERVED"] = observed
+        #### END OF MERGE ####
         
-        # Assign simulated dataframes dynamically
-        for i, sim_df in enumerate(simulated_dfs):
-            DATAFRAMES[f"DF_SIMULATED_{i+1}"] = sim_df
+        
 
     else:
         raise RuntimeError('Either sim_fpaths and obs_fpath or csv_fpath are required inputs.')
 
-    # Step 2: Date Range Filtering (for both observed and simulated data)
-    if start_date and not end_date:
-        observed = observed.loc[start_date:]
-        for sim_df in simulated_dfs:
-            sim_df = sim_df.loc[start_date:]
-        DATAFRAMES["DF"] = DATAFRAMES["DF"][start_date:]
-    elif end_date and not start_date:
-        observed = observed.loc[:end_date]
-        for sim_df in simulated_dfs:
-            sim_df = sim_df.loc[:end_date]
-        DATAFRAMES["DF"] = DATAFRAMES["DF"][:end_date]
-    elif start_date and end_date:
-        observed = observed.loc[start_date:end_date]
-        for sim_df in simulated_dfs:
-            sim_df = sim_df.loc[start_date:end_date]
-        DATAFRAMES["DF"] = DATAFRAMES["DF"][start_date:end_date]
+    # # Step 2: Date Range Filtering (for both observed and simulated data)
+    # if start_date and not end_date:
+    #     observed = observed.loc[start_date:]
+    #     for sim_df in simulated_dfs:
+    #         sim_df = sim_df.loc[start_date:]
+    #     DATAFRAMES["DF"] = DATAFRAMES["DF"][start_date:]
+    # elif end_date and not start_date:
+    #     observed = observed.loc[:end_date]
+    #     for sim_df in simulated_dfs:
+    #         sim_df = sim_df.loc[:end_date]
+    #     DATAFRAMES["DF"] = DATAFRAMES["DF"][:end_date]
+    # elif start_date and end_date:
+    #     observed = observed.loc[start_date:end_date]
+    #     for sim_df in simulated_dfs:
+    #         sim_df = sim_df.loc[start_date:end_date]
+    #     DATAFRAMES["DF"] = DATAFRAMES["DF"][start_date:end_date]
 
-    print(f"The start date for the Observed Data is {observed.index[0].strftime('%Y-%m-%d')}")
+    # print(f"The start date for the Observed Data is {observed.index[0].strftime('%Y-%m-%d')}")
     
-    # Step 3: Validate inputs
-    hlp.validate_data(observed, simulated_dfs)
+    # # Step 3: Validate inputs
+    # hlp.validate_data(observed, simulated_dfs)
 
     # # Step 4: Aggregation (Daily, Weekly, Monthly, Yearly)
     # if daily_agg and da_method:
