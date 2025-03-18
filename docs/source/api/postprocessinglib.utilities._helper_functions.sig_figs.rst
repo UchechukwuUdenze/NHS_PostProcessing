@@ -1,6 +1,6 @@
 sig_figs
 ========
 
-.. currentmodule:: postprocessinglib.utilities.helper_functions
+.. currentmodule:: postprocessinglib.utilities._helper_functions
 
 .. autofunction:: sig_figs

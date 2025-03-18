@@ -7,7 +7,7 @@ before it gets evaluated and present the data properly
 import numpy as np
 import pandas as pd
 from datetime import datetime
-from math import floor, log10
+import math as math
 
 from postprocessinglib.utilities._errors import AllInvalidError
 
@@ -177,7 +177,7 @@ def sig_figs(x: float, precision: int)-> float:
     if not np.isnan(x):
         x = float(x)
         precision = int(precision)
-        return round(x, -int(floor(log10(abs(x)))) + (precision - 1))
+        return round(x, -int(math.floor(math.log10(abs(x)))) + (precision - 1))
     else:
         return np.nan
     

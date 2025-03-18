@@ -94,27 +94,6 @@
 All of the tools contained in the library are built using a few different python libraries including numpy, scipy, pandas, matplotlib amongst
 others and it was made this way to provode a high level, interface for NHS users to perform all forms of data manipulation, analysis and visualization
 tasks.</p>
-<p>It’s development is based on the following priciples :</p>
-<img alt="Principels of Development." src="_images/principles_of_dev.png" />
-<ul class="simple">
-<li><dl class="simple">
-<dt>Reproducibility</dt><dd><p>Its methods are made very simple and straightforward using the basic python programs ans functions so that you are able to read through the functions if
-neccessary and understand whats going on within each module. The library code is available on the <a class="reference external" href="https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/postprocessinglib">github</a> page.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>Clear Documentation</dt><dd><p>The library is built on extensive easy to understand documentation using both read the docs and sphinxs to create the documentation website, jupyter notebook
-to create tutorials that are easy to follow through and binder for those who want to not just follow through but also run the code themselves.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>Project Collaboration</dt><dd><p>The project is hosted on Github to allow people to contribute as needed, reques that certain features be added and even fork off it to add features of thier own.</p>
-</dd>
-</dl>
-</li>
-</ul>
 <p>It contains tools for Preprocessing data, Manipulating and aggregating data, Visualizing data and performing all of sorts of metric calculations on
 measured and predicted time series data. Its is divided into 5 broad sections:</p>
 <img alt="Sections of the Library." src="_images/library_sections.png" />
@@ -158,7 +137,32 @@ There is also a runnable <strong>binder</strong> script located <a class="refere
 </dl>
 </li>
 </ul>
+<section id="principles-of-development">
+<h2>Principles of development<a class="headerlink" href="#principles-of-development" title="Link to this heading"></a></h2>
+<p>It’s development is based on the following priciples :</p>
+<img alt="Principels of Development." src="_images/principles_of_dev.png" />
+<ul class="simple">
+<li><dl class="simple">
+<dt>Reproducibility</dt><dd><p>Its methods are made very simple and straightforward using the basic python programs ans functions so that you are able to read through the functions if
+neccessary and understand whats going on within each module. The library code is available on the <a class="reference external" href="https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/postprocessinglib">github</a> page.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Clear Documentation</dt><dd><p>The library is built on extensive easy to understand documentation using both read the docs and sphinxs to create the documentation website, jupyter notebook
+to create tutorials that are easy to follow through and binder for those who want to not just follow through but also run the code themselves.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Project Collaboration</dt><dd><p>The project is hosted on Github to allow people to contribute as needed, reques that certain features be added and even fork off it to add features of thier own.
+The project is also open to collaborations with other projects that may need the tools and functions that are available in the library.</p>
+</dd>
+</dl>
+</li>
+</ul>
 <p>All tutorials are available in the notebooks folder <a class="reference external" href="https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks">here</a>.</p>
+</section>
 <section id="note">
 <h2>Note<a class="headerlink" href="#note" title="Link to this heading"></a></h2>
 <blockquote>
@@ -179,9 +183,37 @@ There is also a runnable <strong>binder</strong> script located <a class="refere
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Jupyter Notebook Tutorials:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-data-manipulation.html">Data Manipulation Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-visualizations.html">Visualizations Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-metrics.html">Metrics Calculations Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-data-manipulation.html">Data Manipulation Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="notebooks/tutorial-data-manipulation.html#Table-of-content">Table of content</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notebooks/tutorial-data-manipulation.html#Requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notebooks/tutorial-data-manipulation.html#GENERATE-DATAFRAMES">GENERATE DATAFRAMES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notebooks/tutorial-data-manipulation.html#DAILY-AGGREGATION">DAILY AGGREGATION</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notebooks/tutorial-data-manipulation.html#WEEKLY-AGGREGATION">WEEKLY AGGREGATION</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notebooks/tutorial-data-manipulation.html#YEARLY-AGGREGATION">YEARLY AGGREGATION</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notebooks/tutorial-data-manipulation.html#MONTHLY-AGGREGATION">MONTHLY AGGREGATION</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notebooks/tutorial-data-manipulation.html#PERIODIC/SEASONAL-AGGREGATION">PERIODIC/SEASONAL AGGREGATION</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notebooks/tutorial-data-manipulation.html#LONG-TERM-AGGREGATION">LONG TERM AGGREGATION</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notebooks/tutorial-data-manipulation.html#Note"><strong>Note</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-visualizations.html">Visualizations Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="notebooks/tutorial-visualizations.html#Table-of-content">Table of content</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notebooks/tutorial-visualizations.html#Requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notebooks/tutorial-visualizations.html#LINE-PLOTS">LINE PLOTS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notebooks/tutorial-visualizations.html#BOUNDED-PLOTS">BOUNDED PLOTS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notebooks/tutorial-visualizations.html#SCATTER-PLOTS">SCATTER PLOTS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notebooks/tutorial-visualizations.html#QUANTILE-QUANTILE-PLOTS">QUANTILE QUANTILE PLOTS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notebooks/tutorial-visualizations.html#FLOW-DURATION-CURVE">FLOW DURATION CURVE</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/tutorial-metrics.html">Metrics Calculations Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="notebooks/tutorial-metrics.html#Table-of-content">Table of content</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notebooks/tutorial-metrics.html#Requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notebooks/tutorial-metrics.html#Available-Metrics">Available Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notebooks/tutorial-metrics.html#Single-Data-Metrics">Single Data Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notebooks/tutorial-metrics.html#Comparison-Metrics">Comparison Metrics</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </section>

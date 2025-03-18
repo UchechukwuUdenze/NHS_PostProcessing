@@ -11,23 +11,6 @@ All of the tools contained in the library are built using a few different python
 others and it was made this way to provode a high level, interface for NHS users to perform all forms of data manipulation, analysis and visualization
 tasks.
 
-It's development is based on the following priciples :
-
-.. image:: principles_of_dev.png
-  :alt: Principels of Development. 
-
-- Reproducibility
-   Its methods are made very simple and straightforward using the basic python programs ans functions so that you are able to read through the functions if 
-   neccessary and understand whats going on within each module. The library code is available on the `github <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/postprocessinglib>`_ page.
-
-- Clear Documentation
-   The library is built on extensive easy to understand documentation using both read the docs and sphinxs to create the documentation website, jupyter notebook
-   to create tutorials that are easy to follow through and binder for those who want to not just follow through but also run the code themselves.
-
-- Project Collaboration
-   The project is hosted on Github to allow people to contribute as needed, reques that certain features be added and even fork off it to add features of thier own. 
-
-
 It contains tools for Preprocessing data, Manipulating and aggregating data, Visualizing data and performing all of sorts of metric calculations on 
 measured and predicted time series data. Its is divided into 5 broad sections: 
 
@@ -63,8 +46,27 @@ measured and predicted time series data. Its is divided into 5 broad sections:
    <https://nhs-postprocessing.readthedocs.io/en/latest/Visualization.html>`_ sections with a tutorial notebook `here <https://github.com/UchechukwuUdenze/NHS_PostProcessing/blob/main/docs/source/notebooks/tutorial-visualizations.ipynb>`_.
    There is also a runnable **binder** script located `here <https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2Ftutorial-visualizations.ipynb>`_.
 
-All tutorials are available in the notebooks folder `here <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks>`_.
+Principles of development
+--------------------------
 
+It's development is based on the following priciples :
+
+.. image:: principles_of_dev.png
+  :alt: Principels of Development. 
+
+- Reproducibility
+   Its methods are made very simple and straightforward using the basic python programs ans functions so that you are able to read through the functions if 
+   neccessary and understand whats going on within each module. The library code is available on the `github <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/postprocessinglib>`_ page.
+
+- Clear Documentation
+   The library is built on extensive easy to understand documentation using both read the docs and sphinxs to create the documentation website, jupyter notebook
+   to create tutorials that are easy to follow through and binder for those who want to not just follow through but also run the code themselves.
+
+- Project Collaboration
+   The project is hosted on Github to allow people to contribute as needed, reques that certain features be added and even fork off it to add features of thier own. 
+   The project is also open to collaborations with other projects that may need the tools and functions that are available in the library.
+
+All tutorials are available in the notebooks folder `here <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks>`_.
 
 Note
 ----
@@ -84,7 +86,7 @@ Note
    Contribute
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Jupyter Notebook Tutorials:
 
    notebooks/tutorial-data-manipulation

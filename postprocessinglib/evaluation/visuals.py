@@ -195,17 +195,15 @@ def plot(
                 # daily
                 time = [pd.Timestamp(datetime.datetime.strptime(day, '%Y/%j').date()) for day in time]
             elif '.' in time[0]:
-                print(True)
                 # weekly
                 # datetime ignores the week specifier unless theres a weekday attached,
-                # so we attach Sunday - day 0
-                time = [week+'.0' for week in time]
-                time = [pd.Timestamp(datetime.datetime.strptime(week, '%Y.%U.%w').date()) for week in time]
+                # so we extrct the week number and attach Monday - day 1
+                time = [pd.to_datetime(f"{int(float(week))}-W{int((float(week) - int(float(week))) * 100):02d}-4", format="%Y-W%U-%w") for week in time]
             elif '-' in time[0]:
                 # monthly
-                time = [pd.Timestamp(datetime.datetime.strptime(month, '%Y-%m').date()) for month in time]
+                time = [pd.to_datetime(f"{month}-15") for month in time]
             else: # yearly
-                time = np.asarray(time, dtype='float')
+                time = [pd.to_datetime(f"{year}-07-15") for year in time]
     
 
     for i in range (0, len(obs.columns)):
