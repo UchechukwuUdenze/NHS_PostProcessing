@@ -14,7 +14,7 @@ tasks.
 It contains tools for Preprocessing data, Manipulating and aggregating data, Visualizing data and performing all of sorts of metric calculations on 
 measured and predicted time series data. Its is divided into 5 broad sections: 
 
-.. image:: library_sections.png
+.. image:: Figures/library_sections.png
   :alt: Sections of the Library. 
 
 - Data processing/manipulation
@@ -51,7 +51,7 @@ Principles of development
 
 It's development is based on the following priciples :
 
-.. image:: principles_of_dev.png
+.. image:: Figures/principles_of_dev.png
   :alt: Principels of Development. 
 
 - Reproducibility

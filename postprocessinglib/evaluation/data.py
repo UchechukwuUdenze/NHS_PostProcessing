@@ -19,7 +19,7 @@ and it has a few for data and time preiod selections
 
 A few of these are shown visually below:
 
-.. image:: Data.png
+.. image:: Figures/Data.png
   :alt: graphs showing aggregation
    
 """

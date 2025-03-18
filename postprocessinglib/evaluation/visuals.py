@@ -7,9 +7,9 @@ They are also made to very customizable with a lot of options to suit the need o
 of users.   
 Some of them also allow their metrics to be placed beside the plots as shown below:
 
-.. image:: Visuals.png
+.. image:: Figures/Visuals.png
   :alt: graphs showing graph types
-.. image:: Visuals_m.png
+.. image:: Figures/Visuals_m.png
   :alt: line plot showing metrics
 
 """

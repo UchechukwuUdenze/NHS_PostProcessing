@@ -7,6 +7,9 @@ build/
 tests/
 docs/source/notebooks/.ipynb_checkpoints/
 docs/source/notebooks/TEST.ipynb
+docs/source/_static/
+docs/source/_templates/
+docs/source/api/
 docs/build/
 .ipynb_checkpoints
 TEST.py
