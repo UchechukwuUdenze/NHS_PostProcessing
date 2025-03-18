@@ -1,6 +1,6 @@
 """
 The helper module contains all of the functions used alongside the metrics to filter, limit, validate the data 
-before it gets evaluated and present the data properly
+before it gets evaluated and present the data properly. 
 
 """
 
@@ -13,6 +13,14 @@ from postprocessinglib.utilities._errors import AllInvalidError
 
 def check_valid_dataframe(observed: pd.DataFrame, simulated: pd.DataFrame):
     """Check if all observations or simulations are invalid and raise an exception if this is the case.
+
+    Parameters:
+    -----------
+    observed: pd.DataFrame
+            The observed dataframe being checked.
+
+    simulated: pd.DataFrame
+            The simulated dataframe being checked.
 
     Raises
     ------
@@ -58,6 +66,18 @@ def datetime_to_index(datetime :str)-> tuple[int, int]:
     --------
     tuple: [int, int]
         an index representing the year and jday index of the dataframe
+
+    Example:
+    --------
+    Convert the follwing datetime values to index values: "2020-01-01", "1995-12-31", "2000-02-29"
+
+    >>> datetime_to_index("2020-01-01")
+        (2020, 1)
+    >>> datetime_to_index("1995-12-31")
+        (1995, 365)
+    >>> datetime_to_index("2000-02-29")
+        (2000, 60)
+
     """
     year, month, day = datetime.split("-")
     jday = 0
@@ -89,6 +109,18 @@ def MultiIndex_to_datetime(index: tuple) -> str:
     --------
     str:
         a string of the date in the format "yyyy-mm-dd"
+
+    Example:
+    --------
+    Convert the follwing multiindex values to datetime values: (2020, 1), (1995, 365), (2000, 60)
+
+    >>> MultiIndex_to_datetime((2020, 1))
+        "2020-01-01"
+    >>> MultiIndex_to_datetime((1995, 365))
+        "1995-12-31"
+    >>> MultiIndex_to_datetime((2000, 60))
+        "2000-02-29"
+
     """
     year = str(index[0])
     jday = str(index[1])
@@ -104,6 +136,14 @@ def MultiIndex_to_datetime(index: tuple) -> str:
 
 def validate_data(observed: pd.DataFrame, simulated: pd.DataFrame):
     """ Ensures that a set of observed and simulated dataframes are valid
+
+    Parameters:
+    -----------
+    observed: pd.DataFrame
+            The observed dataframe being checked.
+
+    simulated: pd.DataFrame
+            The simulated dataframe being checked.
 
     Raises
     ------
