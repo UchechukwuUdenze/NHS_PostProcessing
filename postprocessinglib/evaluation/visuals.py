@@ -802,7 +802,7 @@ def qqplot(
     title: str = None, 
     labels: tuple[str, str] = None, 
     fig_size: tuple[float, float] = (10, 6),
-    interpolate: str = "linear", 
+    method: str = "linear", 
     legend: bool = False, 
     linewidth: tuple[float, float] = (1, 2),
     merged_df: pd.DataFrame = None, 
@@ -832,7 +832,7 @@ def qqplot(
         Tuple of length two that specifies the horizontal and vertical lengths of the plot in
         inches, respectively.
 
-    interpolate: str
+    method: str
         Determines whether the quantiles should be interpolated when the data length differs.
         If True, the quantiles are interpolated to align the data lengths between the observed
         and simulated data, ensuring accurate comparison.
@@ -923,14 +923,14 @@ def qqplot(
     for i in range (0, len(obs.columns)):
         n = obs.iloc[:, i].size
         pvec = 100 * ((np.arange(1, n + 1) - 0.5) / n)
-        sim_perc = np.percentile(sim.iloc[:, i], pvec, method=interpolate)
-        obs_perc = np.percentile(obs.iloc[:, i], pvec, method=interpolate)
+        sim_perc = np.percentile(sim.iloc[:, i], pvec, method=method)
+        obs_perc = np.percentile(obs.iloc[:, i], pvec, method=method)
 
         # Finding the interquartile range to plot the best fit line
-        quant_1_sim = np.percentile(obs.iloc[:, i], quantile[0], interpolation=interpolate)
-        quant_3_sim = np.percentile(obs.iloc[:, i], quantile[1], interpolation=interpolate)
-        quant_1_obs = np.percentile(obs.iloc[:, i], quantile[0], interpolation=interpolate)
-        quant_3_obs = np.percentile(obs.iloc[:, i], quantile[1], interpolation=interpolate)
+        quant_1_sim = np.percentile(obs.iloc[:, i], quantile[0], interpolation=method)
+        quant_3_sim = np.percentile(obs.iloc[:, i], quantile[1], interpolation=method)
+        quant_1_obs = np.percentile(obs.iloc[:, i], quantile[0], interpolation=method)
+        quant_3_obs = np.percentile(obs.iloc[:, i], quantile[1], interpolation=method)
 
         dsim = quant_3_sim - quant_1_sim
         dobs = quant_3_obs - quant_1_obs
