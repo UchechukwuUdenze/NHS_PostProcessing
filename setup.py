@@ -10,7 +10,7 @@ with open("postprocessinglib/__version__.py", "r") as fp:
     exec(fp.read(), version)
 
 setup(
-    name='postprocessinglib',
+    name='nhs_posprocessing',
     version=version["__version__"],
     packages=[
             'postprocessinglib', 
