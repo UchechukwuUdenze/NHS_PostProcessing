@@ -12,7 +12,7 @@ This is a python Library to enable the National Hydrological Services of Canada 
 
 ## Usage and Installation
 
-A quick rundown of the process of installation and Usage can be found in its documentation page over at [NHS_postprocessing ReadTheDocs](https://nhs-postprocessing.readthedocs.io/en/latest/)
+A quick rundown of the process of installation and Usage can be found in its documentation page over at [NHS_postprocessing ReadTheDocs](https://nhs-postprocessing.readthedocs.io/en/stable/)
 
 The post processing library provides tools to aid with 
 - Data Processing/Manipulation
@@ -24,7 +24,7 @@ The post processing library provides tools to aid with
 #### Note:
 <mark>This is a work in progress and I am very open to suggestions and ideas</mark>
 
-- Documentation: [NHS_postprocessing ReadTheDocs](https://nhs-postprocessing.readthedocs.io/en/latest/)
+- Documentation: [NHS_postprocessing ReadTheDocs](https://nhs-postprocessing.readthedocs.io/en/stable/)
 - Bug reports/Feature Requests: [Issues](https://github.com/UchechukwuUdenze/NHS_PostProcessing/issues)
 
 ## Contact

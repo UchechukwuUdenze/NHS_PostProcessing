@@ -17,7 +17,7 @@ setup(
             'postprocessinglib.evaluation',
             'postprocessinglib.utilities'
     ],
-    url='https://nhs-postprocessinglib.readthedocs.io', 
+    url='https://nhs-postprocessing.readthedocs.io/en/stable/', 
     project_urls={
         'Visualization': 'https://github.com/users/UchechukwuUdenze/projects/4',
         'Data Manipulation': 'https://github.com/users/UchechukwuUdenze/projects/2',

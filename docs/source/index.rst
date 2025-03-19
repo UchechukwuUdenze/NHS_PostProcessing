@@ -19,19 +19,19 @@ measured and predicted time series data. Its is divided into 5 broad sections:
 
 - Data processing/manipulation
    The sections allows us to take in the raw data/raw model output, process it, aggregate it, and generate the data that is required as inputs to the
-   rest of the library.  Its functions are available in the `Data <https://nhs-postprocessing.readthedocs.io/en/latest/Data.html>`_ section. It also has
+   rest of the library.  Its functions are available in the `Data <https://nhs-postprocessing.readthedocs.io/en/stable/Data.html>`_ section. It also has
    a runnable **binder** script located `here <https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2Ftutorial-data-manipulation.ipynb>`_
 
 - Model Perfromance
    The use of statistical metrics to evaluate how well the model is performing in terms of being able to accurately replicate the measured Data.
-   Majority of its functions are located in the `Metrics <https://nhs-postprocessing.readthedocs.io/en/latest/Metrics.html>`_ section with tutorials
+   Majority of its functions are located in the `Metrics <https://nhs-postprocessing.readthedocs.io/en/stable/Metrics.html>`_ section with tutorials
    available `here <https://github.com/UchechukwuUdenze/NHS_PostProcessing/blob/main/docs/source/notebooks/tutorial-metrics.ipynb>`_ with a 
    runnable **binder** script located `here <https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2Ftutorial-metrics.ipynb>`_ .
 
 - Model Diagonistics
    This section is geared towards estimating certain process based values such as the time to peak (ttp), flow duration curve, amongst many others. Its 
    focus is to evaluate and inform behaviours and trends of the particular model at a particular station. Some of its functions are available in the
-   `Data <https://nhs-postprocessing.readthedocs.io/en/latest/Data.html>`_ section and others in the `Metrics <https://nhs-postprocessing.readthedocs.io/en/latest/Metrics.html>`_
+   `Data <https://nhs-postprocessing.readthedocs.io/en/stable/Data.html>`_ section and others in the `Metrics <https://nhs-postprocessing.readthedocs.io/en/stable/Metrics.html>`_
    section, with their respective **binder** tutorials `here <https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2Ftutorial-data-manipulation.ipynb>`_
    and `here <https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2Ftutorial-metrics.ipynb>`_ respectfully. 
 
@@ -43,7 +43,7 @@ measured and predicted time series data. Its is divided into 5 broad sections:
 - Visualizations
    The Visualizations sections allow us to visually study, compare and interprete model output behaviour allowing instantaenous visual identifications of
    differences and discrepancies between measured data and simulated data and between various model data. Its functions are available in the `Visualizations
-   <https://nhs-postprocessing.readthedocs.io/en/latest/Visualization.html>`_ sections with a tutorial notebook `here <https://github.com/UchechukwuUdenze/NHS_PostProcessing/blob/main/docs/source/notebooks/tutorial-visualizations.ipynb>`_.
+   <https://nhs-postprocessing.readthedocs.io/en/stable/Visualization.html>`_ sections with a tutorial notebook `here <https://github.com/UchechukwuUdenze/NHS_PostProcessing/blob/main/docs/source/notebooks/tutorial-visualizations.ipynb>`_.
    There is also a runnable **binder** script located `here <https://mybinder.org/v2/gh/UchechukwuUdenze/NHS_PostProcessing/main?%2FHEAD=&urlpath=%2Fdoc%2Ftree%2Fdocs%2Fsource%2Fnotebooks%2Ftutorial-visualizations.ipynb>`_.
 
 Principles of development
