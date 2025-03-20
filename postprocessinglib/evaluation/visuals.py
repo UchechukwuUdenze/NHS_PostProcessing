@@ -898,7 +898,7 @@ def qqplot(
     save_as: str = None, 
     dir: str = os.getcwd()
     ) -> plt.figure:
-    """Plots a Quantile-Quantile plot of the simulated and observed data.
+    """
     Generate a Quantile-Quantile (QQ) plot to compare the statistical distribution of simulated and observed data.
 
     A Quantile-Quantile (QQ) plot is a graphical technique for assessing whether two datasets come from the same distribution by plotting their quantiles against each other. 
@@ -1170,7 +1170,7 @@ def flow_duration_curve(
     >>> simulated = pd.DataFrame(np.random.randn(100, 1), columns=["Flow"])
     >>> visuals.flow_duration_curve(observed=observed, simulated=simulated, title="FDC Example", grid =True)
 
-    .image:: ../Figures/FDC_Example.png
+    .. image:: ../Figures/FDC_Example.png
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-visualizations.ipynb>`_
     """
