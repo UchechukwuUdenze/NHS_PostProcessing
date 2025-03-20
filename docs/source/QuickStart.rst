@@ -20,7 +20,7 @@ To install the library use:
 
 .. code-block::
 
-    pip install git+https://github.com/UchechukwuUdenze/NHS_PostProcessing.git@v1.0.0
+    pip install git+https://github.com/UchechukwuUdenze/NHS_PostProcessing.git@v1.0.1
 
 
 If you want to install an editable version to implememt your own models or dataset you'll have to clone the repository  using:
