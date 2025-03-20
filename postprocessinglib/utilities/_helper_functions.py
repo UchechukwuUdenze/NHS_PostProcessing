@@ -181,7 +181,7 @@ def validate_data(observed: pd.DataFrame, simulated: pd.DataFrame):
         and simulated dataframes, comparing them where necessary, and making sure that the above conditions are met.
         If any of these conditions are not met, it raises the corresponding error.
 
-    Parameters:
+    Parameters
     -----------
     observed: pd.DataFrame
             The observed dataframe being checked.

@@ -27,7 +27,61 @@ from postprocessinglib.evaluation import metrics
 from postprocessinglib.utilities import _helper_functions as hlp
 
 def _save_or_display_plot(fig, save: bool, save_as: Union[str, List[str]], dir: str, i: int, type: str):
-    """Save the plot to a file or display it based on user preferences."""
+    """
+    Save the plot to a file or display it based on user preferences.
+
+    This helper function determines whether to save the plot to a specified directory or display 
+    it on the screen. If saving, the plot is saved as a PNG file with a specified or default filename.
+    If not saving, the plot is displayed interactively using Matplotlib's `plt.show()`.
+
+    Parameters
+    ----------
+    fig : matplotlib.figure.Figure
+        The Matplotlib figure instance to be saved or displayed.
+
+    save : bool
+        Whether to save the plot to a file. If `True`, the plot is saved. If `False`, the plot is displayed.
+
+    save_as : str or list of str
+        The name or list of names to save the plot as. If provided, the plot is saved with this name(s). 
+        If `save_as` is a list, the plot is saved using the corresponding name for each figure. Default is None.
+
+    dir : str
+        The directory where the plot will be saved. If the directory does not exist, it will be created. 
+        Default is the current working directory.
+
+    i : int
+        The index for generating unique filenames when saving multiple plots. Used when `save_as` is a list.
+
+    type : str
+        The type of the plot (e.g., 'scatter-plot'). This is used to generate a default filename if 
+        `save_as` is not provided.
+
+    Returns
+    -------
+    None
+        This function does not return anything. It either saves or displays the plot.
+
+    Example
+    -------
+    Save a plot with a custom filename:
+
+    >>> fig = plt.figure()
+    >>> # Plotting code...
+    >>> _save_or_display_plot(fig, save=True, save_as="my_plot", dir="./plots", i=0, type="scatter")
+
+    Display a plot:
+
+    >>> _save_or_display_plot(fig, save=False, save_as="my_plot", dir="./plots", i=0, type="scatter")
+
+    Notes
+    -----
+    - If `save_as` is a string, the plot will be saved with that name.
+    - If `save_as` is a list, the plot will be saved with the corresponding name from the list, 
+      using the index `i` to select the correct filename.
+    - The `plt.tight_layout()` function is called to ensure the plot layout is adjusted before saving.
+
+    """
     if save:
         plt.tight_layout()
         if not os.path.exists(dir):
@@ -74,6 +128,15 @@ def plot(
     dir: str = os.getcwd()
     ) -> plt.figure:
     """ Create a comparison time series line plot of simulated and observed time series data
+
+    This function generates line plots for any number of observed and simulated data
+    
+    The function can handle data provided in three formats:
+    - A merged DataFrame containing both observed and simulated data.
+    - Separate observed and simulated DataFrames.
+
+    The plot allows customization of various visual elements like line style, colors, axis labels, and title. 
+    The resulting figure can be displayed or saved to a specified directory and file name.
 
     Parameters
     ----------
@@ -163,6 +226,13 @@ def plot(
     .. image:: ../Figures/plot3_example.png
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-visualizations.ipynb>`_
+
+    Notes
+    -----
+    - The function requires at least one valid data input (merged_df, obs_df, sim_df, or df).
+    - The time index of the input DataFrames must be a datetime index or convertible to datetime.
+    - If the number of columns in the `obs_df` or `sim_df` exceeds five, the plot will be automatically saved.
+    - Metrics will be displayed on the plot if specified in the `metrices` parameter.
          
     """
      # Assign the data based on inputs
@@ -290,11 +360,16 @@ def bounded_plot(
     dir: str = os.getcwd()
     ) -> plt.figure:
     """ 
-    Plots time-series data with optional confidence bounds.
+    Plots time-series data with optional confidence bounds(upper and lower).
 
-    This function generates line plots for observed and simulated data, along with shaded confidence bounds. 
-    It supports flexible customization options, such as labels, legends, line styles, gridlines, and more. 
-    If the number of columns exceeds a threshold, the plots are automatically saved instead of being displayed.
+    This function generates line plots for observed and simulated data, along with shaded confidence bounds(upper and lower). 
+    
+    The function can handle data provided in three formats:
+    - A merged DataFrame containing both observed and simulated data.
+    - Separate observed and simulated DataFrames.
+
+    The plot allows customization of various visual elements like line style, colors, axis labels, and title. 
+    The resulting figure can be displayed or saved to a specified directory and file name.
 
     Parameters
     ----------
@@ -520,7 +595,17 @@ def scatter(
   vmin: float=None,
   vmax:float=None
   ) -> plt.figure:
-    """ Creates a scatter plot of the observed and simulated data.
+    """
+    Creates a scatter plot comparing observed and simulated data, with optional features like 
+    best fit lines, 45-degree reference lines, and metric annotations.
+
+    This function can handle both merged data (observed and simulated in a single DataFrame) and 
+    separate observed and simulated data DataFrames. Additionally, it can plot scatter plots over 
+    shapefiles for geographic data visualization.
+
+    The plot can be customized with various visual features, such as the color map, gridlines, 
+    markers, and axis labels. The function also allows adding a linear regression best-fit line, 
+    a 45-degree line, and annotations for metrics. The plot can be saved to a file if desired.
 
     Parameters
     ----------
@@ -817,6 +902,18 @@ def qqplot(
     ) -> plt.figure:
     """Plots a Quantile-Quantile plot of the simulated and observed data.
 
+    This function generates a Quantile-Quantile plot to compare the distribution of observed and simulated data.
+    By comparing the quantiles of the two datasets, the QQ plot provides a visual representation of the similarity
+    between the two distributions by showing us how closely the data points fall on the y=x line. 
+    
+    The function can handle data provided in three formats:
+    - A merged DataFrame containing both observed and simulated data.
+    - Separate observed and simulated DataFrames.
+
+    The plot allows customization of various visual elements like line style, colors, axis labels, and title. 
+    The resulting figure can be displayed or saved to a specified directory and file name.
+
+
     Parameters
     ----------
     grid : bool, optional
@@ -1005,43 +1102,92 @@ def flow_duration_curve(
     save: bool = False, 
     save_as: str = None, 
     dir: str = os.getcwd()
-    ) -> plt.figure:
+) -> plt.figure:
     """
-    Generate a Flow Duration Curve (FDC) comparing observed and simulated streamflow.
-    
+    Generate and plot a Flow Duration Curve (FDC) comparing observed and simulated streamflow data.
+
+    The Flow Duration Curve (FDC) is a graphical representation of the frequency distribution of flow 
+    values, showing the relationship between exceedance probability and streamflow magnitude. This function 
+    compares the observed and simulated data sets and generates the FDC for each column in the provided data.
+
+    The function can handle data provided in three formats:
+    - A merged DataFrame containing both observed and simulated data.
+    - Separate observed and simulated DataFrames.
+
+    The plot allows customization of various visual elements like line style, colors, axis labels, and title. 
+    The resulting figure can be displayed or saved to a specified directory and file name.
+
     Parameters
     ----------
     merged_df : pd.DataFrame, optional
-        The dataframe containing observed and simulated values with a datetime index.
+        A DataFrame containing both observed and simulated streamflow data. The observed data should be 
+        in the even-numbered columns, and the simulated data in the odd-numbered columns.
+        
     obs_df : pd.DataFrame, optional
-        Observed data series if separate from simulated.
+        A DataFrame containing observed streamflow data. This is used if `merged_df` is not provided.
+        
     sim_df : pd.DataFrame, optional
-        Simulated data series if separate from observed.
+        A DataFrame containing simulated streamflow data. This is used if `merged_df` is not provided.
+        
     legend : tuple of str, optional
-        Labels for the simulated and observed data.
+        A tuple with two string labels for the legend: the first for the simulated data and the second 
+        for the observed data. Defaults to ('Simulated Data', 'Observed Data').
+
     grid : bool, optional
-        Whether to display a grid.
+        Whether to display a grid on the plot. Defaults to False.
+
     title : str, optional
-        The title of the plot.
+        Title of the plot. If not provided, no title will be displayed.
+
     labels : tuple of str, optional
-        Labels for the x and y axes.
+        A tuple with two string labels for the x and y axes. Defaults to 
+        ('Exceedance Probability (%)', 'Flow (m³/s)').
+
     linestyles : tuple of str, optional
-        Line styles for the simulated and observed data.
+        A tuple with two strings specifying the line styles for the simulated and observed data, respectively. 
+        Defaults to ('r-', 'b-').
+
     linewidth : tuple of float, optional
-        Line widths for the simulated and observed data.
+        A tuple with two floats specifying the line widths for the simulated and observed data, respectively. 
+        Defaults to (1.5, 1.25).
+
     fig_size : tuple of float, optional
-        Figure size.
+        A tuple with two floats specifying the width and height of the figure in inches. Defaults to (10, 6).
+
     save : bool, optional
-        Whether to save the plot.
+        Whether to save the plot as a file. Defaults to False.
+
     save_as : str, optional
-        File name to save the plot.
+        The file name (with extension) to save the plot as. Only used if `save=True`.
+
     dir : str, optional
-        Directory to save the plot.
+        The directory to save the plot file. Only used if `save=True`. Defaults to the current working directory.
 
     Returns
     -------
-    fig : Matplotlib figure instance
+    fig : matplotlib.figure.Figure
+        The Matplotlib figure instance containing the FDC plot.
+
+    Raises
+    ------
+    RuntimeError
+        If neither `merged_df` nor both `obs_df` and `sim_df` are provided.
+
+    Example
+    -------
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> import postprocessinglib.evaluation.visuals as visuals
+    >>> # Example observed and simulated data
+    >>> observed = pd.DataFrame(np.random.randn(100, 1), columns=["Flow"])
+    >>> simulated = pd.DataFrame(np.random.randn(100, 1), columns=["Flow"])
+    >>> visuals.flow_duration_curve(observed=observed, simulated=simulated, title="FDC Example", grid =True)
+
+    .image:: ../Figures/FDC_Example.png
+
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-visualizations.ipynb>`_
     """
+
     if merged_df is not None:
         obs = merged_df.iloc[:, ::2]
         sim = merged_df.iloc[:, 1::2]
