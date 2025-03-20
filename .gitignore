@@ -7,6 +7,8 @@ build/
 tests/
 docs/source/notebooks/.ipynb_checkpoints/
 docs/source/notebooks/TEST.ipynb
+docs/source/notebooks/superimpose.png
+docs/source/notebooks/Examples.ipynb
 docs/source/_static/
 docs/source/_templates/
 docs/source/api/

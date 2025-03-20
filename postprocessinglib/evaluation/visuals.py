@@ -836,7 +836,7 @@ def qqplot(
         Determines whether the quantiles should be interpolated when the data length differs.
         If True, the quantiles are interpolated to align the data lengths between the observed
         and simulated data, ensuring accurate comparison.
-        Default is False.
+        Default is Linear.
 
     legend: bool
         Whether to display the legend or not. Default is False
