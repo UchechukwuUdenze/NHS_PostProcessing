@@ -291,10 +291,13 @@ def bounded_plot(
     ) -> plt.figure:
     """ 
     Plots time-series data with optional confidence bounds.
+    Generate a bounded time-series plot comparing observed and simulated streamflow with confidence intervals.
 
-    This function generates line plots for observed and simulated data, along with shaded confidence bounds. 
-    It supports flexible customization options, such as labels, legends, line styles, gridlines, and more. 
-    If the number of columns exceeds a threshold, the plots are automatically saved instead of being displayed.
+    A bounded plot is a time-series visualization that compares observed and simulated hydrological data while incorporating confidence bounds to represent uncertainty.
+    This function plots the streamflow data against Julian days, providing insights into seasonal variations and model performance over time. 
+    The confidence bounds, which can be defined using minimum-maximum ranges or percentiles (e.g., 5th-95th or 25th-75th percentiles), highlight the range of variability in the observed and simulated datasets. 
+    The function allows for flexible customization of labels, legends, transparency, and line styles. 
+    This visualization is particularly useful for evaluating hydrological models, identifying systematic biases, and assessing the reliability of simulated streamflow under different flow conditions. 
 
     Parameters
     ----------
@@ -816,6 +819,12 @@ def qqplot(
     dir: str = os.getcwd()
     ) -> plt.figure:
     """Plots a Quantile-Quantile plot of the simulated and observed data.
+    Generate a Quantile-Quantile (QQ) plot to compare the statistical distribution of simulated and observed data.
+
+    A Quantile-Quantile (QQ) plot is a graphical technique for assessing whether two datasets come from the same distribution by plotting their quantiles against each other. 
+    If the datasets have identical distributions, the points should fall along the 1:1 line. This function calculates and visualizes the quantiles of observed and simulated streamflow data, interpolating if necessary, and marks key statistical features such as the interquartile range. 
+    By comparing the empirical quantiles of simulated and observed data, the QQ plot helps evaluate the performance of hydrological models in reproducing streamflow distributions, highlighting potential biases and differences in variability.
+    It is an essential tool in hydrology and environmental sciences for assessing the agreement between measured and modeled hydrological variables.
 
     Parameters
     ----------
@@ -1008,6 +1017,12 @@ def flow_duration_curve(
     ) -> plt.figure:
     """
     Generate a Flow Duration Curve (FDC) comparing observed and simulated streamflow.
+    
+    A Flow Duration Curve (FDC) is a graphical representation of the percentage of time that streamflow is equal to or exceeds a particular value over a given period. 
+    It provides insights into the variability and availability of water in a river system, capturing both high and low flow conditions. 
+    This function calculates the exceedance probability of observed and simulated streamflow, ranks the values from highest to lowest, and plots them on a probability scale. 
+    The FDC is a crucial tool in hydrology for assessing water availability, evaluating hydrological model performance, and understanding flow regime characteristics.
+
     
     Parameters
     ----------
