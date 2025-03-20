@@ -30,7 +30,7 @@ If you want to install an editable version to implememt your own models or datas
     git clone https://github.com/UchechukwuUdenze/NHS_PostProcessing.git
 
 
-or just download the zip file `here <https://github.com/UchechukwuUdenze/NHS_PostProcessing/archive/refs/heads/main.zip>`_
+or just download the zip file `here <https://github.com/UchechukwuUdenze/NHS_PostProcessing/archive/refs/tags/v1.0.0.zip>`_
 
 After this, you are then left with a directory called *NHS_PostProcessing* or *NHS_PostProcessing-main*.  Next, we’ll go to that directory and install a local, editable copy of the package:
 

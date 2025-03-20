@@ -6,6 +6,8 @@
 NHS_postprocessing's documentation!
 ===================================
 
+<mark>**The link to th elates version of this is available `here <https://nhs-postprocessing.readthedocs.io/en/latest/>`_**</mark>
+
 The NHS_PostProcessing Library is a library of tools and functions for NHS(National Hydrological Services) users working with time series data.
 All of the tools contained in the library are built using a few different python libraries including numpy, scipy, pandas, matplotlib amongst 
 others and it was made this way to provode a high level, interface for NHS users to perform all forms of data manipulation, analysis and visualization
