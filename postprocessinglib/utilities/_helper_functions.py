@@ -5,7 +5,7 @@ before it gets evaluated and present the data properly.
 It uses ``check_valid_dataframe`` to check if a dataframe just contains invalid values such as Nan or negative values.
 It contains functions like ``filer_valid_data`` which help in filtering out rows contain Nan, negative or zero values.
 It also contains functions like ``validate_data`` which help in making sure that the dataframes are valid and have the 
-same shape and size. Functions like ``sig_figs`` and ``leap_year``which help in rounding numbers
+same shape and size. Functions like ``sig_figs`` and ``leap_year`` which help in rounding numbers
 to a certain number of significant figures and determining if a year is a leap year respectively
 
 """
@@ -64,7 +64,9 @@ def check_valid_dataframe(observed: pd.DataFrame, simulated: pd.DataFrame):
     >>> .
     >>> _helper_functions.check_valid_dataframe(observed=obs, simulated=sim)
     >>> # Error is raised due to all the observed values being invalid
-    >>> # The error message is as follows: "All observed values are NaN"
+    >>> # The error message is as follows: 
+    AllInvalidError: All observed values are invalid(negative)
+
     """
     if len(observed.index) == 0:
         raise AllInvalidError("All observed values are NaN")
@@ -88,6 +90,22 @@ def is_leap_year(year: int) -> bool:
     --------
     bool: 
         True if it is a leap year, False otherwise
+
+    Example
+    --------
+    >>> from postprocessinglib.utilities import _helper_functions
+    >>> # Test 1: Testing the is_leap_year function with a leap year
+    >>> leap_year = 2000
+    >>> is_leap = _helper_functions.is_leap_year(leap_year)
+    >>> print(is_leap)
+    True
+
+    >>> # Test 2: Testing the is_leap_year function with a non-leap year
+    >>> non_leap_year = 2001
+    >>> is_leap = _helper_functions.is_leap_year(non_leap_year)
+    >>> print(is_leap)
+    False
+
     """
     if year % 4 == 0:
         return True
@@ -108,13 +126,13 @@ def datetime_to_index(datetime :str)-> tuple[int, int]:
 
     Example
     --------
-    Convert the follwing datetime values to index values: "2020-01-01", "1995-12-31", "2000-02-29"
-
-    >>> datetime_to_index("2020-01-01")
+    >>> #Convert the follwing datetime values to index values: "2020-01-01", "1995-12-31", "2000-02-29"
+    >>> from postprocessinglib.utilities import _helper_functions
+    >>> _helper_functions.datetime_to_index("2020-01-01")
         (2020, 1)
-    >>> datetime_to_index("1995-12-31")
+    >>> _helper_functions.datetime_to_index("1995-12-31")
         (1995, 365)
-    >>> datetime_to_index("2000-02-29")
+    >>> _helper_functions.datetime_to_index("2000-02-29")
         (2000, 60)
 
     """
@@ -151,14 +169,14 @@ def MultiIndex_to_datetime(index: tuple) -> str:
 
     Example
     --------
-    Convert the follwing multiindex values to datetime values: (2020, 1), (1995, 365), (2000, 60)
-
-    >>> MultiIndex_to_datetime((2020, 1))
-        "2020-01-01"
-    >>> MultiIndex_to_datetime((1995, 365))
-        "1995-12-31"
-    >>> MultiIndex_to_datetime((2000, 60))
-        "2000-02-29"
+    >>> # Convert the follwing multiindex values to datetime values: (2020, 1), (1995, 365), (2000, 60)
+    >>> from postprocessinglib.utilities import _helper_functions
+    >>> _helper_functions.MultiIndex_to_datetime((2020, 1))
+    "2020-01-01"
+    >>> _helper_functions.MultiIndex_to_datetime((1995, 365))
+    "1995-12-31"
+    >>> _helper_functions.MultiIndex_to_datetime((2000, 60))
+    "2000-02-29"
 
     """
     year = str(index[0])
@@ -203,54 +221,92 @@ def validate_data(observed: pd.DataFrame, simulated: pd.DataFrame):
     >>> import numpy as np
     >>> import pandas as pd
     >>> from postprocessinglib.utilities import _helper_functions
-    >>> # Create your index as an array
-    >>> index = np.array([1981, 1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990])
-    >>> .
-    >>> # Create a test dataframe
-    >>> test_df = pd.DataFrame(data = data, columns = ("obs1", "sim1", "obs2", "sim2"), index = index)
+    >>> # Assuming we have the following dataframes: test_df
+    >>> print(test_df)
+              obs1      sim1      obs2      sim2
+    1981  0.553080  0.266127  0.043270  0.109264
+    1982  0.034076  0.428959  0.507130  0.213583
+    1983  0.876142  0.330159  0.850529  0.522809
+    1984      -inf  0.474980  0.099652  0.959624
+    1985  0.439705  0.438630  0.294566       NaN
+    1986       NaN  0.134409       NaN  0.680744
+    1987  0.598378  0.668143  0.312386  0.345419
+    1988  0.934277  0.840275  0.491060       inf
+    1989  0.169541  0.557099  0.813971  0.006391
+    1990  0.219000       NaN  0.931811       NaN
+    >>> # extracting the observed and simulated dataframes
     >>> obs = test_df.iloc[:, ::2]
-    >>> sim_test_1 = test_df.iloc[:, 1]
-    >>> sim_test_2 = np.array([1, 2, 3, 4])
-    >>> sim_test_3 = pd.DataFrame(index = index)
-    >>> print(obs)
-              obs1      obs2
-    1981       NaN  0.761252
-    1982  0.332201  0.229883
-    1983  0.251259       inf
-    1984  0.620732  0.266127
-    1985      -inf      -inf
-    1986  0.013643  0.473920
-    1987       NaN  0.466392
-    1988  0.115222       NaN
-    1989  0.434341       NaN
-    1990       NaN  0.428369
+    >>> print(obs)      
+            obs1      obs2
+    1981  0.553080  0.043270
+    1982  0.034076  0.507130
+    1983  0.876142  0.850529
+    1984      -inf  0.099652
+    1985  0.439705  0.294566
+    1986       NaN       NaN
+    1987  0.598378  0.312386
+    1988  0.934277  0.491060
+    1989  0.169541  0.813971
+    1990  0.219000  0.931811
+    >>> sim = test_df.iloc[:, 1::2]
+    >>> print(sim)
+            sim1      sim2
+    1981  0.266127  0.109264
+    1982  0.428959  0.213583
+    1983  0.330159  0.522809
+    1984  0.474980  0.959624
+    1985  0.438630       NaN
+    1986  0.134409  0.680744
+    1987  0.668143  0.345419
+    1988  0.840275       inf
+    1989  0.557099  0.006391
+    1990       NaN       NaN
+
+    >>> # Test 1: Testing the validate_data function with correct inputs as shown above
+    >>> _helper_functions.validate_data(observed=obs, simulated=sim)
+    >>> # No error is raised as the dataframes are valid
+
+    >>> # Test 2: Testing the validate_data function with incorrect inputs: different shapes/sizes of dataframes
+    >>> sim_test_2 = test_df.iloc[:, 1]  # Creating a simulated dataframe with different shape
     >>> print(sim_test_1)
               sim1
-    1981       inf
-    1982  0.577598
-    1983      -inf
-    1984  0.121188
-    1985  0.038524
-    1986  0.992656
-    1987  0.422545
-    1988  0.319578
-    1989       inf
-    1990  0.658737
-    >>> print(sim_test_2)
-    [1 2 3 4]
-    >>> print(sim_test_3)
-    Empty DataFrame
-    Columns: []
-    Index: [1981, 1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990]
-    >>> . 
+    1981  0.266127
+    1982  0.428959
+    1983  0.330159
+    1984  0.474980
+    1985  0.438630
+    1986  0.134409
+    1987  0.668143
+    1988  0.840275
+    1989  0.557099
+    1990       NaN
     >>> _helper_functions.validate_data(observed=obs, simulated=sim_test_1)
     >>> # Error is raised due to the different shapes of the dataframes
     >>> # The error message is as follows: "Shapes of observations and simulations must match"
-    >>> .
+
+    >>> Test3: Testing the validate_data function with incorrect inputs: simulated dataframe not being a dataframe
+    >>> sim_test_3 = sim.to_numpy()  # converting the simulated dataframe to a numpy array
+    >>> print(sim_test_3)
+    array([[0.26612732, 0.10926379],
+        [0.42895924, 0.21358297],
+        [0.33015897, 0.52280869],
+        [0.47498004, 0.959624  ],
+        [0.43862956,        nan],
+        [0.13440895, 0.68074365],
+        [0.66814327, 0.34541874],
+        [0.84027532,        inf],
+        [0.55709876, 0.00639057],
+        [       nan,        nan]])
     >>> _helper_functions.validate_data(observed=obs, simulated=sim_test_2)
     >>> # Error is raised due to the simulated data not being a dataframe
     >>> # The error message is as follows: "Both observed and simulated values must be pandas DataFrames."
-    >>> .
+
+    >>> # Test 4: Testing the validate_data function with incorrect inputs: simulated dataframe being an empty dataframe
+    >>> sim_test_4 = pd.DataFrame(index = obs.index)
+    >>> print(sim_test_4)
+    Empty DataFrame
+    Columns: []
+    Index: [1981, 1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990]
     >>> _helper_functions.validate_data(observed=obs, simulated=sim_test_3)
     >>> # Error is raised due to the simulated data being an empty dataframe
     >>> # The error message is as follows: "observed or simulated data is incomplete"
@@ -264,6 +320,8 @@ def validate_data(observed: pd.DataFrame, simulated: pd.DataFrame):
 
     if (len(observed.shape) < 1) or (observed.shape[1] < 1) or (len(simulated.shape) < 1) or (simulated.shape[1] < 1):
         raise RuntimeError("observed or simulated data is incomplete")
+
+    # print("Dataframes are valid")
 
 
 def filter_valid_data(df: pd.DataFrame, station_num: int = 0, station: str = "") -> pd.DataFrame:
@@ -298,29 +356,29 @@ def filter_valid_data(df: pd.DataFrame, station_num: int = 0, station: str = "")
     >>> index = np.array([1981, 1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990])
     >>> .
     >>> # Create a test dataframe
-    >>> test_df = pd.DataFrame(data = data, columns = ("obs1", "sim1", "obs2", "sim2"), index = index)
+    >>> test_df = pd.DataFrame(data = data, columns = ("obs1"), index = index)
     >>> print(test_df)
-            obs1      sim1      obs2      sim2
-    1981       NaN       inf  0.761252       NaN
-    1982  0.332201  0.577598  0.229883      -inf
-    1983  0.251259      -inf       inf  0.006224
-    1984  0.620732  0.121188  0.266127  0.324645
-    1985      -inf  0.038524      -inf  0.126910
-    1986  0.013643  0.992656  0.473920  0.536638
-    1987       NaN  0.422545  0.466392  0.363516
-    1988  0.115222  0.319578       NaN  0.181709
-    1989  0.434341       inf       NaN  0.971740
-    1990       NaN  0.658737  0.428369       NaN
+              obs1    
+    1981       NaN     
+    1982  0.332201 
+    1983  0.251259
+    1984  0.620732 
+    1985      -inf 
+    1986  0.013643 
+    1987       NaN  
+    1988  0.115222 
+    1989  0.434341 
+    1990       NaN
     >>> .
     >>> valid_data = _helper_functions.filter_valid_data(df=test_df, station_num=0) 
     >>> print(valid_data) 
-            obs1      sim1      obs2      sim2
-    1982  0.332201  0.577598  0.229883  0.000000
-    1983  0.251259  0.000000  0.000000  0.006224
-    1984  0.620732  0.121188  0.266127  0.324645
-    1986  0.013643  0.992656  0.473920  0.536638
-    1988  0.115222  0.319578  0.000000  0.181709
-    1989  0.434341  0.000000  0.000000  0.971740
+              obs1    
+    1982  0.332201  
+    1983  0.251259 
+    1984  0.620732 
+    1986  0.013643 
+    1988  0.115222 
+    1989  0.434341
     >>> ## Obsereve how all the 'invalid' values in obs1 have been removed.
 
     """
@@ -345,7 +403,7 @@ def filter_valid_data(df: pd.DataFrame, station_num: int = 0, station: str = "")
 
 def sig_figs(x: float, precision: int)-> float:
     """
-    Rounds a number to number of significant figures
+    Rounds a number to number of significant figures as specified by the precision
 
     Parameters
     ----------
@@ -358,6 +416,14 @@ def sig_figs(x: float, precision: int)-> float:
     -------
     float:
         the number rounded to the requested significant figures
+
+    Example
+    -------
+    >>> from postprocessinglib.utilities import _helper_functions
+    >>> number = 1.2342443
+    >>> rounded_number = _helper_functions.sig_figs(number, 3)
+    >>> print(rounded_number)
+    1.23
     """
     if not np.isnan(x):
         x = float(x)

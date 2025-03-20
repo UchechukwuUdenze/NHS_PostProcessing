@@ -22,7 +22,8 @@ The post processing library provides tools to aid with
 - Data Visualizations
 
 #### Note:
-<mark>This is a work in progress and I am very open to suggestions and ideas</mark>
+<mark>This is a work in progress and I am very open to suggestions and ideas
+The link to the latest version of the documentation page is available [here](https://nhs-postprocessing.readthedocs.io/en/latest/) </mark>
 
 - Documentation: [NHS_postprocessing ReadTheDocs](https://nhs-postprocessing.readthedocs.io/en/stable/)
 - Bug reports/Feature Requests: [Issues](https://github.com/UchechukwuUdenze/NHS_PostProcessing/issues)
