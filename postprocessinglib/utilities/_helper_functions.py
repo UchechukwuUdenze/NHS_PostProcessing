@@ -24,7 +24,7 @@ def check_valid_dataframe(observed: pd.DataFrame, simulated: pd.DataFrame):
         both the observed and simulated seperately and makes sure that its values are not all Nan, negative or zero.
         If any of these conditions are not met, it raises an AllInvalidError specifying which condition was not met.  
 
-    Parameters:
+    Parameters
     -----------
     observed: pd.DataFrame
             The observed dataframe being checked.
@@ -34,10 +34,10 @@ def check_valid_dataframe(observed: pd.DataFrame, simulated: pd.DataFrame):
 
     Raises
     ------
-    AllInvalidError
-        If all observations or all simulations are NaN or negative.
+    AllInvalidError:
+            If all observations or all simulations are NaN or negative.
 
-    Example:
+    Example
     --------
     >>> import numpy as np
     >>> import pandas as pd
@@ -79,12 +79,12 @@ def check_valid_dataframe(observed: pd.DataFrame, simulated: pd.DataFrame):
 def is_leap_year(year: int) -> bool:
     """ Determines if a year is a leap year
 
-    Parameters:
+    Parameters
     -----------
     year: int
             the year being checked
 
-    Returns:
+    Returns
     --------
     bool: 
         True if it is a leap year, False otherwise
@@ -96,17 +96,17 @@ def is_leap_year(year: int) -> bool:
 def datetime_to_index(datetime :str)-> tuple[int, int]:
     """ Convert the datetime value to index value for use in the dataframe
 
-    Parameters:
+    Parameters
     -----------
     datetime: str
             a string containing the date being searched for entered in the format "yyyy-mm-dd"
 
-    Returns:
+    Returns
     --------
     tuple: [int, int]
         an index representing the year and jday index of the dataframe
 
-    Example:
+    Example
     --------
     Convert the follwing datetime values to index values: "2020-01-01", "1995-12-31", "2000-02-29"
 
@@ -139,17 +139,17 @@ def datetime_to_index(datetime :str)-> tuple[int, int]:
 def MultiIndex_to_datetime(index: tuple) -> str:
     """ Convert the MultiIndex value to a datetime value for use in the dataframe
 
-    Parameters:
+    Parameters
     -----------
     index: tuple[int, int]
             an index representig the year and jday index of the dataframe
 
-    Returns:
+    Returns
     --------
     str:
         a string of the date in the format "yyyy-mm-dd"
 
-    Example:
+    Example
     --------
     Convert the follwing multiindex values to datetime values: (2020, 1), (1995, 365), (2000, 60)
 
@@ -196,9 +196,9 @@ def validate_data(observed: pd.DataFrame, simulated: pd.DataFrame):
             or if the dataframes are empty
 
     ValueError:
-            if the inputs are not dataframes 
-
-    Example:
+            if the inputs are not dataframes
+            
+    Example
     --------
     >>> import numpy as np
     >>> import pandas as pd
@@ -285,11 +285,11 @@ def filter_valid_data(df: pd.DataFrame, station_num: int = 0, station: str = "")
 
     Returns
     -------
-    pd.DataFrame: 
+    pd.DataFrame:
             the modified input dataframe with rows containing NaN, negative
             and inf values removed.
     
-    Example:
+    Example
     --------
     >>> import numpy as np
     >>> import pandas as pd
