@@ -666,7 +666,7 @@ def histogram(
                     bins = 100,
                     labels=['Frequency', 'Value'], grid=True)
 
-    .. image:: ../Figures/hist1_example.png
+    .. image:: ../Figures/hist1_Example.png
 
     >>> # Example 2: Plotting only observed and simulated data with custom linestyles and saving the plot
     >>> obs_data = pd.DataFrame({...})  # Your observed data
@@ -674,22 +674,15 @@ def histogram(
     >>> visuals.plot(obs_df = obs_data, sim_df = sim_data, colors=('g', 'c'), bins = 100, z_norm = True
                     save=True, save_as="hist2_example", dir="../Figures")
 
-    .. image:: ../Figures/hist2_example.png
+    .. image:: ../Figures/hist2_Example.png
 
     >>> # Example 3: Plotting a single dataframe
     >>> single_data = pd.DataFrame({...})  # Your single dataframe (either simulated or observed)
     >>> visuals.plot(df=single_data, grid=True, title="Single Histogram Plot", labels=("Time", "Frequency"))
 
-    .. image:: ../Figures/hist3_example.png
+    .. image:: ../Figures/hist3_Example.png
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-visualizations.ipynb>`_
-
-    Notes
-    -----
-    - The function requires at least one valid data input (merged_df, obs_df, sim_df, or df).
-    - The time index of the input DataFrames must be a datetime index or convertible to datetime.
-    - If the number of columns in the `obs_df` or `sim_df` exceeds five, the plot will be automatically saved.
-    - Metrics will be displayed on the plot if specified in the `metrices` parameter.
 
     """
     # Assign the data based on inputs
