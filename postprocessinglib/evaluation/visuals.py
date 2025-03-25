@@ -561,8 +561,224 @@ def bounded_plot(
             auto_save = len(line_obs.columns) > 5
             _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "bounded-plot")        
 
-def histogram():
-    return
+def histogram(
+    merged_df: pd.DataFrame = None, 
+    df: pd.DataFrame = None, 
+    obs_df: pd.DataFrame = None, 
+    sim_df: pd.DataFrame = None,
+    bins: int = 30,
+    legend: Tuple[str, str] = ('Simulated Data', 'Observed Data'),
+    colors: Tuple[str, str] = ('r', 'b'),
+    transparency: float = 0.6,
+    z_norm=False,
+    prob_dens=False,
+    fig_size: Tuple[float, float] = (12, 6),
+    title: str = None,
+    labels: Tuple[str, str] = ('Value', 'Frequency'),
+    grid: bool = False,
+    save: bool = False,
+    save_as: str = None,
+    dir: str = os.getcwd()
+    ) -> plt.figure:
+    """
+    Plots Histogram for Observed and Simulated Data with Optional Normalization
+
+    This function generates a histogram comparing the distribution of observed and simulated data, providing insights into their statistical characteristics and variability.
+    The histogram allows users to analyze the frequency distribution of hydrological data, assess model performance, and identify biases in the simulated dataset.
+    The function supports Z-score normalization, which transforms the data into standard deviations from the mean, enabling comparison of datasets with different scales. 
+    It also includes an option to plot the histogram as a probability density function (PDF), ensuring that the area under the histogram sums to one, making it easier to compare distributions.
+    Users can customize the number of bins, colors, legend labels, and transparency levels to enhance visualization clarity. The function also allows for gridlines, axis labeling,
+    and automatic or manual saving of plots.
+    This visualization is particularly useful for hydrological modeling, statistical analysis, and understanding deviations between observed and simulated streamflow distributions under various conditions.
+
+    Parameters
+    ----------
+    merged_df : pd.DataFrame, optional
+        The dataframe containing the series of observed and simulated values. It must have a datetime index.
+        
+    obs_df : pd.DataFrame, optional
+        A DataFrame containing the observed data series if using separate observed and simulated data.
+
+    sim_df : pd.DataFrame, optional
+        A DataFrame containing the simulated data series if using separate observed and simulated data.
+
+    df : pd.DataFrame, optional
+        A DataFrame containing the data to be plotted if no merged or separate observed/simulated data are provided.
+
+    legend : tuple of str, optional
+        A tuple containing the labels for the simulated and observed data, default is ('Simulated Data', 'Observed Data').
+
+    bins: int
+        Specifies the number of bins in the histogram.
+
+    z_norm: bool
+        If True, the data will be Z-score normalized.
+    
+    prob_dens: bool
+        If True, normalizes both histograms to form a probability density, i.e., the area
+        (or integral) under each histogram will sum to 1.
+
+    legend: tuple of str
+        Tuple of length two with str inputs. Adds a Legend in the 'best' location determined by
+        matplotlib. The entries in the tuple label the simulated and observed data
+        (e.g. ['Simulated Data', 'Predicted Data']).
+
+    grid: bool
+        If True, adds a grid to the plot.
+
+    title: str
+        If given, sets the title of the plot.
+
+    labels: tuple of str
+        Tuple of two string type objects to set the x-axis labels and y-axis labels, respectively.
+
+    figsize: tuple of float
+        Tuple of length two that specifies the horizontal and vertical lengths of the plot in
+        inches, respectively.
+
+    colors : tuple of str, optional
+        Colors for the simulated and observed histograms.
+
+    transparency : float, optional
+        Transparency level for the histograms, default is 0.6.
+
+    save : bool, optional
+        Whether to save the plot to a file, default is False.
+
+    save_as : str or list of str, optional
+        The name or list of names to save the plot as. If a list is provided, each plot will be saved with the corresponding name.
+
+    dir : str, optional
+        The directory to save the plot to, default is the current working directory.   
+
+    Returns
+    -------
+    fig : Matplotlib figure instance and/or png files of the figures.
+
+    Examples
+    --------
+
+    >>> from postprocessinglib.evaluation import visuals
+    >>> # Example 1: Plotting merged data with simulated and observed values
+    >>> merged_data = pd.DataFrame({...})  # Your merged dataframe
+    >>> visuals.plot(merged_df = merged_data,
+                    title='Simulated vs Observed',
+                    bins = 100,
+                    labels=['Frequency', 'Value'], grid=True)
+
+    .. image:: ../Figures/hist1_example.png
+
+    >>> # Example 2: Plotting only observed and simulated data with custom linestyles and saving the plot
+    >>> obs_data = pd.DataFrame({...})  # Your observed data
+    >>> sim_data = pd.DataFrame({...})  # Your simulated data
+    >>> visuals.plot(obs_df = obs_data, sim_df = sim_data, colors=('g', 'c'), bins = 100, z_norm = True
+                    save=True, save_as="hist2_example", dir="../Figures")
+
+    .. image:: ../Figures/hist2_example.png
+
+    >>> # Example 3: Plotting a single dataframe
+    >>> single_data = pd.DataFrame({...})  # Your single dataframe (either simulated or observed)
+    >>> visuals.plot(df=single_data, grid=True, title="Single Histogram Plot", labels=("Time", "Frequency"))
+
+    .. image:: ../Figures/hist3_example.png
+
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-visualizations.ipynb>`_
+
+    Notes
+    -----
+    - The function requires at least one valid data input (merged_df, obs_df, sim_df, or df).
+    - The time index of the input DataFrames must be a datetime index or convertible to datetime.
+    - If the number of columns in the `obs_df` or `sim_df` exceeds five, the plot will be automatically saved.
+    - Metrics will be displayed on the plot if specified in the `metrices` parameter.
+
+    """
+    # Assign the data based on inputs
+    if merged_df is not None:
+        # If merged_df is provided, separate observed and simulated data
+        obs = merged_df.iloc[:, ::2]
+        sim = merged_df.iloc[:, 1::2]
+    elif sim_df is not None and obs_df is not None:
+        # If both sim_df and obs_df are provided
+        obs = obs_df
+        sim = sim_df
+    elif df is not None:
+        # If only df is provided, treat it as both observed and simulated data
+        obs = df # to keep the future for loop valid
+        sim = None
+        line_df = df
+    else:
+        raise RuntimeError('Please provide valid data (merged_df, obs_df, sim_df, or df)')
+    
+    for i in range (0, len(obs.columns)):
+        # Manipulating and generating the Data
+        if z_norm:
+            # calculating the z-score for the observed data
+            obs.iloc[:, i] = (obs.iloc[:, i] - obs.iloc[:, i].mean()) / obs.iloc[:, i].std()
+
+            if sim is not None:
+                # calculating the z-score for the simulated data 
+                sim.iloc[:, i] = (sim.iloc[:, i] - sim.iloc[:, i].mean()) / sim.iloc[:, i].std()
+
+        # finding the mimimum and maximum z-scores
+        total_max = max(obs.iloc[:, i].max(), sim.iloc[:, i].max()) if sim is not None else obs.iloc[:, i].max()
+        total_min = min(obs.iloc[:, i].min(), sim.iloc[:, i].min()) if sim is not None else obs.iloc[:, i].min()
+        num_bins = np.linspace(total_min - 0.01, total_max + 0.01, bins)
+
+        # creating the bins based on the max and min
+        num_bins = np.linspace(total_min - 0.01, total_max + 0.01, bins)    
+
+        # Getting the fig and axis handles
+        fig = plt.figure(figsize=fig_size)
+        ax = fig.add_subplot(111) 
+
+        # Plotting the Data
+        ax.hist(obs.iloc[:, i],
+                bins=num_bins,
+                alpha=transparency,
+                label=legend[1],
+                color=colors[1],
+                edgecolor='black',
+                linewidth=0.5,
+                density=prob_dens)
+        if sim is not None:
+            ax.hist(sim.iloc[:, i],
+                bins=num_bins,
+                alpha=transparency,
+                label=legend[0],
+                color=colors[0],
+                edgecolor='black',
+                linewidth=0.5,
+                density=prob_dens)
+            plt.legend(labels=[legend[1],legend[0]], loc='best')
+
+        # Placing Labels, title and grid if requested
+        plt.xticks(fontsize=15, rotation=45)
+        plt.yticks(fontsize=15)
+
+        if labels:
+            # Plotting Labels
+            plt.xlabel(labels[0], fontsize=18)
+            plt.ylabel(labels[1], fontsize=18)
+        
+        if title:
+            title_dict = {'family': 'sans-serif',
+                        'color': 'black',
+                        'weight': 'normal',
+                        'size': 20,
+                        }
+            ## Check that the title is a list of strings or a single string
+            if isinstance(title, list):
+                ax.set_title(title[i] if i < len(title) else f"Histogram Plot {i + 1}", fontdict=title_dict, pad=25)
+            elif isinstance(title, str):
+                ax.set_title(label=title, fontdict=title_dict, pad=25)
+
+        # Placing a grid if requested
+        if grid:
+            plt.grid(True)
+
+        # Save or auto-save for large column counts
+        auto_save = len(obs.columns) > 5
+        _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "histogram")
 
 def scatter(
   grid: bool = False, 
