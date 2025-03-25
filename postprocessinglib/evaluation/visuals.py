@@ -668,10 +668,10 @@ def histogram(
 
     .. image:: ../Figures/hist1_Example.png
 
-    >>> # Example 2: Plotting only observed and simulated data with custom linestyles and saving the plot
+    >>> # Example 2: Plotting observed and simulated data with custom linestyles and saving the plot
     >>> obs_data = pd.DataFrame({...})  # Your observed data
     >>> sim_data = pd.DataFrame({...})  # Your simulated data
-    >>> visuals.plot(obs_df = obs_data, sim_df = sim_data, colors=('g', 'c'), bins = 100, z_norm = True
+    >>> visuals.plot(obs_df = obs_data, sim_df = sim_data, colors=('g', 'c'), bins = 100, z_norm = True, prob_dens = True,
                     save=True, save_as="hist2_example", dir="../Figures")
 
     .. image:: ../Figures/hist2_Example.png
