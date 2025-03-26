@@ -432,3 +432,61 @@ def sig_figs(x: float, precision: int)-> float:
     else:
         return np.nan
     
+def columns_to_MultiIndex(cols: pd.Index) -> pd.MultiIndex:
+    """
+    Converts a single level column Index to a MultiIndex with two levels
+    It is very specific to the use case in the ``generate_dataframes`` function 
+    in the ``data`` module. It is used to convert the column names and indexes to 
+    multiindexes that can be used to more easily select specific columns from the dataframe. 
+
+    Parameters
+    ----------
+    cols: pd.Index
+        the single level column index to be converted
+
+    Returns
+    -------
+    pd.MultiIndex:
+        the MultiIndex with two levels
+
+    Example
+    -------
+    >>> import pandas as pd
+    >>> from postprocessinglib.utilities import _helper_functions
+    >>> index = pd.Index(["obs_st1", "sim_st1", "sim_st1", "sim_st1",
+                          "obs_st2", "sim_st2", "sim_st2", "sim_st2"])
+    >>> multi_index = _helper_functions.colums_to_MultiIndex(index)
+    >>> print(multi_index)
+    MultiIndex([('st1', 'OBS'),
+            ('st1', 'SIM1'),
+            ('st1', 'SIM2'),
+            ('st1', 'SIM3'),
+            ('st2', 'OBS'),
+            ('st2', 'SIM1'),
+            ('st2', 'SIM2'),
+            ('st2', 'SIM3')],
+           )
+    """
+    # Extract station names and assign proper QOSIM numbering
+    stations = []
+    measurements = []
+
+    sim_count = {}  # Track the occurrence of each station's QOSIM
+
+    for col in cols:
+        parts = col.split('_')
+        measurement, station = parts[0], parts[1]
+
+        if measurement == "QOMEAS":
+            measurements.append("QOMEAS")
+        else:
+            sim_count[station] = sim_count.get(station, 0) + 1
+            measurements.append(f"QOSIM{sim_count[station]}")
+
+        stations.append(station)
+
+    # Convert to MultiIndex
+    multi_index = pd.MultiIndex.from_tuples(zip(stations, measurements))
+
+    return multi_index
+    
