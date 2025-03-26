@@ -718,349 +718,376 @@ def yearly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
     return yearly_aggr  
 
 
-def generate_dataframes(csv_fpath: str='', sim_fpath: str='', obs_fpath: str='', warm_up: int = 0, start_date :str = "", end_date: str = "",
-                        daily_agg:bool=False, da_method:str="", weekly_agg:bool=False, wa_method:str="",
-                        monthly_agg:bool=False, ma_method:str="", yearly_agg:bool=False, ya_method:str="",
-                        seasonal_p:bool=False, sp_dperiod:tuple[str, str]=[], sp_subset:tuple[str, str]=None,
-                        long_term:bool=False, lt_method=None) -> dict[str, pd.DataFrame]:
-    """ 
-    Function to Generate the required dataframes
-
-    Parameters
-    ----------
-    csv_fpath : string
-            the path to the csv file. It can be relative or absolute. If given, sim_fpath and obs_fpath
-            must be None.
-    sim_fpath: str
-        The filepath to the simulated csv of data. If given obs_fpath must also be given and csv_fpath
-        must be None. 
-    obs_fpath: str
-        The filepath to the observed csv of the data. If given sim_fpath must also be given and csv_fpath
-        must be None.
-    warm_up: int 
-            number of days required to "warm up" the system
-    start_date: str 
-            The date at which you want to start calculating the metric in the
-            format yyyy-mm-dd
-    end_date: str
-            The date at which you want the calculations to end in the
-            format yyyy-mm-dd
-    daily_agg: bool = False
-            If True calculate and return the daily aggregate of the combined dataframes
-            using da_method if its available
-    da_method: str = ""
-            If provided, it determines the method of daily aggregation. It 
-            is "mean" by default, see daily_aggregate() function
-    weekly_agg: bool = False
-            If True calculate and return the weekly aggregate of the combined dataframes
-            using wa_method if its available
-    wa_method: str = ""
-            If provided, it determines the method of weekly aggregation. It 
-            is "mean" by default, see weekly_aggregate() function
-    monthly_agg: bool = False
-            If True calculate and return the monrhly aggregate of the combined dataframes
-            using ma_method if its available
-    ma_method: str = ""
-            If provided, it determines the method of monthly aggregation. It 
-            is "mean" by default, see monthly_aggregate() function
-    yearly_agg: bool = False
-            If True calculate and return the yearly aggregate of the combined dataframes
-            using ya_method if its available
-    ya_method: str = ""
-            If provided, it determines the method of yearly aggregation. It 
-            is "mean" by default, see yearly_aggregate() function
-    seasonal_p: bool = False
-            If True calculate and return a dataframe truncated to fit the parameters specified
-            for the seasonal period 
-            Requirement:- sp_dperiod.
-    sp_dperiod: tuple(str, str)
-            A list of length two with strings representing the start and end dates of the seasonal period (e.g.
-            (01-01, 01-31) for Jan 1 to Jan 31.
-    sp_subset: tuple(str, str)
-            A tuple of string values representing the start and end dates of the time range. Format is YYYY-MM-DD.
-    longterm: bool = False
-            If True calculates the min, max and median values for the long term seasonal. It will also create
-            additional dataframes depending on the value of 'lt_method'.
-    lt_method
-            Specifies extra long term dataframes to create
-
-    Returns
-    -------
-    dict[str, pd.dataframe]
-            A dictionary containing each Dataframe requested. Its default content is:
-
-            - DF = merged dataframe
-            - DF_SIMULATED = all simulated data
-            - DF_OBSERVED = all observed data
-            
-            Depending on which you requested it can also contain:
-
-            - DF_DAILY = dataframe aggregated by days of the year
-            - DF_WEEKLY = dataframe aggregated by the weeks of the year
-            - DF_MONTHLY = dataframe aggregated by months of the year
-            - DF_YEARLY = dataframe aggregated by all the years in the data
-            - DF_CUSTOM = dataframe truncated as per the seasonal period parameters
-            - DF_LONGTERM_MIN = long term seasonal dataframe aggregated using the min of its daily values 
-            - DF_LONGTERM_MAX = long term seasonal dataframe aggregated using the max of its daily values
-            - DF_LONGTERM_MEAN =  long term seasonal dataframe aggregated using the mean of its daily values
-              
-              Depending on "lt_method," you can also request that it contain:
-
-                - DF_LONGTERM_SUM = long term seasonal dataframe aggregated using the sum of its daily values
-                - DF_LONGTERM_MEDIAN = long term seasonal dataframe aggregated using the median of its daily values
-                - DF_LONGTERM_Q1 = long term seasonal dataframe aggregated showing the first quartile of its daily
-                - DF_LONGTERM_Q2 = long term seasonal dataframe aggregated showing the second quartile of its daily
-                - DF_LONGTERM_Q3 = long term seasonal dataframe aggregated showing the third quartile of its daily
-         
-
-    Example
-    -------
-    See linked jupyter `notebook <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-data-manipulation.ipynb>`_ file for usage instances
-            
-    """
-
-    DATAFRAMES = {}
-    if csv_fpath:
-        # read the combined csv file into a dataframe
-        df = pd.read_csv(csv_fpath, skipinitialspace = True, index_col = [0, 1])
-        # if there are any extra columns at the end of the csv file, remove them
-        if len(df.columns) % 2 != 0:
-            df.drop(columns=df.columns[-1], inplace = True)        
-        # Convert the year and jday index to datetime indexing
-        start_day = hlp.MultiIndex_to_datetime(df.index[0])
-        df.index = pd.to_datetime([i for i in range(len(df.index))], unit='D',origin=pd.Timestamp(start_day))
-        # replace all invalid values with NaN
-        df = df.replace([-1, 0], np.nan)   
-        
-        # Take off the warm up time
-        DATAFRAMES["DF"] = df[warm_up:]    
-        observed = df[warm_up:].iloc[:, ::2] 
-        simulated = df[warm_up:].iloc[:, 1::2]
-
-    elif sim_fpath and obs_fpath:
-        # read the simulated and observed csv files into dataframes
-        sim_df = pd.read_csv(sim_fpath, skipinitialspace = True, index_col=[0, 1])
-        obs_df = pd.read_csv(obs_fpath, skipinitialspace = True, index_col=[0, 1])
-
-        # Convert the year and jday index to datetime indexing
-        # simulated
-        start_day = hlp.MultiIndex_to_datetime(sim_df.index[0])
-        sim_df.index = pd.to_datetime([i for i in range(len(sim_df.index))], unit='D',origin=pd.Timestamp(start_day))
-        
-        
-        # observed
-        start_day = hlp.MultiIndex_to_datetime(obs_df.index[0])
-        obs_df.index = pd.to_datetime([i for i in range(len(obs_df.index))], unit='D',origin=pd.Timestamp(start_day))
-
-        # replace all invalid values with NaN
-        sim_df = sim_df.replace([-1, 0], np.nan)
-        obs_df = obs_df.replace([-1, 0], np.nan)
-        df = pd.DataFrame(index = obs_df.index)
-        for j in range(0, len(obs_df.columns)):
-            arr1 = obs_df.iloc[:, j]
-            arr2 = sim_df.iloc[:, j]
-            df = pd.concat([df, arr1, arr2], axis = 1)
-
-        # Take off the warm up time
-        simulated = sim_df[warm_up:]
-        observed = obs_df[warm_up:]                
-        DATAFRAMES["DF"] = df[warm_up:] 
-
-    else:
-        raise RuntimeError('either sim_fpath and obs_fpath or csv_fpath are required inputs.')
-       
-
-    # splice the dataframes according to the time frame
-    if not start_date and end_date:
-        # there's an end date but no start date
-        simulated = simulated.loc[:end_date]
-        observed = observed.loc[:end_date]
-        DATAFRAMES["DF"] = DATAFRAMES["DF"][:end_date]
-    elif not end_date and start_date:
-        # there's and end date but no start date
-        simulated = simulated.loc[start_date:]
-        observed = observed.loc[start_date:]
-        DATAFRAMES["DF"] = DATAFRAMES["DF"][start_date:]
-    elif start_date and end_date:
-        # there's a start and end date
-        simulated = simulated.loc[start_date:end_date]
-        observed = observed.loc[start_date:end_date]
-        DATAFRAMES["DF"] = DATAFRAMES["DF"][start_date:end_date]
-
-    print(f"The start date for the Observed Data is {observed.index[0].strftime('%Y-%m-%d')}")
-    print(f"The start date for the Simulated Data is {simulated.index[0].strftime('%Y-%m-%d')}")
-    print(f"The start date for the Merged Data is {DATAFRAMES['DF'].index[0].strftime('%Y-%m-%d')}")
-    
-    # validate inputs
-    hlp.validate_data(observed, simulated)
-    
-    DATAFRAMES["DF_SIMULATED"] = simulated
-    DATAFRAMES["DF_OBSERVED"] = observed
-
-    # Creating the remaining dataframes based on input
-    # 1. Daily aggregate
-    if daily_agg and da_method:
-        DATAFRAMES["DF_DAILY"] = daily_aggregate(df = DATAFRAMES["DF"], method=da_method)
-    elif daily_agg:
-        # mean by default
-        DATAFRAMES["DF_DAILY"] = daily_aggregate(df = DATAFRAMES["DF"])
-
-    # 2. Weekly aggregate
-    if weekly_agg and wa_method:
-        DATAFRAMES["DF_WEEKLY"] = weekly_aggregate(df = DATAFRAMES["DF"], method=wa_method)
-    elif weekly_agg:
-        # mean by default
-        DATAFRAMES["DF_WEEKLY"] = weekly_aggregate(df = DATAFRAMES["DF"])
-
-    # 3. Monthly aggregate
-    if monthly_agg and ma_method:
-        DATAFRAMES["DF_MONTHLY"] = monthly_aggregate(df = DATAFRAMES["DF"], method=ma_method)
-    elif monthly_agg:
-        # mean by default
-        DATAFRAMES["DF_MONTHLY"] = monthly_aggregate(df = DATAFRAMES["DF"])
-
-    # 4.Yearly aggregate
-    if yearly_agg and ya_method:
-        DATAFRAMES["DF_YEARLY"] = yearly_aggregate(df = DATAFRAMES["DF"], method=ya_method)
-    elif yearly_agg:
-        # mean by default
-        DATAFRAMES["DF_YEARLY"] = yearly_aggregate(df = DATAFRAMES["DF"])
-
-    # 5. Seasonal Period
-    if seasonal_p and sp_dperiod == []:
-        raise RuntimeError("You cannot calculate a seasonal period without a daily period")
-    elif seasonal_p and sp_dperiod and sp_subset:
-        DATAFRAMES["DF_CUSTOM"] = seasonal_period(df = DATAFRAMES["DF"], daily_period=sp_dperiod,
-                                                  subset=sp_subset)    
-    elif seasonal_p and sp_dperiod:
-        DATAFRAMES["DF_CUSTOM"] = seasonal_period(df = DATAFRAMES["DF"], daily_period=sp_dperiod)
-
-    # 6. long term seasonal
-    if long_term:
-        DATAFRAMES["LONG_TERM_MIN"] = long_term_seasonal(df=DATAFRAMES["DF"], method="min")
-        DATAFRAMES["LONG_TERM_MAX"] = long_term_seasonal(df=DATAFRAMES["DF"], method="max")
-        DATAFRAMES["LONG_TERM_MEDIAN"] = long_term_seasonal(df=DATAFRAMES["DF"], method="median")
-        if lt_method is None:
-            lt_method = []
-        elif isinstance(lt_method, str):
-            lt_method = [lt_method]
-        elif not isinstance(lt_method, list):
-            raise ValueError("Argument must be a string or a list of strings.")
-
-        for method in lt_method:
-            if not isinstance(method, str):
-                raise ValueError("All items in the list must be strings.")    
-            DATAFRAMES[f"LONG_TERM_{method.upper()}"] = long_term_seasonal(df=DATAFRAMES["DF"], method=method)
-    
-    
-    return DATAFRAMES
-
-# def generate_dataframes(csv_fpaths: list=None, sim_fpaths: list = None, obs_fpath: str = '', warm_up: int = 0, start_date: str = "", end_date: str = "",
-#                         daily_agg: bool = False, da_method: str = "", weekly_agg: bool = False, wa_method: str = "",
-#                         monthly_agg: bool = False, ma_method: str = "", yearly_agg: bool = False, ya_method: str = "",
-#                         seasonal_p: bool = False, sp_dperiod: tuple[str, str] = [], sp_subset: tuple[str, str] = None,
-#                         long_term: bool = False, lt_method=None) -> dict[str, pd.DataFrame]:
+# def generate_dataframes(csv_fpath: str='', sim_fpath: str='', obs_fpath: str='', warm_up: int = 0, start_date :str = "", end_date: str = "",
+#                         daily_agg:bool=False, da_method:str="", weekly_agg:bool=False, wa_method:str="",
+#                         monthly_agg:bool=False, ma_method:str="", yearly_agg:bool=False, ya_method:str="",
+#                         seasonal_p:bool=False, sp_dperiod:tuple[str, str]=[], sp_subset:tuple[str, str]=None,
+#                         long_term:bool=False, lt_method=None) -> dict[str, pd.DataFrame]:
 #     """ 
 #     Function to Generate the required dataframes
-    
-#     Parameters have been modified to allow for multiple simulated datasets.
+
+#     Parameters
+#     ----------
+#     csv_fpath : string
+#             the path to the csv file. It can be relative or absolute. If given, sim_fpath and obs_fpath
+#             must be None.
+#     sim_fpath: str
+#         The filepath to the simulated csv of data. If given obs_fpath must also be given and csv_fpath
+#         must be None. 
+#     obs_fpath: str
+#         The filepath to the observed csv of the data. If given sim_fpath must also be given and csv_fpath
+#         must be None.
+#     warm_up: int 
+#             number of days required to "warm up" the system
+#     start_date: str 
+#             The date at which you want to start calculating the metric in the
+#             format yyyy-mm-dd
+#     end_date: str
+#             The date at which you want the calculations to end in the
+#             format yyyy-mm-dd
+#     daily_agg: bool = False
+#             If True calculate and return the daily aggregate of the combined dataframes
+#             using da_method if its available
+#     da_method: str = ""
+#             If provided, it determines the method of daily aggregation. It 
+#             is "mean" by default, see daily_aggregate() function
+#     weekly_agg: bool = False
+#             If True calculate and return the weekly aggregate of the combined dataframes
+#             using wa_method if its available
+#     wa_method: str = ""
+#             If provided, it determines the method of weekly aggregation. It 
+#             is "mean" by default, see weekly_aggregate() function
+#     monthly_agg: bool = False
+#             If True calculate and return the monrhly aggregate of the combined dataframes
+#             using ma_method if its available
+#     ma_method: str = ""
+#             If provided, it determines the method of monthly aggregation. It 
+#             is "mean" by default, see monthly_aggregate() function
+#     yearly_agg: bool = False
+#             If True calculate and return the yearly aggregate of the combined dataframes
+#             using ya_method if its available
+#     ya_method: str = ""
+#             If provided, it determines the method of yearly aggregation. It 
+#             is "mean" by default, see yearly_aggregate() function
+#     seasonal_p: bool = False
+#             If True calculate and return a dataframe truncated to fit the parameters specified
+#             for the seasonal period 
+#             Requirement:- sp_dperiod.
+#     sp_dperiod: tuple(str, str)
+#             A list of length two with strings representing the start and end dates of the seasonal period (e.g.
+#             (01-01, 01-31) for Jan 1 to Jan 31.
+#     sp_subset: tuple(str, str)
+#             A tuple of string values representing the start and end dates of the time range. Format is YYYY-MM-DD.
+#     longterm: bool = False
+#             If True calculates the min, max and median values for the long term seasonal. It will also create
+#             additional dataframes depending on the value of 'lt_method'.
+#     lt_method
+#             Specifies extra long term dataframes to create
+
+#     Returns
+#     -------
+#     dict[str, pd.dataframe]
+#             A dictionary containing each Dataframe requested. Its default content is:
+
+#             - DF = merged dataframe
+#             - DF_SIMULATED = all simulated data
+#             - DF_OBSERVED = all observed data
+            
+#             Depending on which you requested it can also contain:
+
+#             - DF_DAILY = dataframe aggregated by days of the year
+#             - DF_WEEKLY = dataframe aggregated by the weeks of the year
+#             - DF_MONTHLY = dataframe aggregated by months of the year
+#             - DF_YEARLY = dataframe aggregated by all the years in the data
+#             - DF_CUSTOM = dataframe truncated as per the seasonal period parameters
+#             - DF_LONGTERM_MIN = long term seasonal dataframe aggregated using the min of its daily values 
+#             - DF_LONGTERM_MAX = long term seasonal dataframe aggregated using the max of its daily values
+#             - DF_LONGTERM_MEAN =  long term seasonal dataframe aggregated using the mean of its daily values
+              
+#               Depending on "lt_method," you can also request that it contain:
+
+#                 - DF_LONGTERM_SUM = long term seasonal dataframe aggregated using the sum of its daily values
+#                 - DF_LONGTERM_MEDIAN = long term seasonal dataframe aggregated using the median of its daily values
+#                 - DF_LONGTERM_Q1 = long term seasonal dataframe aggregated showing the first quartile of its daily
+#                 - DF_LONGTERM_Q2 = long term seasonal dataframe aggregated showing the second quartile of its daily
+#                 - DF_LONGTERM_Q3 = long term seasonal dataframe aggregated showing the third quartile of its daily
+         
+
+#     Example
+#     -------
+#     See linked jupyter `notebook <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-data-manipulation.ipynb>`_ file for usage instances
+            
 #     """
 
 #     DATAFRAMES = {}
-
-#     # Step 1: Handle input dataframes
-#     if isinstance(csv_fpaths, str):
-#         csv_fpaths = [csv_fpaths]  # Convert to list if it's a string
-#     if csv_fpaths:
-#         for i, csv_fpath in enumerate(csv_fpaths):
-#             # read the combined csv file into a dataframe
-#             df = pd.read_csv(csv_fpath, skipinitialspace=True, index_col=[0, 1])
-#             if len(df.columns) % 2 != 0:
-#                 df.drop(columns=df.columns[-1], inplace=True)
-#             start_day = hlp.MultiIndex_to_datetime(df.index[0])
-#             df.index = pd.to_datetime([j for j in range(len(df.index))], unit='D', origin=pd.Timestamp(start_day))
-#             df = df.replace([-1, 0], np.nan)
+#     if csv_fpath:
+#         # read the combined csv file into a dataframe
+#         df = pd.read_csv(csv_fpath, skipinitialspace = True, index_col = [0, 1])
+#         # if there are any extra columns at the end of the csv file, remove them
+#         if len(df.columns) % 2 != 0:
+#             df.drop(columns=df.columns[-1], inplace = True)        
+#         # Convert the year and jday index to datetime indexing
+#         start_day = hlp.MultiIndex_to_datetime(df.index[0])
+#         df.index = pd.to_datetime([i for i in range(len(df.index))], unit='D',origin=pd.Timestamp(start_day))
+#         # replace all invalid values with NaN
+#         df = df.replace([-1, 0], np.nan)   
         
-#             # Handle warm-up period
-#             DATAFRAMES[f"DF_{i+1}"] = df[warm_up:]
+#         # Take off the warm up time
+#         DATAFRAMES["DF"] = df[warm_up:]    
+#         observed = df[warm_up:].iloc[:, ::2] 
+#         simulated = df[warm_up:].iloc[:, 1::2]
 
-#         # Check that the 'observed' values match up
-#         # Get the indices of the even rows (0, 2, 4, ...)
-#         even_indices = list(range(0, len(DATAFRAMES["DF_1"]), 2))
-#         # Check for consistency of Observed rows across all the DataFrames in the current state of the dictionary
-#         reference_row = None
-#         prev_idx = None
-#         for idx in even_indices:
-#             for df_name, df in DATAFRAMES.items():
-#                 row = df.iloc[idx]
-#                 if reference_row is None or prev_idx != idx:
-#                     reference_row = row
-#                 elif not row.equals(reference_row):
-#                     print(f"Previous Index is {prev_idx}.\n")
-#                     print(f"Error: Row {idx} in {df_name} does not match the reference row!\n")
-#                     print(f"Reference row: {reference_row}.\n")
-#                     print(f"Current row: {row}\n")
-#                     # You can raise an exception here or handle it differently
-#                     # TODO: Decide exception or otherwise.
-#                     raise ValueError(f"Inconsistent rows at index {idx} in DataFrame {df_name}")
-#             prev_idx = idx            
-#         print("All Observed rows are consistent across DataFrames.")
+#     elif sim_fpath and obs_fpath:
+#         # read the simulated and observed csv files into dataframes
+#         sim_df = pd.read_csv(sim_fpath, skipinitialspace = True, index_col=[0, 1])
+#         obs_df = pd.read_csv(obs_fpath, skipinitialspace = True, index_col=[0, 1])
 
-#         # Since they are all the same. I will read observed off one of them.
-#         DATAFRAMES["DF_OBSERVED"] = DATAFRAMES["DF_1"].iloc[:, ::2]
-
-#         # Assign simulated dataframes dynamically
-#         for i, csv_fpath in enumerate(csv_fpaths):
-#             DATAFRAMES[f"DF_SIMULATED_{i+1}"] = DATAFRAMES[f"DF_{i+1}"].iloc[:, 1::2]
-
-#         merged = pd.concat([df for df in DATAFRAMES.values()], axis=1)
-#         DATAFRAMES["DF_MERGED"] = merged
-
-#     elif sim_fpaths:
-#         if isinstance(sim_fpaths, str):
-#             sim_fpaths = [sim_fpaths] # Convert to list if it's a string
-#         # Initialize a list for simulated data
-#         simulated_dfs = []
-#         for i, sim_fpath in enumerate(sim_fpaths):
-#             sim_df = pd.read_csv(sim_fpath, skipinitialspace=True, index_col=[0, 1])
-#             start_day = hlp.MultiIndex_to_datetime(sim_df.index[0])
-#             sim_df.index = pd.to_datetime([j for j in range(len(sim_df.index))], unit='D', origin=pd.Timestamp(start_day))
-#             sim_df = sim_df.replace([-1, 0], np.nan)
-#             DATAFRAMES[f"DF_SIMULATED_{i+1}"] = sim_df[warm_up:]
-#             simulated_dfs.append(sim_df)
-        
-#         # # Assign simulated dataframes dynamically
-#         # for i, sim_df in enumerate(simulated_dfs):
-#         #     DATAFRAMES[f"DF_SIMULATED_{i+1}"] = sim_df
-        
-#         if obs_fpath:
-#             # read the observed data
-#             obs_df = pd.read_csv(obs_fpath, skipinitialspace=True, index_col=[0, 1])
-#             start_day = hlp.MultiIndex_to_datetime(obs_df.index[0])
-#             obs_df.index = pd.to_datetime([i for i in range(len(obs_df.index))], unit='D', origin=pd.Timestamp(start_day))
-#             obs_df = obs_df.replace([-1, 0], np.nan)
-#             DATAFRAMES["DF_OBSERVED"] = obs_df[warm_up:]
-
-#         #### MERGE ####
-#             # Merge observed and simulated data
-#             df = pd.DataFrame(index=obs_df.index)  # Initialize empty df with observed index
-#             df = pd.concat([df, obs_df[warm_up:]], axis=1)  # Merge observed data first
-
-#         else:
-#             # If no observed data, initialize df with simulated data only
-#             df = pd.DataFrame(index=simulated_dfs[0].index)  # Initialize with the index of the first simulated df
-
-#         # Merge all simulated data
-#         for i, sim_df in enumerate(simulated_dfs):
-#             df = pd.concat([df, sim_df], axis=1)
-        
-#         DATAFRAMES["DF"] = df[warm_up:]
-#         #### END OF MERGE ####
+#         # Convert the year and jday index to datetime indexing
+#         # simulated
+#         start_day = hlp.MultiIndex_to_datetime(sim_df.index[0])
+#         sim_df.index = pd.to_datetime([i for i in range(len(sim_df.index))], unit='D',origin=pd.Timestamp(start_day))
         
         
+#         # observed
+#         start_day = hlp.MultiIndex_to_datetime(obs_df.index[0])
+#         obs_df.index = pd.to_datetime([i for i in range(len(obs_df.index))], unit='D',origin=pd.Timestamp(start_day))
+
+#         # replace all invalid values with NaN
+#         sim_df = sim_df.replace([-1, 0], np.nan)
+#         obs_df = obs_df.replace([-1, 0], np.nan)
+#         df = pd.DataFrame(index = obs_df.index)
+#         for j in range(0, len(obs_df.columns)):
+#             arr1 = obs_df.iloc[:, j]
+#             arr2 = sim_df.iloc[:, j]
+#             df = pd.concat([df, arr1, arr2], axis = 1)
+
+#         # Take off the warm up time
+#         simulated = sim_df[warm_up:]
+#         observed = obs_df[warm_up:]                
+#         DATAFRAMES["DF"] = df[warm_up:] 
 
 #     else:
-#         raise RuntimeError('Either sim_fpaths and obs_fpath or csv_fpath are required inputs.')
+#         raise RuntimeError('either sim_fpath and obs_fpath or csv_fpath are required inputs.')
+       
+
+#     # splice the dataframes according to the time frame
+#     if not start_date and end_date:
+#         # there's an end date but no start date
+#         simulated = simulated.loc[:end_date]
+#         observed = observed.loc[:end_date]
+#         DATAFRAMES["DF"] = DATAFRAMES["DF"][:end_date]
+#     elif not end_date and start_date:
+#         # there's and end date but no start date
+#         simulated = simulated.loc[start_date:]
+#         observed = observed.loc[start_date:]
+#         DATAFRAMES["DF"] = DATAFRAMES["DF"][start_date:]
+#     elif start_date and end_date:
+#         # there's a start and end date
+#         simulated = simulated.loc[start_date:end_date]
+#         observed = observed.loc[start_date:end_date]
+#         DATAFRAMES["DF"] = DATAFRAMES["DF"][start_date:end_date]
+
+#     print(f"The start date for the Observed Data is {observed.index[0].strftime('%Y-%m-%d')}")
+#     print(f"The start date for the Simulated Data is {simulated.index[0].strftime('%Y-%m-%d')}")
+#     print(f"The start date for the Merged Data is {DATAFRAMES['DF'].index[0].strftime('%Y-%m-%d')}")
+    
+#     # validate inputs
+#     hlp.validate_data(observed, simulated)
+    
+#     DATAFRAMES["DF_SIMULATED"] = simulated
+#     DATAFRAMES["DF_OBSERVED"] = observed
+
+#     # Creating the remaining dataframes based on input
+#     # 1. Daily aggregate
+#     if daily_agg and da_method:
+#         DATAFRAMES["DF_DAILY"] = daily_aggregate(df = DATAFRAMES["DF"], method=da_method)
+#     elif daily_agg:
+#         # mean by default
+#         DATAFRAMES["DF_DAILY"] = daily_aggregate(df = DATAFRAMES["DF"])
+
+#     # 2. Weekly aggregate
+#     if weekly_agg and wa_method:
+#         DATAFRAMES["DF_WEEKLY"] = weekly_aggregate(df = DATAFRAMES["DF"], method=wa_method)
+#     elif weekly_agg:
+#         # mean by default
+#         DATAFRAMES["DF_WEEKLY"] = weekly_aggregate(df = DATAFRAMES["DF"])
+
+#     # 3. Monthly aggregate
+#     if monthly_agg and ma_method:
+#         DATAFRAMES["DF_MONTHLY"] = monthly_aggregate(df = DATAFRAMES["DF"], method=ma_method)
+#     elif monthly_agg:
+#         # mean by default
+#         DATAFRAMES["DF_MONTHLY"] = monthly_aggregate(df = DATAFRAMES["DF"])
+
+#     # 4.Yearly aggregate
+#     if yearly_agg and ya_method:
+#         DATAFRAMES["DF_YEARLY"] = yearly_aggregate(df = DATAFRAMES["DF"], method=ya_method)
+#     elif yearly_agg:
+#         # mean by default
+#         DATAFRAMES["DF_YEARLY"] = yearly_aggregate(df = DATAFRAMES["DF"])
+
+#     # 5. Seasonal Period
+#     if seasonal_p and sp_dperiod == []:
+#         raise RuntimeError("You cannot calculate a seasonal period without a daily period")
+#     elif seasonal_p and sp_dperiod and sp_subset:
+#         DATAFRAMES["DF_CUSTOM"] = seasonal_period(df = DATAFRAMES["DF"], daily_period=sp_dperiod,
+#                                                   subset=sp_subset)    
+#     elif seasonal_p and sp_dperiod:
+#         DATAFRAMES["DF_CUSTOM"] = seasonal_period(df = DATAFRAMES["DF"], daily_period=sp_dperiod)
+
+#     # 6. long term seasonal
+#     if long_term:
+#         DATAFRAMES["LONG_TERM_MIN"] = long_term_seasonal(df=DATAFRAMES["DF"], method="min")
+#         DATAFRAMES["LONG_TERM_MAX"] = long_term_seasonal(df=DATAFRAMES["DF"], method="max")
+#         DATAFRAMES["LONG_TERM_MEDIAN"] = long_term_seasonal(df=DATAFRAMES["DF"], method="median")
+#         if lt_method is None:
+#             lt_method = []
+#         elif isinstance(lt_method, str):
+#             lt_method = [lt_method]
+#         elif not isinstance(lt_method, list):
+#             raise ValueError("Argument must be a string or a list of strings.")
+
+#         for method in lt_method:
+#             if not isinstance(method, str):
+#                 raise ValueError("All items in the list must be strings.")    
+#             DATAFRAMES[f"LONG_TERM_{method.upper()}"] = long_term_seasonal(df=DATAFRAMES["DF"], method=method)
+    
+    
+#     return DATAFRAMES
+
+def generate_dataframes(csv_fpaths: list=None, sim_fpaths: list = None, obs_fpath: str = '', warm_up: int = 0, start_date: str = "", end_date: str = "",
+                        daily_agg: bool = False, da_method: str = "", weekly_agg: bool = False, wa_method: str = "",
+                        monthly_agg: bool = False, ma_method: str = "", yearly_agg: bool = False, ya_method: str = "",
+                        seasonal_p: bool = False, sp_dperiod: tuple[str, str] = [], sp_subset: tuple[str, str] = None,
+                        long_term: bool = False, lt_method=None) -> dict[str, pd.DataFrame]:
+    """ 
+    Function to Generate the required dataframes
+    
+    Parameters have been modified to allow for multiple simulated datasets.
+    """
+
+    DATAFRAMES = {}
+
+    # Step 1: Handle input dataframes
+    if isinstance(csv_fpaths, str):
+        csv_fpaths = [csv_fpaths]  # Convert to list if it's a string
+    if csv_fpaths:
+        for i, csv_fpath in enumerate(csv_fpaths):
+            # read the combined csv file into a dataframe
+            df = pd.read_csv(csv_fpath, skipinitialspace=True, index_col=[0, 1])
+            if len(df.columns) % 2 != 0:
+                df.drop(columns=df.columns[-1], inplace=True)
+            start_day = hlp.MultiIndex_to_datetime(df.index[0])
+            df.index = pd.to_datetime([j for j in range(len(df.index))], unit='D', origin=pd.Timestamp(start_day))
+            df = df.replace([-1, 0], np.nan)
+
+            # if there are any extra columns at the end of the csv file, remove them
+            if len(df.columns) % 2 != 0:
+              df.drop(columns=df.columns[-1], inplace = True)
+        
+            # Handle warm-up period
+            DATAFRAMES[f"DF_{i+1}"] = df[warm_up:]
+
+        # Check that the 'observed' values match up
+        # Get the indices of the even rows (0, 2, 4, ...)
+        even_indices = list(range(0, len(DATAFRAMES["DF_1"]), 2))
+        # Check for consistency of Observed rows across all the DataFrames in the current state of the dictionary
+        reference_row = None
+        prev_idx = None
+        for idx in even_indices:
+            for df_name, df in DATAFRAMES.items():
+                row = df.iloc[idx]
+                if reference_row is None or prev_idx != idx:
+                    reference_row = row
+                elif not row.equals(reference_row):
+                    print(f"Previous Index is {prev_idx}.\n")
+                    print(f"Error: Row {idx} in {df_name} does not match the reference row!\n")
+                    print(f"Reference row: {reference_row}.\n")
+                    print(f"Current row: {row}\n")
+                    # You can raise an exception here or handle it differently
+                    # TODO: Decide exception or otherwise.
+                    raise ValueError(f"Inconsistent rows at index {idx} in DataFrame {df_name}")
+            prev_idx = idx            
+        print("All Observed rows are consistent across DataFrames.")
+
+        # Since they are all the same. I will read observed off one of them.
+        DATAFRAMES["DF_OBSERVED"] = DATAFRAMES["DF_1"].iloc[:, ::2]
+
+        # Assign simulated dataframes dynamically
+        for i in range(len(csv_fpaths)):
+            DATAFRAMES[f"DF_SIMULATED_{i+1}"] = DATAFRAMES[f"DF_{i+1}"].iloc[:, 1::2] 
+
+
+        # Merge all dataframes
+        simulated_dfs = [df for key, df in DATAFRAMES.items() if key.startswith("DF_SIMULATED_")]
+        merged = pd.DataFrame(index = DATAFRAMES["DF_OBSERVED"].index)
+        for j in range(0, len(DATAFRAMES["DF_OBSERVED"].columns)):
+            merged = pd.concat([merged, DATAFRAMES["DF_OBSERVED"].iloc[:, j]], axis = 1)
+            for sim_df in simulated_dfs:
+                merged = pd.concat([merged, sim_df.iloc[:, j]], axis = 1)
+
+        DATAFRAMES["DF_MERGED"] = merged
+        DATAFRAMES["DF_MERGED"].columns = hlp.columns_to_MultiIndex(DATAFRAMES["DF_MERGED"].columns)
+
+    elif sim_fpaths:
+        if isinstance(sim_fpaths, str):
+            sim_fpaths = [sim_fpaths] # Convert to list if it's a string
+        # Initialize a list for simulated data
+        simulated_dfs = []
+        for i, sim_fpath in enumerate(sim_fpaths):
+            sim_df = pd.read_csv(sim_fpath, skipinitialspace=True, index_col=[0, 1])
+            start_day = hlp.MultiIndex_to_datetime(sim_df.index[0])
+            sim_df.index = pd.to_datetime([j for j in range(len(sim_df.index))], unit='D', origin=pd.Timestamp(start_day))
+            sim_df = sim_df.replace([-1, 0], np.nan)
+            sim_df = sim_df
+            simulated_dfs.append(sim_df)
+            DATAFRAMES[f"DF_SIMULATED_{i+1}"] = sim_df
+                   
+        if obs_fpath:
+            # read the observed data
+            obs_df = pd.read_csv(obs_fpath, skipinitialspace=True, index_col=[0, 1])
+            start_day = hlp.MultiIndex_to_datetime(obs_df.index[0])
+            obs_df.index = pd.to_datetime([i for i in range(len(obs_df.index))], unit='D', origin=pd.Timestamp(start_day))
+            obs_df = obs_df.replace([-1, 0], np.nan)
+            obs_df = obs_df[warm_up:]
+            DATAFRAMES["DF_OBSERVED"] = obs_df
+
+        #### MERGE ####
+            # Merge observed and simulated data
+            # 1. Individual Station merges
+            for i, sim_df in enumerate(simulated_dfs):
+                df = pd.DataFrame(index=obs_df.index)  # Initialize empty df with observed index
+                for j in range(0, len(obs_df.columns)):
+                    arr1 = obs_df.iloc[:, j]
+                    arr2 = sim_df.iloc[:, j]
+                    df = pd.concat([df, arr1, arr2], axis = 1)
+                DATAFRAMES[f"DF_{i+1}"] = df
+
+            # 2. Umbrella merge - obsereved and all simulated data
+            merged = pd.DataFrame(index = obs_df.index)
+            for j in range(0, len(obs_df.columns)):
+                merged = pd.concat([merged, obs_df.iloc[:, j]], axis = 1)
+                for sim_df in simulated_dfs:
+                    merged = pd.concat([merged, sim_df.iloc[:, j]], axis = 1)
+
+            DATAFRAMES["DF_MERGED"] = merged
+            DATAFRAMES["DF_MERGED"].columns = hlp.columns_to_MultiIndex(DATAFRAMES["DF_MERGED"].columns)
+
+        # in the absence of observed data, we will still umbrella merge all simulated data
+        else:  
+            merged = pd.DataFrame(index = simulated_dfs[0].index)
+            for i in range(len(simulated_dfs[0].columns)):
+                for sim_df in simulated_dfs:
+                    merged = pd.concat([merged, sim_df.iloc[:, i]], axis=1)
+        
+            DATAFRAMES["DF_MERGED"] = merged
+            DATAFRAMES["DF_MERGED"].columns = hlp.columns_to_MultiIndex(DATAFRAMES["DF_MERGED"].columns)
+        #### END OF MERGE ####
+        
+        
+
+    else:
+        raise RuntimeError('Either sim_fpaths or obs_fpath or csv_fpaths are required inputs.')
 
     # # Step 2: Date Range Filtering (for both observed and simulated data)
     # if start_date and not end_date:
@@ -1127,4 +1154,4 @@ def generate_dataframes(csv_fpath: str='', sim_fpath: str='', obs_fpath: str='',
     #     for method in lt_method:
     #         DATAFRAMES[f"LONG_TERM_{method.upper()}"] = long_term_seasonal(df=DATAFRAMES["DF"], method=method)
 
-    # return DATAFRAMES
+    return DATAFRAMES
