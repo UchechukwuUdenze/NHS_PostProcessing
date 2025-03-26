@@ -566,7 +566,7 @@ def histogram(
     df: pd.DataFrame = None, 
     obs_df: pd.DataFrame = None, 
     sim_df: pd.DataFrame = None,
-    bins: int = 30,
+    bins: int = 100,
     legend: Tuple[str, str] = ('Simulated Data', 'Observed Data'),
     colors: Tuple[str, str] = ('r', 'b'),
     transparency: float = 0.6,
