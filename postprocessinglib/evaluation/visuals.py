@@ -112,14 +112,14 @@ def plot(
     df: pd.DataFrame = None, 
     sim_df: pd.DataFrame = None,
     num_sim: int = None,
-    legend: tuple[str, str] = None, 
+    legend: tuple[str, str] = ('Data',), 
     metrices: list[str] = None,
     grid: bool = False, 
     title: str = None, 
-    labels: tuple[str, str] = None, 
+    labels: list[str] = None, 
     padding: bool = False,
-    linestyles: tuple[str, str] = ('r-', 'b-'), 
-    linewidth: tuple[float, float] = (1.5, 1.25),
+    linestyles: tuple[str, str] = ('r-',), 
+    linewidth: tuple[float, float] = (1.5,),
     fig_size: tuple[float, float] = (10, 6), 
     metrics_adjust: tuple[float, float] = (1.05, 0.5),
     plot_adjust: float = 0.2, 
@@ -150,6 +150,8 @@ def plot(
 
     df : pd.DataFrame, optional
         A Single DataFrame usually containing only one of either simulated or observed data... or any data.
+    
+    num_sims: 
 
     legend : tuple of str, optional
         A tuple containing the labels for the data being plotted
@@ -163,7 +165,7 @@ def plot(
     title : str, optional
         The title of the plot.
 
-    labels : tuple of str, optional
+    labels : list of strs, optional
         A tuple containing the labels for the x and y axes.
 
     padding : bool, optional
@@ -204,6 +206,7 @@ def plot(
     >>> # Example 1: Plotting merged data with simulated and observed values
     >>> merged_data = pd.DataFrame({...})  # Your merged dataframe
     >>> visuals.plot(merged_df = merged_data,
+                    num_sim = num_sim,
                     title='Simulated vs Observed',
                     labels=['Time', 'Value'], grid=True,
                     metrices = ['KGE','RMSE'])
@@ -213,7 +216,7 @@ def plot(
     >>> # Example 2: Plotting only observed and simulated data with custom linestyles and saving the plot
     >>> obs_data = pd.DataFrame({...})  # Your observed data
     >>> sim_data = pd.DataFrame({...})  # Your simulated data
-    >>> visuals.plot(obs_df = obs_data, sim_df = sim_data, linestyles=('g-', 'b-'),
+    >>> visuals.plot(obs_df = obs_data, sim_df = sim_data, linestyles=('g-', 'b-'), num_sim = num_sim,
                     save=True, save_as="plot2_example", dir="../Figures")
 
     .. image:: ../Figures/plot2_example.png
@@ -228,16 +231,48 @@ def plot(
 
     Notes
     -----
-    - The function requires at least one valid data input (merged_df, obs_df, sim_df, or df).
+    - The function requires at least one valid data input (merged_df, sim_df, or df).
     - The time index of the input DataFrames must be a datetime index or convertible to datetime.
     - If the number of columns in the `obs_df` or `sim_df` exceeds five, the plot will be automatically saved.
     - Metrics will be displayed on the plot if specified in the `metrices` parameter.
          
     """
     # Get the number of simulated data columns
-    if num_sim is None:
-        raise ValueError("Please provide the number of simulated data columns.")
-    
+    if df is None:
+        if num_sim is None:
+            raise ValueError("Please provide the number of simulated data columns.")
+        else:
+            # Line width generation
+            if len(linewidth) < num_sim + 1:
+                print("Number of linewidths provided is less than the number of columns. "
+                      "Number of columns : " + str(num_sim + 1) + ". Number of linewidths provided is: ", str(len(linewidth)) +
+                      ". Defaulting to 1.5")
+                linewidth = (1.5,) * (num_sim + 1 if merged_df is not None else num_sim)
+            
+            # Generate colors dynamically using Matplotlib colormap
+            cmap = plt.cm.get_cmap("tab10", num_sim + 1)  # +1 for Observed
+            colors = [cmap(i) for i in range(num_sim + 1)]
+
+            # Available line styles
+            # base_linestyles = ["-", "--", "-.", ":"]
+            style = ('-',) * (num_sim + 1) # default to solid lines unless overwritten
+
+            # Generate linestyles dynamically
+            if len(linestyles) < num_sim + 1:
+                print("Number of linestyles provided is less than the number of columns. "
+                      "Number of columns : " + str(num_sim + 1) + ". Number of linestyles provided is: ", str(len(linestyles)) +
+                      ". Defaulting to solid lines (-)")
+                linestyles = tuple(f"{colors[i % len(colors)]}{style[i % len(style)]}" 
+                                for i in range(num_sim + 1 if merged_df is not None else num_sim))
+                
+            # Generate Legends dynamically
+            if len(legend) < num_sim + 1:
+                print("Number of legends provided is less than the number of columns. "
+                      "Number of columns : " + str(num_sim + 1) + ". Number of legends provided is: ", str(len(legend)) +
+                      ". Applying Default legend names")
+                legend = (["Observed"] + [f"Simulated {i+1}" for i in range(num_sim)] if merged_df is not None else [f"Simulated {i+1}" for i in range(num_sim)])           
+            
+
     # Assign the data based on inputs
     sims = {}
     if merged_df is not None:
@@ -291,9 +326,11 @@ def plot(
             # Plotting the Data     
             fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
             if obs is not None:                
-                ax.plot(time, obs.iloc[:, i], linestyles[0], label=legend[0], linewidth = linewidth[0])
+                ax.plot(time, obs.iloc[:, i], color = eval(linestyles[0][:-1]) if linestyles[0][:-1].startswith("(") else linestyles[0][:-1], 
+                        linestyle = linestyles[0][-1],label=legend[0], linewidth = linewidth[0])
             for j in range(1, num_sim+1):
-                ax.plot(time, sims[f"sim_{j}"].iloc[:, i], linestyles[j], label=legend[j], linewidth = linewidth[j])            
+                ax.plot(time, sims[f"sim_{j}"].iloc[:, i], color = eval(linestyles[j][:-1]) if linestyles[j][:-1].startswith("(") else linestyles[j][:-1],
+                        linestyle = linestyles[j][-1], label=legend[j], linewidth = linewidth[j])            
             ax.legend(fontsize=15)
 
             # Adjusting the plot limit and layout

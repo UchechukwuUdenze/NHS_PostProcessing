@@ -971,6 +971,7 @@ def generate_dataframes(csv_fpaths: list=None, sim_fpaths: list = None, obs_fpat
     # Step 1: Handle input dataframes
     if isinstance(csv_fpaths, str):
         csv_fpaths = [csv_fpaths]  # Convert to list if it's a string
+    DATAFRAMES["NUM_SIMS"] = len(csv_fpaths)
     if csv_fpaths:
         for i, csv_fpath in enumerate(csv_fpaths):
             # read the combined csv file into a dataframe
@@ -986,40 +987,49 @@ def generate_dataframes(csv_fpaths: list=None, sim_fpaths: list = None, obs_fpat
               df.drop(columns=df.columns[-1], inplace = True)
         
             # Handle warm-up period
-            DATAFRAMES[f"DF_{i+1}"] = df[warm_up:]
+            if len(csv_fpaths) == 1:
+                DATAFRAMES["DF"] = df[warm_up:]
+            else:
+                DATAFRAMES[f"DF_{i+1}"] = df[warm_up:]
 
-        # Check that the 'observed' values match up
-        # Get the indices of the even rows (0, 2, 4, ...)
-        even_indices = list(range(0, len(DATAFRAMES["DF_1"]), 2))
-        # Check for consistency of Observed rows across all the DataFrames in the current state of the dictionary
-        reference_row = None
-        prev_idx = None
-        for idx in even_indices:
-            for df_name, df in DATAFRAMES.items():
-                row = df.iloc[idx]
-                if reference_row is None or prev_idx != idx:
-                    reference_row = row
-                elif not row.equals(reference_row):
-                    print(f"Previous Index is {prev_idx}.\n")
-                    print(f"Error: Row {idx} in {df_name} does not match the reference row!\n")
-                    print(f"Reference row: {reference_row}.\n")
-                    print(f"Current row: {row}\n")
-                    # You can raise an exception here or handle it differently
-                    # TODO: Decide exception or otherwise.
-                    raise ValueError(f"Inconsistent rows at index {idx} in DataFrame {df_name}")
-            prev_idx = idx            
-        print("All Observed rows are consistent across DataFrames.")
+        # Check that the 'observed' values match up if there are multiple csv files
+        if len(csv_fpaths) > 1:
+            # Get the indices of the even rows (0, 2, 4, ...)
+            even_indices = list(range(0, len(DATAFRAMES["DF_1"]), 2))
+            # Check for consistency of Observed rows across all the DataFrames in the current state of the dictionary
+            reference_row = None
+            prev_idx = None
+            for idx in even_indices:
+                for df_name, df in DATAFRAMES.items():
+                    if df_name != "NUM_SIMS":
+                        row = df.iloc[idx]
+                        if reference_row is None or prev_idx != idx:
+                            reference_row = row
+                        elif not row.equals(reference_row):
+                            print(f"Previous Index is {prev_idx}.\n")
+                            print(f"Error: Row {idx} in {df_name} does not match the reference row!\n")
+                            print(f"Reference row: {reference_row}.\n")
+                            print(f"Current row: {row}\n")
+                            # You can raise an exception here or handle it differently
+                            # TODO: Decide exception or otherwise.
+                            raise ValueError(f"Inconsistent rows at index {idx} in DataFrame {df_name}")
+                prev_idx = idx            
+            print("All Observed rows are consistent across DataFrames.")
 
         # Since they are all the same. I will read observed off one of them.
-        DATAFRAMES["DF_OBSERVED"] = DATAFRAMES["DF_1"].iloc[:, ::2]
+        DATAFRAMES["DF_OBSERVED"] = DATAFRAMES["DF"].iloc[:, ::2] if len(csv_fpaths) == 1 else DATAFRAMES["DF_1"].iloc[:, ::2]
+        observed = DATAFRAMES["DF_OBSERVED"]
 
         # Assign simulated dataframes dynamically
-        for i in range(len(csv_fpaths)):
-            DATAFRAMES[f"DF_SIMULATED_{i+1}"] = DATAFRAMES[f"DF_{i+1}"].iloc[:, 1::2] 
+        if len(csv_fpaths) == 1:
+            DATAFRAMES["DF_SIMULATED"] = DATAFRAMES["DF"].iloc[:, 1::2]
+        else:
+            for i in range(len(csv_fpaths)):
+                DATAFRAMES[f"DF_SIMULATED_{i+1}"] = DATAFRAMES[f"DF_{i+1}"].iloc[:, 1::2] 
 
 
         # Merge all dataframes
-        simulated_dfs = [df for key, df in DATAFRAMES.items() if key.startswith("DF_SIMULATED_")]
+        simulated_dfs = [df for key, df in DATAFRAMES.items() if key.startswith("DF_SIMULATED")]
         merged = pd.DataFrame(index = DATAFRAMES["DF_OBSERVED"].index)
         for j in range(0, len(DATAFRAMES["DF_OBSERVED"].columns)):
             merged = pd.concat([merged, DATAFRAMES["DF_OBSERVED"].iloc[:, j]], axis = 1)
@@ -1027,7 +1037,7 @@ def generate_dataframes(csv_fpaths: list=None, sim_fpaths: list = None, obs_fpat
                 merged = pd.concat([merged, sim_df.iloc[:, j]], axis = 1)
 
         DATAFRAMES["DF_MERGED"] = merged
-        DATAFRAMES["DF_MERGED"].columns = hlp.columns_to_MultiIndex(DATAFRAMES["DF_MERGED"].columns)
+        # DATAFRAMES["DF_MERGED"].columns = hlp.columns_to_MultiIndex(DATAFRAMES["DF_MERGED"].columns)
 
     elif sim_fpaths:
         if isinstance(sim_fpaths, str):
@@ -1051,6 +1061,7 @@ def generate_dataframes(csv_fpaths: list=None, sim_fpaths: list = None, obs_fpat
             obs_df = obs_df.replace([-1, 0], np.nan)
             obs_df = obs_df[warm_up:]
             DATAFRAMES["DF_OBSERVED"] = obs_df
+            observed = DATAFRAMES["DF_OBSERVED"]
 
         #### MERGE ####
             # Merge observed and simulated data
@@ -1071,7 +1082,7 @@ def generate_dataframes(csv_fpaths: list=None, sim_fpaths: list = None, obs_fpat
                     merged = pd.concat([merged, sim_df.iloc[:, j]], axis = 1)
 
             DATAFRAMES["DF_MERGED"] = merged
-            DATAFRAMES["DF_MERGED"].columns = hlp.columns_to_MultiIndex(DATAFRAMES["DF_MERGED"].columns)
+            # DATAFRAMES["DF_MERGED"].columns = hlp.columns_to_MultiIndex(DATAFRAMES["DF_MERGED"].columns)
 
         # in the absence of observed data, we will still umbrella merge all simulated data
         else:  
@@ -1081,77 +1092,106 @@ def generate_dataframes(csv_fpaths: list=None, sim_fpaths: list = None, obs_fpat
                     merged = pd.concat([merged, sim_df.iloc[:, i]], axis=1)
         
             DATAFRAMES["DF_MERGED"] = merged
-            DATAFRAMES["DF_MERGED"].columns = hlp.columns_to_MultiIndex(DATAFRAMES["DF_MERGED"].columns)
+            # DATAFRAMES["DF_MERGED"].columns = hlp.columns_to_MultiIndex(DATAFRAMES["DF_MERGED"].columns)
         #### END OF MERGE ####
-        
-        
-
     else:
         raise RuntimeError('Either sim_fpaths or obs_fpath or csv_fpaths are required inputs.')
 
-    # # Step 2: Date Range Filtering (for both observed and simulated data)
-    # if start_date and not end_date:
-    #     observed = observed.loc[start_date:]
-    #     for sim_df in simulated_dfs:
-    #         sim_df = sim_df.loc[start_date:]
-    #     DATAFRAMES["DF"] = DATAFRAMES["DF"][start_date:]
-    # elif end_date and not start_date:
-    #     observed = observed.loc[:end_date]
-    #     for sim_df in simulated_dfs:
-    #         sim_df = sim_df.loc[:end_date]
-    #     DATAFRAMES["DF"] = DATAFRAMES["DF"][:end_date]
-    # elif start_date and end_date:
-    #     observed = observed.loc[start_date:end_date]
-    #     for sim_df in simulated_dfs:
-    #         sim_df = sim_df.loc[start_date:end_date]
-    #     DATAFRAMES["DF"] = DATAFRAMES["DF"][start_date:end_date]
+    # Step 2: Date Range Filtering (for both observed and simulated data)
+    if start_date and not end_date:
+        DATAFRAMES["DF_MERGED"] = DATAFRAMES["DF_MERGED"][start_date:]
+        if csv_fpaths or obs_fpath:
+            DATAFRAMES["DF_OBSERVED"] = DATAFRAMES["DF_OBSERVED"][start_date:]
+        multiple_sims = len(csv_fpaths) > 1 or (sim_fpaths and len(sim_fpaths) > 1)
+        if multiple_sims:            
+            for i in range(len(csv_fpaths) if csv_fpaths else len(sim_fpaths)):
+                DATAFRAMES[f"DF_SIMULATED_{i+1}"] = DATAFRAMES[f"DF_SIMULATED_{i+1}"][start_date:]
+                DATAFRAMES[f"DF_{i+1}"] = DATAFRAMES[f"DF_{i+1}"][start_date:]
+        else:
+            DATAFRAMES["DF_SIMULATED"] = DATAFRAMES["DF_SIMULATED"][start_date:]
+            DATAFRAMES["DF"] = DATAFRAMES["DF"][start_date:]
+    elif end_date and not start_date:
+        DATAFRAMES["DF_MERGED"] = DATAFRAMES["DF_MERGED"][:end_date]
+        if csv_fpaths or obs_fpath:
+            DATAFRAMES["DF_OBSERVED"] = DATAFRAMES["DF_OBSERVED"][:end_date]
+        multiple_sims = len(csv_fpaths) > 1 or (sim_fpaths and len(sim_fpaths) > 1)
+        if multiple_sims:            
+            for i in range(len(csv_fpaths) if csv_fpaths else len(sim_fpaths)):
+                DATAFRAMES[f"DF_SIMULATED_{i+1}"] = DATAFRAMES[f"DF_SIMULATED_{i+1}"][:end_date]
+                DATAFRAMES[f"DF_{i+1}"] = DATAFRAMES[f"DF_{i+1}"][:end_date]
+        else:
+            DATAFRAMES["DF_SIMULATED"] = DATAFRAMES["DF_SIMULATED"][:end_date]
+            DATAFRAMES["DF"] = DATAFRAMES["DF"][:end_date]
+    elif start_date and end_date:
+        DATAFRAMES["DF_MERGED"] = DATAFRAMES["DF_MERGED"][start_date:end_date]
+        if csv_fpaths or obs_fpath:
+            DATAFRAMES["DF_OBSERVED"] = DATAFRAMES["DF_OBSERVED"][start_date:end_date]
+        multiple_sims = len(csv_fpaths) > 1 or (sim_fpaths and len(sim_fpaths) > 1)
+        if multiple_sims:            
+            for i in range(len(csv_fpaths) if csv_fpaths else len(sim_fpaths)):
+                DATAFRAMES[f"DF_SIMULATED_{i+1}"] = DATAFRAMES[f"DF_SIMULATED_{i+1}"][start_date:end_date]
+                DATAFRAMES[f"DF_{i+1}"] = DATAFRAMES[f"DF_{i+1}"][start_date:end_date]
+        else:
+            DATAFRAMES["DF_SIMULATED"] = DATAFRAMES["DF_SIMULATED"][start_date:end_date]
+            DATAFRAMES["DF"] = DATAFRAMES["DF"][start_date:end_date]
 
-    # print(f"The start date for the Observed Data is {observed.index[0].strftime('%Y-%m-%d')}")
+    print(f"The start date for the Data is {DATAFRAMES['DF_MERGED'].index[0].strftime('%Y-%m-%d')}")
     
-    # # Step 3: Validate inputs
-    # hlp.validate_data(observed, simulated_dfs)
+    # Step 3: Validate inputs
+    if len(csv_fpaths) > 1:
+        for i in range(len(csv_fpaths)):
+            hlp.validate_data(DATAFRAMES["DF_OBSERVED"], DATAFRAMES[f"DF_SIMULATED_{i+1}"])
+    elif len(csv_fpaths) == 1:
+        hlp.validate_data(DATAFRAMES["DF_OBSERVED"], DATAFRAMES["DF_SIMULATED"])
+    elif len(sim_fpaths) > 1 and obs_fpath:
+        for i in range(len(sim_fpaths)):
+            hlp.validate_data(DATAFRAMES["DF_OBSERVED"], DATAFRAMES[f"DF_SIMULATED_{i+1}"])
+    elif len(sim_fpaths) > 1:
+        for i in range(len(sim_fpaths)):
+            hlp.validate_data(DATAFRAMES[f"DF_{i+1}"], DATAFRAMES[f"DF_SIMULATED_{i+1}"])        
+        
 
-    # # Step 4: Aggregation (Daily, Weekly, Monthly, Yearly)
-    # if daily_agg and da_method:
-    #     DATAFRAMES["DF_DAILY"] = daily_aggregate(df=DATAFRAMES["DF"], method=da_method)
-    # elif daily_agg:
-    #     DATAFRAMES["DF_DAILY"] = daily_aggregate(df=DATAFRAMES["DF"])
+    # Step 4: Aggregation (Daily, Weekly, Monthly, Yearly)
+    if daily_agg and da_method:
+        DATAFRAMES["DF_DAILY"] = daily_aggregate(df=DATAFRAMES["DF_MERGED"], method=da_method)
+    elif daily_agg:
+        DATAFRAMES["DF_DAILY"] = daily_aggregate(df=DATAFRAMES["DF_MERGED"])
 
-    # if weekly_agg and wa_method:
-    #     DATAFRAMES["DF_WEEKLY"] = weekly_aggregate(df=DATAFRAMES["DF"], method=wa_method)
-    # elif weekly_agg:
-    #     DATAFRAMES["DF_WEEKLY"] = weekly_aggregate(df=DATAFRAMES["DF"])
+    if weekly_agg and wa_method:
+        DATAFRAMES["DF_WEEKLY"] = weekly_aggregate(df=DATAFRAMES["DF_MERGED"], method=wa_method)
+    elif weekly_agg:
+        DATAFRAMES["DF_WEEKLY"] = weekly_aggregate(df=DATAFRAMES["DF_MERGED"])
 
-    # if monthly_agg and ma_method:
-    #     DATAFRAMES["DF_MONTHLY"] = monthly_aggregate(df=DATAFRAMES["DF"], method=ma_method)
-    # elif monthly_agg:
-    #     DATAFRAMES["DF_MONTHLY"] = monthly_aggregate(df=DATAFRAMES["DF"])
+    if monthly_agg and ma_method:
+        DATAFRAMES["DF_MONTHLY"] = monthly_aggregate(df=DATAFRAMES["DF_MERGED"], method=ma_method)
+    elif monthly_agg:
+        DATAFRAMES["DF_MONTHLY"] = monthly_aggregate(df=DATAFRAMES["DF_MERGED"])
 
-    # if yearly_agg and ya_method:
-    #     DATAFRAMES["DF_YEARLY"] = yearly_aggregate(df=DATAFRAMES["DF"], method=ya_method)
-    # elif yearly_agg:
-    #     DATAFRAMES["DF_YEARLY"] = yearly_aggregate(df=DATAFRAMES["DF"])
+    if yearly_agg and ya_method:
+        DATAFRAMES["DF_YEARLY"] = yearly_aggregate(df=DATAFRAMES["DF_MERGED"], method=ya_method)
+    elif yearly_agg:
+        DATAFRAMES["DF_YEARLY"] = yearly_aggregate(df=DATAFRAMES["DF_MERGED"])
 
-    # # Step 5: Seasonal Period
-    # if seasonal_p and sp_dperiod == []:
-    #     raise RuntimeError("You cannot calculate a seasonal period without a daily period")
-    # elif seasonal_p and sp_dperiod and sp_subset:
-    #     DATAFRAMES["DF_CUSTOM"] = seasonal_period(df=DATAFRAMES["DF"], daily_period=sp_dperiod, subset=sp_subset)
-    # elif seasonal_p and sp_dperiod:
-    #     DATAFRAMES["DF_CUSTOM"] = seasonal_period(df=DATAFRAMES["DF"], daily_period=sp_dperiod)
+    # Step 5: Seasonal Period
+    if seasonal_p and sp_dperiod == []:
+        raise RuntimeError("You cannot calculate a seasonal period without a daily period")
+    elif seasonal_p and sp_dperiod and sp_subset:
+        DATAFRAMES["DF_CUSTOM"] = seasonal_period(df=DATAFRAMES["DF_MERGED"], daily_period=sp_dperiod, subset=sp_subset)
+    elif seasonal_p and sp_dperiod:
+        DATAFRAMES["DF_CUSTOM"] = seasonal_period(df=DATAFRAMES["DF_MERGED"], daily_period=sp_dperiod)
 
-    # # Step 6: Long-term Seasonal
-    # if long_term:
-    #     DATAFRAMES["LONG_TERM_MIN"] = long_term_seasonal(df=DATAFRAMES["DF"], method="min")
-    #     DATAFRAMES["LONG_TERM_MAX"] = long_term_seasonal(df=DATAFRAMES["DF"], method="max")
-    #     DATAFRAMES["LONG_TERM_MEDIAN"] = long_term_seasonal(df=DATAFRAMES["DF"], method="median")
-    #     if lt_method is None:
-    #         lt_method = []
-    #     elif isinstance(lt_method, str):
-    #         lt_method = [lt_method]
-    #     elif not isinstance(lt_method, list):
-    #         raise ValueError("Argument must be a string or a list of strings.")
-    #     for method in lt_method:
-    #         DATAFRAMES[f"LONG_TERM_{method.upper()}"] = long_term_seasonal(df=DATAFRAMES["DF"], method=method)
+    # Step 6: Long-term Seasonal
+    if long_term:
+        DATAFRAMES["LONG_TERM_MIN"] = long_term_seasonal(df=DATAFRAMES["DF_MERGED"], method="min")
+        DATAFRAMES["LONG_TERM_MAX"] = long_term_seasonal(df=DATAFRAMES["DF_MERGED"], method="max")
+        DATAFRAMES["LONG_TERM_MEDIAN"] = long_term_seasonal(df=DATAFRAMES["DF_MERGED"], method="median")
+        if lt_method is None:
+            lt_method = []
+        elif isinstance(lt_method, str):
+            lt_method = [lt_method]
+        elif not isinstance(lt_method, list):
+            raise ValueError("Argument must be a string or a list of strings.")
+        for method in lt_method:
+            DATAFRAMES[f"LONG_TERM_{method.upper()}"] = long_term_seasonal(df=DATAFRAMES["DF_MERGED"], method=method)
 
     return DATAFRAMES
