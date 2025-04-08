@@ -107,6 +107,26 @@ def _prepare_bounds(bounds: List[pd.DataFrame], col_index: int, observed: bool) 
     col_offset = 0 if observed else 1
     return [b.iloc[:, col_index * 2 + col_offset] for b in bounds]
 
+def _finalize_plot(ax, grid, labels, title, name, i):
+    ax.legend(fontsize=15)
+    
+    plt.xticks(fontsize=10, rotation=45)
+    plt.yticks(fontsize=15)
+
+    if labels:
+        plt.xlabel(labels[0], fontsize=18)
+        plt.ylabel(labels[1]+" (m\u00B3/s)", fontsize=18)
+
+    if title:
+        title_dict = {'family': 'sans-serif', 'color': 'black', 'weight': 'normal', 'size': 20}
+        if isinstance(title, list):
+            ax.set_title(title[i] if i < len(title) else f"{name}_{i + 1}", fontdict=title_dict, pad=25)
+        elif isinstance(title, str):
+            ax.set_title(label=title, fontdict=title_dict, pad=25)
+
+    if grid:
+        plt.grid(True) 
+
 def plot(
     merged_df: pd.DataFrame = None, 
     df: pd.DataFrame = None, 
@@ -317,6 +337,10 @@ def plot(
             # Plotting the Data     
             fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
             ax.plot(time, line_df.iloc[:, i], linestyles[0], label=legend[0], linewidth = linewidth[0])
+
+            if padding:
+                plt.xlim(time[0], time[-1])
+            _finalize_plot(ax, grid, labels, title, "plot", i)
     else:
         # In either case of merged or sim_df, we will alwaays have simulated data, so we plot the obs first if we have it.
         for i in range (0, len(sims["sim_1"].columns)):
@@ -328,37 +352,9 @@ def plot(
             for j in range(1, num_sim+1):
                 ax.plot(time, sims[f"sim_{j}"].iloc[:, i], color = eval(linestyles[j][:-1]) if linestyles[j][:-1].startswith("(") else linestyles[j][:-1],
                         linestyle = linestyles[j][-1], label=legend[j], linewidth = linewidth[j])            
-            ax.legend(fontsize=15)
-
-            # Adjusting the plot limit and layout
             if padding:
                 plt.xlim(time[0], time[-1])
-
-            # Placing Labels, title and grid if requested
-            plt.xticks(fontsize=10,
-                    rotation=45)
-            plt.yticks(fontsize=15)
-
-            if labels:
-                # Plotting Labels
-                plt.xlabel(labels[0], fontsize=18)
-                plt.ylabel(labels[1]+" (m\u00B3/s)", fontsize=18)
-            
-            if title:
-                title_dict = {'family': 'sans-serif',
-                            'color': 'black',
-                            'weight': 'normal',
-                            'size': 20,
-                            }
-                ## Check that the title is a list of strings or a single string
-                if isinstance(title, list):
-                    ax.set_title(title[i] if i < len(title) else f"Plot {i + 1}", fontdict=title_dict, pad=25)
-                elif isinstance(title, str):
-                    ax.set_title(label=title, fontdict=title_dict, pad=25)
-
-            # Placing a grid if requested
-            if grid:
-                plt.grid(True)
+            _finalize_plot(ax, grid, labels, title, "plot", i)
 
             # Placing Metrics on the Plot if requested
             # if metrices:
@@ -794,7 +790,6 @@ def bounded_plot(
             fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
             ax.plot(time, line_obs.iloc[:, i], linestyles[1], label=legend[1], linewidth = 1.5)
             ax.plot(time, line_sim.iloc[:, i], linestyles[0], label=legend[0], linewidth = 1.5)
-            ax.legend(fontsize=15)
 
             # Prepare bounds for the current column
             upper_obs = _prepare_bounds(upper_bounds, i, observed=True)
@@ -807,34 +802,9 @@ def bounded_plot(
                 ax.fill_between(time, lower_obs[j], upper_obs[j], alpha=transparency[1], color=linestyles[1][0])
                 ax.fill_between(time, lower_sim[j], upper_sim[j], alpha=transparency[0], color=linestyles[0][0])
             
-            # Adjusting the plot limit and layout
             if padding:
                 plt.xlim(time[0], time[-1])
-
-            # Placing Labels, title and grid if requested
-            plt.xticks(fontsize=15, rotation=45)
-            plt.yticks(fontsize=15)
-
-            if labels:
-                # Plotting Labels
-                plt.xlabel(labels[0], fontsize=18)
-                plt.ylabel(labels[1]+" (m\u00B3/s)", fontsize=18)
-            
-            if title:
-                title_dict = {'family': 'sans-serif',
-                            'color': 'black',
-                            'weight': 'normal',
-                            'size': 20,
-                            }
-                ## Check that the title is a list of strings or a single string
-                if isinstance(title, list):
-                    ax.set_title(title[i] if i < len(title) else f"Bounded Plot {i + 1}", fontdict=title_dict, pad=25)
-                elif isinstance(title, str):
-                    ax.set_title(label=title, fontdict=title_dict, pad=25)
-
-            # Placing a grid if requested
-            if grid:
-                plt.grid(True)
+            _finalize_plot(ax, grid, labels, title, "bounded-plot", i)
 
             # Save or auto-save for large column counts
             auto_save = len(line_obs.columns) > 5
@@ -1023,30 +993,7 @@ def histogram(
                 density=prob_dens)
             plt.legend(labels=[legend[1],legend[0]], loc='best')
 
-        # Placing Labels, title and grid if requested
-        plt.xticks(fontsize=15, rotation=45)
-        plt.yticks(fontsize=15)
-
-        if labels:
-            # Plotting Labels
-            plt.xlabel(labels[0], fontsize=18)
-            plt.ylabel(labels[1], fontsize=18)
-        
-        if title:
-            title_dict = {'family': 'sans-serif',
-                        'color': 'black',
-                        'weight': 'normal',
-                        'size': 20,
-                        }
-            ## Check that the title is a list of strings or a single string
-            if isinstance(title, list):
-                ax.set_title(title[i] if i < len(title) else f"Histogram Plot {i + 1}", fontdict=title_dict, pad=25)
-            elif isinstance(title, str):
-                ax.set_title(label=title, fontdict=title_dict, pad=25)
-
-        # Placing a grid if requested
-        if grid:
-            plt.grid(True)
+        _finalize_plot(ax, grid, labels, title, "histogram", i)
 
         # Save or auto-save for large column counts
         auto_save = len(obs.columns) > 5
@@ -1275,30 +1222,7 @@ def scatter(
             if best_fit or line45:
                 plt.legend(fontsize=12)
             
-            # Placing Labels, title and grid if requested
-            plt.xticks(fontsize=15, rotation=45)
-            plt.yticks(fontsize=15)
-
-            # Placing a grid if requested
-            if grid:
-                plt.grid(True)
-
-            if labels:
-                # Plotting Labels
-                plt.xlabel(labels[0], fontsize=12)
-                plt.ylabel(labels[1], fontsize=12)
-
-            if title:
-                title_dict = {'family': 'sans-serif',
-                            'color': 'black',
-                            'weight': 'normal',
-                            'size': 20,
-                            }
-                ## Check that the title is a list of strings or a single string
-                if isinstance(title, list):
-                    ax.set_title(title[i] if i < len(title) else f"Scatter Plot {i + 1}", fontdict=title_dict, pad=25)
-                elif isinstance(title, str):
-                    ax.set_title(label=title, fontdict=title_dict, pad=25)               
+            _finalize_plot(ax, grid, labels, title, "scatter-plot", i)               
 
             # Placing Metrics on the Plot if requested
             if metrices:
@@ -1539,30 +1463,7 @@ def qqplot(
             plt.plot(quant_sim, quant_obs, linestyle[2], label = q_labels[2], marker='o', markerfacecolor='w', linewidth = linewidth[1])
             plt.legend(fontsize=12)
 
-        # Placing Labels, title and grid if requested
-        plt.xticks(fontsize=15, rotation=45)
-        plt.yticks(fontsize=15)
-
-        if labels:
-            # Plotting Labels
-            plt.xlabel(labels[0], fontsize=18)
-            plt.ylabel(labels[1], fontsize=18)
-        
-        if title:
-            title_dict = {'family': 'sans-serif',
-                        'color': 'black',
-                        'weight': 'normal',
-                        'size': 20,
-                        }
-            ## Check that the title is a list of strings or a single string
-            if isinstance(title, list):
-                ax.set_title(title[i] if i < len(title) else f"QQ Plot {i + 1}", fontdict=title_dict, pad=25)
-            elif isinstance(title, str):
-                ax.set_title(label=title, fontdict=title_dict, pad=25)
-
-        # Placing a grid if requested
-        if grid:
-            plt.grid(True)
+        _finalize_plot(ax, grid, labels, title, "qqplot", i)
 
         # Save or auto-save for large column counts
         auto_save = len(obs.columns) > 5
@@ -1685,13 +1586,10 @@ def flow_duration_curve(
         ax.plot(exceedance_prob, sim_sorted, linestyles[0], label=legend[0], linewidth=linewidth[0])
         ax.legend(fontsize=15)
         
-        plt.xlabel(labels[0], fontsize=18)
-        plt.ylabel(labels[1], fontsize=18)
-        if title:
-            ax.set_title(title, fontsize=20, pad=25)
-        if grid:
-            plt.grid(True)
+        _finalize_plot(ax, grid, labels, title, "fdc-plot", i)
         
-        _save_or_display_plot(fig, save, save_as, dir, i, "fdc-plot")
+        # Save or auto-save for large column counts
+        auto_save = len(obs.columns) > 5
+        _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "fdc-plot")  
 
     return
