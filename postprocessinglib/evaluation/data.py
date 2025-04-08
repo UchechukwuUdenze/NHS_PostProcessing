@@ -971,7 +971,6 @@ def generate_dataframes(csv_fpaths: list=None, sim_fpaths: list = None, obs_fpat
     # Step 1: Handle input dataframes
     if isinstance(csv_fpaths, str):
         csv_fpaths = [csv_fpaths]  # Convert to list if it's a string
-    DATAFRAMES["NUM_SIMS"] = len(csv_fpaths)
     if csv_fpaths:
         for i, csv_fpath in enumerate(csv_fpaths):
             # read the combined csv file into a dataframe
@@ -1037,7 +1036,7 @@ def generate_dataframes(csv_fpaths: list=None, sim_fpaths: list = None, obs_fpat
                 merged = pd.concat([merged, sim_df.iloc[:, j]], axis = 1)
 
         DATAFRAMES["DF_MERGED"] = merged
-        # DATAFRAMES["DF_MERGED"].columns = hlp.columns_to_MultiIndex(DATAFRAMES["DF_MERGED"].columns)
+        DATAFRAMES["DF_MERGED"].columns = hlp.columns_to_MultiIndex(DATAFRAMES["DF_MERGED"].columns)
 
     elif sim_fpaths:
         if isinstance(sim_fpaths, str):
@@ -1082,7 +1081,7 @@ def generate_dataframes(csv_fpaths: list=None, sim_fpaths: list = None, obs_fpat
                     merged = pd.concat([merged, sim_df.iloc[:, j]], axis = 1)
 
             DATAFRAMES["DF_MERGED"] = merged
-            # DATAFRAMES["DF_MERGED"].columns = hlp.columns_to_MultiIndex(DATAFRAMES["DF_MERGED"].columns)
+            DATAFRAMES["DF_MERGED"].columns = hlp.columns_to_MultiIndex(DATAFRAMES["DF_MERGED"].columns)
 
         # in the absence of observed data, we will still umbrella merge all simulated data
         else:  
@@ -1092,7 +1091,7 @@ def generate_dataframes(csv_fpaths: list=None, sim_fpaths: list = None, obs_fpat
                     merged = pd.concat([merged, sim_df.iloc[:, i]], axis=1)
         
             DATAFRAMES["DF_MERGED"] = merged
-            # DATAFRAMES["DF_MERGED"].columns = hlp.columns_to_MultiIndex(DATAFRAMES["DF_MERGED"].columns)
+            DATAFRAMES["DF_MERGED"].columns = hlp.columns_to_MultiIndex(DATAFRAMES["DF_MERGED"].columns)
         #### END OF MERGE ####
     else:
         raise RuntimeError('Either sim_fpaths or obs_fpath or csv_fpaths are required inputs.')

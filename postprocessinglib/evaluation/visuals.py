@@ -111,7 +111,6 @@ def plot(
     merged_df: pd.DataFrame = None, 
     df: pd.DataFrame = None, 
     sim_df: pd.DataFrame = None,
-    num_sim: int = None,
     legend: tuple[str, str] = ('Data',), 
     metrices: list[str] = None,
     grid: bool = False, 
@@ -150,8 +149,6 @@ def plot(
 
     df : pd.DataFrame, optional
         A Single DataFrame usually containing only one of either simulated or observed data... or any data.
-    
-    num_sims: 
 
     legend : tuple of str, optional
         A tuple containing the labels for the data being plotted
@@ -237,44 +234,44 @@ def plot(
     - Metrics will be displayed on the plot if specified in the `metrices` parameter.
          
     """
-    # Get the number of simulated data columns
     if df is None:
-        if num_sim is None:
-            raise ValueError("Please provide the number of simulated data columns.")
-        else:
-            # Line width generation
-            if len(linewidth) < num_sim + 1:
-                print("Number of linewidths provided is less than the number of columns. "
-                      "Number of columns : " + str(num_sim + 1) + ". Number of linewidths provided is: ", str(len(linewidth)) +
-                      ". Defaulting to 1.5")
-                linewidth = (1.5,) * (num_sim + 1 if merged_df is not None else num_sim)
+        # Get the number of simulated data columns
+        num_sim = sum(1 for col in  merged_df.columns if col[0] == merged_df.columns[0][0])-1 if merged_df is not None else sum(1 for col in  sim_df.columns if col[0] == sim_df.columns[0][0])
+        print(f"Number of simulated data columns: {num_sim}")
+        # Line width generation
+        if len(linewidth) < num_sim + 1:
+            print("Number of linewidths provided is less than the number of columns. "
+                    "Number of columns : " + str(num_sim + 1) + ". Number of linewidths provided is: ", str(len(linewidth)) +
+                    ". Defaulting to 1.5")
+            linewidth = (1.5,) * (num_sim + 1 if merged_df is not None else num_sim)
+        
+        # Generate colors dynamically using Matplotlib colormap
+        cmap = plt.cm.get_cmap("tab10", num_sim + 1)  # +1 for Observed
+        colors = [cmap(i) for i in range(num_sim + 1)]
+
+        # Available line styles
+        # base_linestyles = ["-", "--", "-.", ":"]
+        style = ('-',) * (num_sim + 1) # default to solid lines unless overwritten
+
+        # Generate linestyles dynamically
+        if len(linestyles) < num_sim + 1:
+            print("Number of linestyles provided is less than the number of columns. "
+                    "Number of columns : " + str(num_sim + 1) + ". Number of linestyles provided is: ", str(len(linestyles)) +
+                    ". Defaulting to solid lines (-)")
+            linestyles = tuple(f"{colors[i % len(colors)]}{style[i % len(style)]}" 
+                            for i in range(num_sim + 1 if merged_df is not None else num_sim))
             
-            # Generate colors dynamically using Matplotlib colormap
-            cmap = plt.cm.get_cmap("tab10", num_sim + 1)  # +1 for Observed
-            colors = [cmap(i) for i in range(num_sim + 1)]
-
-            # Available line styles
-            # base_linestyles = ["-", "--", "-.", ":"]
-            style = ('-',) * (num_sim + 1) # default to solid lines unless overwritten
-
-            # Generate linestyles dynamically
-            if len(linestyles) < num_sim + 1:
-                print("Number of linestyles provided is less than the number of columns. "
-                      "Number of columns : " + str(num_sim + 1) + ". Number of linestyles provided is: ", str(len(linestyles)) +
-                      ". Defaulting to solid lines (-)")
-                linestyles = tuple(f"{colors[i % len(colors)]}{style[i % len(style)]}" 
-                                for i in range(num_sim + 1 if merged_df is not None else num_sim))
-                
-            # Generate Legends dynamically
-            if len(legend) < num_sim + 1:
-                print("Number of legends provided is less than the number of columns. "
-                      "Number of columns : " + str(num_sim + 1) + ". Number of legends provided is: ", str(len(legend)) +
-                      ". Applying Default legend names")
-                legend = (["Observed"] + [f"Simulated {i+1}" for i in range(num_sim)] if merged_df is not None else [f"Simulated {i+1}" for i in range(num_sim)])           
+        # Generate Legends dynamically
+        if len(legend) < num_sim + 1:
+            print("Number of legends provided is less than the number of columns. "
+                    "Number of columns : " + str(num_sim + 1) + ". Number of legends provided is: ", str(len(legend)) +
+                    ". Applying Default legend names")
+            legend = (["Observed"] + [f"Simulated {i+1}" for i in range(num_sim)] if merged_df is not None else [f"Simulated {i+1}" for i in range(num_sim)])           
             
 
     # Assign the data based on inputs
     sims = {}
+    obs = None
     if merged_df is not None:
         # If merged_df is provided, separate observed and simulated data
         obs = merged_df.iloc[:, ::num_sim+1]
@@ -284,7 +281,7 @@ def plot(
     elif sim_df is not None:
         # If sim_df is provided, that means theres no observed.
         for i in range(0, num_sim):
-            sims[f"sim_{i+1}"] = merged_df.iloc[:, i::num_sim]
+            sims[f"sim_{i+1}"] = sim_df.iloc[:, i::num_sim]
         time = sim_df.index
     elif df is not None:
         # If only df is provided, it could be either obs, simulated or just random data.
