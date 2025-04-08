@@ -434,9 +434,8 @@ def sig_figs(x: float, precision: int)-> float:
     
 def columns_to_MultiIndex(cols: pd.Index) -> pd.MultiIndex:
     """
-    Converts a single level column Index to a MultiIndex with two levels
-    It is very specific to the use case in the ``generate_dataframes`` function 
-    in the ``data`` module. It is used to convert the column names and indexes to 
+    Converts flat columns to MultiIndex by detecting new stations based on 'QOMEAS' patterns.
+    Each new 'QOMEAS' indicates the start of a new station group. It is used to convert the column names and indexes to 
     multiindexes that can be used to more easily select specific columns from the dataframe. 
 
     Parameters
@@ -471,19 +470,20 @@ def columns_to_MultiIndex(cols: pd.Index) -> pd.MultiIndex:
     stations = []
     measurements = []
 
-    sim_count = {}  # Track the occurrence of each station's QOSIM
+    station_counter = 1
+    sim_counter = 0
 
     for col in cols:
-        parts = col.split('_')
-        measurement, station = parts[0], parts[1]
-
-        if measurement == "QOMEAS":
+        if col.upper().startswith("QOMEAS"):
+            station_label = f"Station{station_counter}"
+            stations.append(station_label)
             measurements.append("QOMEAS")
+            station_counter += 1
+            sim_counter = 1  # reset for the new station
         else:
-            sim_count[station] = sim_count.get(station, 0) + 1
-            measurements.append(f"QOSIM{sim_count[station]}")
-
-        stations.append(station)
+            stations.append(f"Station{station_counter - 1}")
+            measurements.append(f"QOSIM{sim_counter}")
+            sim_counter += 1
 
     # Convert to MultiIndex
     multi_index = pd.MultiIndex.from_tuples(zip(stations, measurements))
