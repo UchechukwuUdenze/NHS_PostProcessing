@@ -108,6 +108,9 @@ def _prepare_bounds(bounds: List[pd.DataFrame], col_index: int, observed: bool) 
     return [b.iloc[:, col_index * 2 + col_offset] for b in bounds]
 
 def _finalize_plot(ax, grid, labels, title, name, i):
+    """
+    Finalizes the plot by setting labels, title, and grid options.
+    """
     ax.legend(fontsize=15)
     
     plt.xticks(fontsize=10, rotation=45)
@@ -263,7 +266,7 @@ def plot(
             print("Number of linewidths provided is less than the number of columns. "
                     "Number of columns : " + str(num_sim + 1) + ". Number of linewidths provided is: ", str(len(linewidth)) +
                     ". Defaulting to 1.5")
-            linewidth = (1.5,) * (num_sim + 1 if merged_df is not None else num_sim)
+            linewidth = linewidth + (1.5,) * (num_sim + 1 if merged_df is not None else num_sim)
         
         # Generate colors dynamically using Matplotlib colormap
         cmap = plt.cm.get_cmap("tab10", num_sim + 1)  # +1 for Observed
@@ -278,7 +281,7 @@ def plot(
             print("Number of linestyles provided is less than the number of columns. "
                     "Number of columns : " + str(num_sim + 1) + ". Number of linestyles provided is: ", str(len(linestyles)) +
                     ". Defaulting to solid lines (-)")
-            linestyles = tuple(f"{colors[i % len(colors)]}{style[i % len(style)]}" 
+            linestyles = linestyles + tuple(f"{colors[i % len(colors)]}{style[i % len(style)]}" 
                             for i in range(num_sim + 1 if merged_df is not None else num_sim))
             
         # Generate Legends dynamically
@@ -341,6 +344,8 @@ def plot(
             if padding:
                 plt.xlim(time[0], time[-1])
             _finalize_plot(ax, grid, labels, title, "plot", i)
+            auto_save = len(sims["sim_1"].columns) > 5
+            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "plot")
     else:
         # In either case of merged or sim_df, we will alwaays have simulated data, so we plot the obs first if we have it.
         for i in range (0, len(sims["sim_1"].columns)):
@@ -382,240 +387,6 @@ def plot(
             auto_save = len(sims["sim_1"].columns) > 5
             _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "plot")
 
-# def plot(
-#     merged_df: pd.DataFrame = None, 
-#     df: pd.DataFrame = None, 
-#     obs_df: pd.DataFrame = None, 
-#     sim_df: pd.DataFrame = None,
-#     legend: tuple[str, str] = ('Simulated Data', 'Observed Data'), 
-#     metrices: list[str] = None,
-#     grid: bool = False, 
-#     title: str = None, 
-#     labels: tuple[str, str] = None, 
-#     padding: bool = False,
-#     linestyles: tuple[str, str] = ('r-', 'b-'), 
-#     linewidth: tuple[float, float] = (1.5, 1.25),
-#     fig_size: tuple[float, float] = (10, 6), 
-#     metrics_adjust: tuple[float, float] = (1.05, 0.5),
-#     plot_adjust: float = 0.2, 
-#     save: bool = False, 
-#     save_as: str = None, 
-#     dir: str = os.getcwd()
-#     ) -> plt.figure:
-#     """ Create a comparison time series line plot of simulated and observed time series data
-
-#     This function generates line plots for any number of observed and simulated data
-    
-#     The function can handle data provided in three formats:
-#     - A merged DataFrame containing both observed and simulated data.
-#     - Separate observed and simulated DataFrames.
-
-#     The plot allows customization of various visual elements like line style, colors, axis labels, and title. 
-#     The resulting figure can be displayed or saved to a specified directory and file name.
-
-#     Parameters
-#     ----------
-#     merged_df : pd.DataFrame, optional
-#         The dataframe containing the series of observed and simulated values. It must have a datetime index.
-        
-#     obs_df : pd.DataFrame, optional
-#         A DataFrame containing the observed data series if using separate observed and simulated data.
-
-#     sim_df : pd.DataFrame, optional
-#         A DataFrame containing the simulated data series if using separate observed and simulated data.
-
-#     df : pd.DataFrame, optional
-#         A DataFrame containing the data to be plotted if no merged or separate observed/simulated data are provided.
-
-#     legend : tuple of str, optional
-#         A tuple containing the labels for the simulated and observed data, default is ('Simulated Data', 'Observed Data').
-
-#     metrices : list of str, optional
-#         A list of metrics to display on the plot, default is None.
-
-#     grid : bool, optional
-#         Whether to display a grid on the plot, default is False.
-
-#     title : str, optional
-#         The title of the plot.
-
-#     labels : tuple of str, optional
-#         A tuple containing the labels for the x and y axes.
-
-#     padding : bool, optional
-#         Whether to add padding to the x-axis limits for a tighter plot, default is False.
-
-#     linestyles : tuple of str, optional
-#         A tuple specifying the line styles for the simulated and observed data.
-
-#     linewidth : tuple of float, optional
-#         A tuple specifying the line widths for the simulated and observed data.
-
-#     fig_size : tuple of float, optional
-#         A tuple specifying the size of the figure.
-
-#     metrics_adjust : tuple of float, optional
-#         A tuple specifying the position for the metrics on the plot.
-
-#     plot_adjust : float, optional
-#         A value to adjust the plot layout to avoid clipping.
-
-#     save : bool, optional
-#         Whether to save the plot to a file, default is False.
-
-#     save_as : str or list of str, optional
-#         The name or list of names to save the plot as. If a list is provided, each plot will be saved with the corresponding name.
-
-#     dir : str, optional
-#         The directory to save the plot to, default is the current working directory.
-
-#     Returns
-#     -------
-#     fig : Matplotlib figure instance and/or png files of the figures.
-    
-#     Examples
-#     --------
-
-#     >>> from postprocessinglib.evaluation import visuals
-#     >>> # Example 1: Plotting merged data with simulated and observed values
-#     >>> merged_data = pd.DataFrame({...})  # Your merged dataframe
-#     >>> visuals.plot(merged_df = merged_data,
-#                     title='Simulated vs Observed',
-#                     labels=['Time', 'Value'], grid=True,
-#                     metrices = ['KGE','RMSE'])
-
-#     .. image:: ../Figures/plot1_example.png
-
-#     >>> # Example 2: Plotting only observed and simulated data with custom linestyles and saving the plot
-#     >>> obs_data = pd.DataFrame({...})  # Your observed data
-#     >>> sim_data = pd.DataFrame({...})  # Your simulated data
-#     >>> visuals.plot(obs_df = obs_data, sim_df = sim_data, linestyles=('g-', 'b-'),
-#                     save=True, save_as="plot2_example", dir="../Figures")
-
-#     .. image:: ../Figures/plot2_example.png
-
-#     >>> # Example 3: Plotting a single dataframe
-#     >>> single_data = pd.DataFrame({...})  # Your single dataframe (either simulated or observed)
-#     >>> visuals.plot(df=single_data, grid=True, title="Single Line Plot", labels=("Time", "Value"))
-
-#     .. image:: ../Figures/plot3_example.png
-
-#     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-visualizations.ipynb>`_
-
-#     Notes
-#     -----
-#     - The function requires at least one valid data input (merged_df, obs_df, sim_df, or df).
-#     - The time index of the input DataFrames must be a datetime index or convertible to datetime.
-#     - If the number of columns in the `obs_df` or `sim_df` exceeds five, the plot will be automatically saved.
-#     - Metrics will be displayed on the plot if specified in the `metrices` parameter.
-         
-#     """
-#      # Assign the data based on inputs
-#     if merged_df is not None:
-#         # If merged_df is provided, separate observed and simulated data
-#         obs = merged_df.iloc[:, ::2]
-#         sim = merged_df.iloc[:, 1::2]
-#         time = merged_df.index
-#     elif sim_df is not None and obs_df is not None:
-#         # If both sim_df and obs_df are provided
-#         obs = obs_df
-#         sim = sim_df
-#         time = obs_df.index
-#     elif df is not None:
-#         # If only df is provided, treat it as both observed and simulated data
-#         obs = df # to keep the future for loop valid
-#         line_df = df
-#         time = df.index
-#     else:
-#         raise RuntimeError('Please provide valid data (merged_df, obs_df, sim_df, or df)')
-
-#     # Convert time index to float or int if not datetime
-#     if not isinstance(time, pd.DatetimeIndex):
-#         # if the index is not a datetime, then it was converted during aggregation to
-#         # either a string (most likely) or an int or float
-#         if (isinstance(time[0], int)) or (isinstance(time[0], float)):
-#             pass
-#         else:
-#             if '/' in time[0]:
-#                 # daily
-#                 time = [pd.Timestamp(datetime.datetime.strptime(day, '%Y/%j').date()) for day in time]
-#             elif '.' in time[0]:
-#                 # weekly
-#                 # datetime ignores the week specifier unless theres a weekday attached,
-#                 # so we extrct the week number and attach Monday - day 1
-#                 time = [pd.to_datetime(f"{int(float(week))}-W{int((float(week) - int(float(week))) * 100):02d}-4", format="%Y-W%U-%w") for week in time]
-#             elif '-' in time[0]:
-#                 # monthly
-#                 time = [pd.to_datetime(f"{month}-15") for month in time]
-#             else: # yearly
-#                 time = [pd.to_datetime(f"{year}-07-15") for year in time]
-    
-
-#     for i in range (0, len(obs.columns)):
-#         # Plotting the Data     
-#         fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
-#         if df is not None:
-#             ax.plot(time, line_df.iloc[:, i], linestyles[0], label=legend[0], linewidth = linewidth[0])
-#         else:                                   
-#             ax.plot(time, obs.iloc[:, i], linestyles[1], label=legend[1], linewidth = linewidth[1])
-#             ax.plot(time, sim.iloc[:, i], linestyles[0], label=legend[0], linewidth = linewidth[0])
-#         ax.legend(fontsize=15)
-
-#         # Adjusting the plot limit and layout
-#         if padding:
-#             plt.xlim(time[0], time[-1])
-
-#         # Placing Labels, title and grid if requested
-#         plt.xticks(fontsize=10,
-#                    rotation=45)
-#         plt.yticks(fontsize=15)
-
-#         if labels:
-#             # Plotting Labels
-#             plt.xlabel(labels[0], fontsize=18)
-#             plt.ylabel(labels[1]+" (m\u00B3/s)", fontsize=18)
-        
-#         if title:
-#             title_dict = {'family': 'sans-serif',
-#                         'color': 'black',
-#                         'weight': 'normal',
-#                         'size': 20,
-#                         }
-#             ## Check that the title is a list of strings or a single string
-#             if isinstance(title, list):
-#                 ax.set_title(title[i] if i < len(title) else f"Plot {i + 1}", fontdict=title_dict, pad=25)
-#             elif isinstance(title, str):
-#                 ax.set_title(label=title, fontdict=title_dict, pad=25)
-
-#         # Placing a grid if requested
-#         if grid:
-#             plt.grid(True)
-
-#         # Placing Metrics on the Plot if requested
-#         if metrices:
-#             formatted_selected_metrics = 'Metrics:\n'
-#             if df is None:
-#                 if metrices == 'all':
-#                     for key, value in metrics.calculate_all_metrics(observed=obs, simulated=sim).items():
-#                         formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
-#                 else: 
-#                     assert isinstance(metrices, list)
-#                     for key, value in metrics.calculate_metrics(observed=obs, simulated=sim, metrices=metrices).items():
-#                         formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
-
-
-#             font = {'family': 'sans-serif',
-#                     'weight': 'normal',
-#                     'size': 12}
-#             plt.text(metrics_adjust[0], metrics_adjust[1], formatted_selected_metrics, ha='left',
-#                     va='center', transform=ax.transAxes, fontdict=font, #mouseover = True,
-#                     bbox = dict(boxstyle = "round, pad = 0.5,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
-
-#             plt.subplots_adjust(right = 1-plot_adjust)
-
-#         # Save or auto-save for large column counts
-#         auto_save = len(obs.columns) > 5
-#         _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "plot")
 
 
 def bounded_plot(
@@ -808,7 +579,213 @@ def bounded_plot(
 
             # Save or auto-save for large column counts
             auto_save = len(line_obs.columns) > 5
-            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "bounded-plot")        
+            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "bounded-plot")
+        
+# def bounded_plot(
+#     lines: Union[List[pd.DataFrame], pd.DataFrame],
+#     upper_bounds: List[pd.DataFrame] = None,
+#     lower_bounds: List[pd.DataFrame] = None,
+#     legend: Tuple[str, str] = ('Simulated Data', 'Observed Data'),
+#     grid: bool = False,
+#     title: Union[str, List[str]] = None,
+#     labels: Tuple[str, str] = None,
+#     linestyles: Tuple[str, str] = ('r-', 'b-'),
+#     padding: bool = False,
+#     fig_size: Tuple[float, float] = (10, 6),
+#     transparency: Tuple[float, float] = (0.4, 0.4),
+#     save: bool = False,
+#     save_as: Union[str, List[str]] = None,
+#     dir: str = os.getcwd()
+#     ) -> plt.figure:
+#     """ 
+#     Plots time-series data with optional confidence bounds.
+#     Generate a bounded time-series plot comparing observed and simulated streamflow with confidence intervals.
+
+#     A bounded plot is a time-series visualization that compares observed and simulated hydrological data while incorporating confidence bounds to represent uncertainty.
+#     This function plots the streamflow data against Julian days, providing insights into seasonal variations and model performance over time. 
+#     The confidence bounds, which can be defined using minimum-maximum ranges or percentiles (e.g., 5th-95th or 25th-75th percentiles), highlight the range of variability in the observed and simulated datasets. 
+#     The function allows for flexible customization of labels, legends, transparency, and line styles. 
+#     This visualization is particularly useful for evaluating hydrological models, identifying systematic biases, and assessing the reliability of simulated streamflow under different flow conditions. 
+
+#     Parameters
+#     ----------
+#     lines : list of pd.DataFrame
+#         A list of DataFrames containing the observed and simulated data series to be plotted. Each DataFrame must have a datetime index.
+
+#     upper_bounds : list of pd.DataFrame, optional
+#         A list of DataFrames containing the upper bounds for each series. If not provided, no upper bounds are plotted.
+
+#     lower_bounds : list of pd.DataFrame, optional
+#         A list of DataFrames containing the lower bounds for each series. If not provided, no lower bounds are plotted.
+
+#     legend : tuple of str, optional
+#         A tuple containing the labels for the simulated and observed data, default is ('Simulated Data', 'Observed Data').
+
+#     grid : bool, optional
+#         Whether to display a grid on the plot, default is False.
+
+#     title : str, optional
+#         The title of the plot.
+
+#     labels : tuple of str, optional
+#         A tuple containing the labels for the x and y axes.
+
+#     linestyles : tuple of str, optional
+#         A tuple specifying the line styles for the simulated and observed data.
+
+#     padding : bool, optional
+#         Whether to add padding to the x-axis limits for a tighter plot, default is False.
+
+#     fig_size : tuple of float, optional
+#         A tuple specifying the size of the figure.
+
+#     transparency : list of float, optional
+#         A list specifying the transparency levels for the upper and lower bounds, default is [0.4, 0.4].
+
+#     save : bool, optional
+#         Whether to save the plot to a file, default is False.
+
+#     save_as : str or list of str, optional
+#         The name or list of names to save the plot as. If a list is provided, each plot will be saved with the corresponding name.
+
+#     dir : str, optional
+#         The directory to save the plot to, default is the current working directory.
+
+#     Returns
+#     -------
+#     fig : Matplotlib figure instance
+    
+#     Example
+#     -------
+#     Generate a bounded plot with simulated and observed data, along with upper and lower bounds.
+
+#     >>> import pandas as pd
+#     >>> import numpy as np
+#     >>> from postprocessinglib.evaluation import visuals
+
+#     >>> # Create an index for the data
+#     >>> time_index = pd.date_range(start='2025-01-01', periods=50, freq='D')
+#     >>> # Generate sample observed and simulated data
+#     >>> obs_data = pd.DataFrame({
+#     ...     "Station1_Observed": np.random.rand(50),
+#     ...     "Station2_Observed": np.random.rand(50)
+#     ... }, index=time_index)
+#     >>> sim_data = pd.DataFrame({
+#     ...     "Station1_Simulated": np.random.rand(50),
+#     ...     "Station2_Simulated": np.random.rand(50)
+#     ... }, index=time_index)
+
+#     >>> # Combine observed and simulated data
+#     >>> data = pd.concat([obs_data, sim_data], axis=1)
+#     >>> # Generate sample bounds
+#     >>> upper_bounds = [
+#     ...     pd.DataFrame({
+#     ...         "Station1_Upper": np.random.rand(50) + 0.5,
+#     ...         "Station2_Upper": np.random.rand(50) + 0.5
+#     ...     }, index=time_index)
+#     ... ]
+#     >>> lower_bounds = [
+#     ...     pd.DataFrame({
+#     ...         "Station1_Lower": np.random.rand(50) - 0.5,
+#     ...         "Station2_Lower": np.random.rand(50) - 0.5
+#     ...     }, index=time_index)
+#     ... ]
+
+#     >>> # Plot the data with bounds
+#     >>> visuals.bounded_plot(
+#     ...     lines=data,
+#     ...     upper_bounds=upper_bounds,
+#     ...     lower_bounds=lower_bounds,
+#     ...     legend=('Simulated Data', 'Observed Data'),
+#     ...     labels=('Datetime', 'Streamflow'),
+#     ...     transparency = [0.4, 0.3],
+#     ...     grid=True,
+#     ...     save=True,
+#     ...     save_as = 'bounded_plot_example',
+#     ...     dir = '../Figures'
+#     ... )
+
+#     .. image:: ../Figures/bounded_plot_example_1.png
+
+#     >>> # Adjust a few other metrics
+#     >>> visuals.bounded_plot(
+#     ...     lines = merged_df,
+#     ...     upper_bounds = upper_bounds,
+#     ...     lower_bounds = lower_bounds,
+#     ...     title=['Long Term Aggregation by days of the Year'],
+#     ...     legend = ['Predicted Streamflow','Recorded Streamflow'],
+#     ...     linestyles=['k', 'r-'],
+#     ...     labels=['Days of the year', 'Streamflow Values'],
+#     ...     transparency = [0.4, 0.7],
+#     ... )
+
+#     .. image:: ../Figures/bounded_plot_example_2.png
+
+#     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-visualizations.ipynb>`_
+    
+#     """
+
+#     ## Check that the inputs are DataFrames
+#     if isinstance(lines, pd.DataFrame):
+#         lines = [lines]
+#     elif not isinstance(lines, list):
+#         raise ValueError("Argument must be a dataframe or a list of dataframes.")
+    
+#     upper_bounds = upper_bounds or []
+#     lower_bounds = lower_bounds or []
+
+#     if not isinstance(upper_bounds, list) or not isinstance(lower_bounds, list):
+#         raise ValueError("Bounds must be lists of DataFrames.")
+#     if len(upper_bounds) != len(lower_bounds):
+#         raise ValueError("Upper and lower bounds lists must have the same length.")
+
+#     # Plotting
+#     for line in lines:
+#         if not isinstance(line, pd.DataFrame):
+#             raise ValueError("All items in the 'lines' must be a DataFrame.")
+
+#         # Get the number of simulated data columns
+#         num_sim = sum(1 for col in  line.columns if col[0] == line.columns[0][0])-1 #if line is not None else sum(1 for col in  sim_df.columns if col[0] == sim_df.columns[0][0])
+#         print(f"Number of simulated data columns: {num_sim}")
+        
+#         # Setting Variable for the simulated data, observed data, and time stamps
+#         time = line.index
+#         obs_cols = [col for col in line.columns if "QOMEAS" in col[1].upper()]
+#         sim_cols = [col for col in line.columns if "QOSIM" in col[1].upper()]
+
+
+#         for i in range (0, len(obs_cols) or 1):
+#             fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
+
+#             if obs_cols:
+#                 # Plot observed data
+#                 line_obs = line[obs_cols]
+#                 ax.plot(time, line_obs.iloc[:, i], 'k-', label=legend[1], linewidth = 1.5) # if theres observed, itll be a default black line
+
+#             # Plot all simulations
+#             for j, sim_col in enumerate(sim_cols):
+#                 label = f"Sim {j + 1}"
+#                 style = linestyles[j % len(linestyles)]
+#                 ax.plot(time, line[sim_col], style, label=label, linewidth=1.5)
+
+#             # Prepare bounds for the current column
+#             upper_obs = _prepare_bounds(upper_bounds, i, observed=True)
+#             lower_obs = _prepare_bounds(lower_bounds, i, observed=True)
+#             upper_sim = _prepare_bounds(upper_bounds, i, observed=False)
+#             lower_sim = _prepare_bounds(lower_bounds, i, observed=False)
+
+#             # Plot bounds
+#             for j in range(len(upper_bounds)):
+#                 ax.fill_between(time, lower_obs[j], upper_obs[j], alpha=transparency[1], color=linestyles[1][0])
+#                 ax.fill_between(time, lower_sim[j], upper_sim[j], alpha=transparency[0], color=linestyles[0][0])
+            
+#             if padding:
+#                 plt.xlim(time[0], time[-1])
+#             _finalize_plot(ax, grid, labels, title, "bounded-plot", i)
+
+#             # Save or auto-save for large column counts
+#             auto_save = len(line_obs.columns) > 5
+#             _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "bounded-plot")        
 
 def histogram(
     merged_df: pd.DataFrame = None, 
@@ -1002,7 +979,8 @@ def histogram(
 def scatter(
   grid: bool = False, 
   title: str = None, 
-  labels: tuple[str, str] = None,
+  legend: tuple[str, str] = None,
+  labels: tuple[str, str] = ('Simulated Data', 'Observed Data'),
   fig_size: tuple[float, float] = (10, 6), 
   best_fit: bool = False, 
   line45: bool = False,
@@ -1011,7 +989,7 @@ def scatter(
   obs_df: pd.DataFrame = None, 
   sim_df: pd.DataFrame = None,
   metrices: list[str] = None, 
-  markerstyle: str = 'bo', 
+  markerstyle: list[str] = ['bo'], 
   save: bool = False, 
   plot_adjust: float = 0.2,
   save_as: str = None, 
@@ -1048,7 +1026,10 @@ def scatter(
     title : str, optional
         The title of the plot.
 
-    labels : tuple of str, optional
+    labels: tuple of str, optional
+        A tuple containing the labels for the simulated and observed data, default is ('Simulated Data', 'Observed Data').
+
+    legend : tuple of str, optional
         A tuple containing the labels for the x and y axes.
 
     fig_size : tuple of float, optional
@@ -1179,25 +1160,63 @@ def scatter(
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-visualizations.ipynb>`_
 
-    """     
+    """
     # Plotting the Data
     if not shapefile_path:
+        # Get the number of simulated data columns
+        num_sim = sum(1 for col in  merged_df.columns if col[0] == merged_df.columns[0][0])-1 if merged_df is not None else sum(1 for col in  sim_df.columns if col[0] == sim_df.columns[0][0])
+        print(f"Number of simulated data columns: {num_sim}")
+
+        # Generate colors dynamically using Matplotlib colormap
+        color_map = plt.cm.get_cmap("tab10", num_sim)  # +1 for Observed
+        colors = [color_map(i) for i in range(num_sim)]
+
+        # Available marker styles
+        style = [".", "1", "v", "x", "*", "+", "X", "3", "^", "s", "D"] # default unless overwritten
+
+        # Generate linestyles dynamically
+        if len(markerstyle) < num_sim:
+            print("Number of markerstyles provided is less than the number of columns. "
+                    "Number of columns : " + str(num_sim) + ". Number of markerstyles provided is: ", str(len(markerstyle)) +
+                    ". Using Default Markerstyles.")
+            markerstyle = markerstyle + [f"{colors[i % len(colors)]}{style[i % len(style)]}" 
+                            for i in range(num_sim)]    
+
+        # Generate Legends dynamically
+        if legend is None:
+            legend = [f"Simulated {i}" for i in range(1, num_sim+1)]
+        elif len(legend) < num_sim:
+            print("Number of legends provided is less than the number of columns. "
+                    "Number of columns : " + str(num_sim) + ". Number of legends provided is: ", str(len(legend)) +
+                    ". Applying Default labels")
+            legend = legend + [f"Simulated {len(legend)+i}" for i in range(1, num_sim+1)]
+
+        sims = {}
+        obs = None
         if merged_df is not None:
             # If merged_df is provided, separate observed and simulated data
-            obs = merged_df.iloc[:, ::2]
-            sim = merged_df.iloc[:, 1::2]
+            obs = merged_df.iloc[:, ::num_sim+1]
+            for i in range(1, num_sim+1):
+                sims[f"sim_{i}"] = merged_df.iloc[:, i::num_sim+1]
         elif sim_df is not None and obs_df is not None:
             # If both sim_df and obs_df are provided
             obs = obs_df
-            sim = sim_df
+            for i in range(0, num_sim):
+                sims[f"sim_{i+1}"] = sim_df.iloc[:, i::num_sim]
         else:
             raise RuntimeError('Please provide valid data (merged_df, obs_df or sim_df)')
 
         for i in range (0, len(obs.columns)):
             # Plotting the Data
-            fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k') 
-            plt.plot(sim.iloc[:, i], obs.iloc[:, i], markerstyle)
+            fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
+            for j in range(1, num_sim+1):
+                ax.plot(sims[f"sim_{j}"].iloc[:, i], obs.iloc[:, i],
+                        color = eval(markerstyle[j-1][:-1]) if markerstyle[j-1][:-1].startswith("(") else markerstyle[j-1][:-1],
+                        marker = markerstyle[j-1][-1], 
+                        label=legend[j-1] if labels else f"Sim {j}", 
+                        linestyle='None') 
 
+            sim = sims[f"sim_{1}"]  # Use first simulation for best-fit
             if best_fit:
                 # Getting a polynomial fit and defining a function with it
                 p = np.polyfit(sim.iloc[:, i], obs.iloc[:, i], 1)
@@ -1211,38 +1230,38 @@ def scatter(
                 equation = "{} x + {}".format(np.round(p[0], 4), np.round(p[1], 4))
 
                 # Plotting the best fit line with the equation as a legend in latex
-                plt.plot(x_new, y_new, 'r', label="${}$".format(equation))
+                ax.plot(x_new, y_new, 'r', label="${}$".format(equation))
 
             
             if line45:
                 max = np.nanmax([sim.iloc[:, i].max(), obs.iloc[:, i].max()])
-                plt.plot(np.arange(0, int(max) + 1), np.arange(0, int(max) + 1), 'r--', label='45$^\u00b0$ Line')
+                ax.plot(np.arange(0, int(max) + 1), np.arange(0, int(max) + 1), 'r--', label='45$^\u00b0$ Line')
 
             
             if best_fit or line45:
-                plt.legend(fontsize=12)
+                ax.legend(fontsize=12)
             
             _finalize_plot(ax, grid, labels, title, "scatter-plot", i)               
 
             # Placing Metrics on the Plot if requested
-            if metrices:
-                formatted_selected_metrics = 'Metrics: \n'
-                if metrices == 'all':
-                    for key, value in metrics.calculate_all_metrics(observed=obs, simulated=sim).items():
-                        formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
-                else: 
-                    assert isinstance(metrices, list)
-                    for key, value in metrics.calculate_metrics(observed=obs, simulated=sim, metrices=metrices).items():
-                        formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
+            # if metrices:
+            #     formatted_selected_metrics = 'Metrics: \n'
+            #     if metrices == 'all':
+            #         for key, value in metrics.calculate_all_metrics(observed=obs, simulated=sim).items():
+            #             formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
+            #     else: 
+            #         assert isinstance(metrices, list)
+            #         for key, value in metrics.calculate_metrics(observed=obs, simulated=sim, metrices=metrices).items():
+            #             formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
 
-                font = {'family': 'sans-serif',
-                        'weight': 'normal',
-                        'size': 12}
-                plt.text(metrics_adjust[0], metrics_adjust[1], formatted_selected_metrics, ha='left',
-                    va='center', transform=ax.transAxes, fontdict=font, #mouseover = True,
-                    bbox = dict(boxstyle = "round4, pad = 0.6,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
+            #     font = {'family': 'sans-serif',
+            #             'weight': 'normal',
+            #             'size': 12}
+            #     plt.text(metrics_adjust[0], metrics_adjust[1], formatted_selected_metrics, ha='left',
+            #         va='center', transform=ax.transAxes, fontdict=font, #mouseover = True,
+            #         bbox = dict(boxstyle = "round4, pad = 0.6,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
 
-                plt.subplots_adjust(right = 1-plot_adjust)
+            #     plt.subplots_adjust(right = 1-plot_adjust)
 
             # Save or auto-save for large column counts
             auto_save = len(obs.columns) > 5
@@ -1474,12 +1493,13 @@ def flow_duration_curve(
     merged_df: pd.DataFrame = None, 
     obs_df: pd.DataFrame = None, 
     sim_df: pd.DataFrame = None,
-    legend: tuple[str, str] = ('Simulated Data', 'Observed Data'), 
+    df: pd.DataFrame = None, 
+    legend: tuple[str, str] = ('Data',), 
     grid: bool = False, 
     title: str = None, 
     labels: tuple[str, str] = ('Exceedance Probability (%)', 'Flow (m³/s)'),
-    linestyles: tuple[str, str] = ('r-', 'b-'), 
-    linewidth: tuple[float, float] = (1.5, 1.25),
+    linestyles: tuple[str, str] = ('r-',), 
+    linewidth: tuple[float, float] = (1.5,),
     fig_size: tuple[float, float] = (10, 6), 
     save: bool = False, 
     save_as: str = None, 
@@ -1566,30 +1586,113 @@ def flow_duration_curve(
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-visualizations.ipynb>`_
     """
 
+    if df is None:
+        # Get the number of simulated data columns
+        num_sim = sum(1 for col in  merged_df.columns if col[0] == merged_df.columns[0][0])-1 if merged_df is not None else sum(1 for col in  sim_df.columns if col[0] == sim_df.columns[0][0])
+        print(f"Number of simulated data columns: {num_sim}")
+        # Line width generation
+        if len(linewidth) < num_sim + 1:
+            print("Number of linewidths provided is less than the number of columns. "
+                    "Number of columns : " + str(num_sim + 1) + ". Number of linewidths provided is: ", str(len(linewidth)) +
+                    ". Defaulting to 1.5")
+            linewidth = linewidth + (1.5,) * (num_sim + 1 if merged_df is not None else num_sim)
+        
+        # Generate colors dynamically using Matplotlib colormap
+        cmap = plt.cm.get_cmap("tab10", num_sim + 1)  # +1 for Observed
+        colors = [cmap(i) for i in range(num_sim + 1)]
+
+        # Available line styles
+        # base_linestyles = ["-", "--", "-.", ":"]
+        style = ('-',) * (num_sim + 1) # default to solid lines unless overwritten
+
+        # Generate linestyles dynamically
+        if len(linestyles) < num_sim + 1:
+            print("Number of linestyles provided is less than the number of columns. "
+                    "Number of columns : " + str(num_sim + 1) + ". Number of linestyles provided is: ", str(len(linestyles)) +
+                    ". Defaulting to solid lines (-)")
+            linestyles = linestyles + tuple(f"{colors[i % len(colors)]}{style[i % len(style)]}" 
+                            for i in range(num_sim + 1 if merged_df is not None else num_sim))
+            
+        # Generate Legends dynamically
+        if len(legend) < num_sim + 1:
+            print("Number of legends provided is less than the number of columns. "
+                    "Number of columns : " + str(num_sim + 1) + ". Number of legends provided is: ", str(len(legend)) +
+                    ". Applying Default legend names")
+            legend = (["Observed"] + [f"Simulated {i+1}" for i in range(num_sim)] if merged_df is not None else [f"Simulated {i+1}" for i in range(num_sim)]) 
+    
+    
+    # Assign the data based on inputs
+    sims = {}
+    obs = None
     if merged_df is not None:
-        obs = merged_df.iloc[:, ::2]
-        sim = merged_df.iloc[:, 1::2]
-    elif sim_df is not None and obs_df is not None:
-        obs = obs_df
-        sim = sim_df
+        # If merged_df is provided, separate observed and simulated data
+        obs = merged_df.iloc[:, ::num_sim+1]
+        for i in range(1, num_sim+1):
+            sims[f"sim_{i}"] = merged_df.iloc[:, i::num_sim+1]
+        time = merged_df.index
+    elif sim_df is not None:
+        # If sim_df is provided, that means theres no observed.
+        for i in range(0, num_sim):
+            sims[f"sim_{i+1}"] = sim_df.iloc[:, i::num_sim]
+        time = sim_df.index
+    elif df is not None:
+        # If only df is provided, it could be either obs, simulated or just random data.
+        # obs = df # to keep the future for loop valid
+        line_df = df
+        time = df.index
     else:
-        raise RuntimeError('Provide valid data (merged_df, obs_df, sim_df)')
+        raise RuntimeError('Please provide valid data (merged_df, sim_df, or df)')
 
-    for i in range(len(obs.columns)):
-        fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
+    # for i in range(len(obs.columns)):
+    #     fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
         
-        obs_sorted = np.sort(obs.iloc[:, i])[::-1]
-        sim_sorted = np.sort(sim.iloc[:, i])[::-1]
-        exceedance_prob = np.linspace(0, 100, len(obs_sorted))
+        # obs_sorted = np.sort(obs.iloc[:, i])[::-1]
+        # sim_sorted = np.sort(sim.iloc[:, i])[::-1]
+        # exceedance_prob = np.linspace(0, 100, len(obs_sorted))
         
-        ax.plot(exceedance_prob, obs_sorted, linestyles[1], label=legend[1], linewidth=linewidth[1])
-        ax.plot(exceedance_prob, sim_sorted, linestyles[0], label=legend[0], linewidth=linewidth[0])
-        ax.legend(fontsize=15)
+    #     ax.plot(exceedance_prob, obs_sorted, linestyles[1], label=legend[1], linewidth=linewidth[1])
+    #     ax.plot(exceedance_prob, sim_sorted, linestyles[0], label=legend[0], linewidth=linewidth[0])
+    #     ax.legend(fontsize=15)
         
-        _finalize_plot(ax, grid, labels, title, "fdc-plot", i)
+    #     _finalize_plot(ax, grid, labels, title, "fdc-plot", i)
         
-        # Save or auto-save for large column counts
-        auto_save = len(obs.columns) > 5
-        _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "fdc-plot")  
+    #     # Save or auto-save for large column counts
+    #     auto_save = len(obs.columns) > 5
+    #     _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "fdc-plot")  
 
-    return
+    if df is not None:
+        for i in range (0, len(line_df.columns)):
+            # Plotting the Data     
+            fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
+            line_df_sorted = np.sort(line_df.iloc[:, i])[::-1]
+            exceedance_prob = np.linspace(0, 100, len(line_df_sorted))
+            ax.plot(exceedance_prob, line_df_sorted, linestyles[0], label=legend[0], linewidth=linewidth[0])
+
+            _finalize_plot(ax, grid, labels, title, "fdc-plot", i)
+            
+            # Save or auto-save for large column counts
+            auto_save = len(obs.columns) > 5
+            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "fdc-plot") 
+    else:
+        # In either case of merged or sim_df, we will alwaays have simulated data, so we plot the obs first if we have it.
+        for i in range (0, len(sims["sim_1"].columns)):
+            # Plotting the Data     
+            fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
+            if obs is not None:
+                obs_sorted = np.sort(obs.iloc[:, i])[::-1]
+                exceedance_prob = np.linspace(0, 100, len(obs_sorted))                
+                ax.plot(exceedance_prob, obs_sorted, color = eval(linestyles[0][:-1]) if linestyles[0][:-1].startswith("(") else linestyles[0][:-1], 
+                        linestyle = linestyles[0][-1],label=legend[0], linewidth = linewidth[0])
+            for j in range(1, num_sim+1):
+                sim_sorted = np.sort(sims[f"sim_{j}"].iloc[:, i])[::-1]  # Sorting the simulated data
+                exceedance_prob = np.linspace(0, 100, len(obs_sorted))
+                ax.plot(exceedance_prob, sim_sorted, color = eval(linestyles[j][:-1]) if linestyles[j][:-1].startswith("(") else linestyles[j][:-1],
+                        linestyle = linestyles[j][-1], label=legend[j], linewidth = linewidth[j])            
+
+            _finalize_plot(ax, grid, labels, title, "fdc-plot", i)
+    
+            # Save or auto-save for large column counts
+            auto_save = len(obs.columns) > 5
+            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "fdc-plot") 
+
+
