@@ -1207,6 +1207,10 @@ def scatter(
             raise RuntimeError('Please provide valid data (merged_df, obs_df or sim_df)')
 
         for i in range (0, len(obs.columns)):
+            max_obs = obs.iloc[:, i].max()
+            min_obs = obs.iloc[:, i].min()
+            max_sim, min_sim  = 0, 0
+
             # Plotting the Data
             fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
             for j in range(1, num_sim+1):
@@ -1214,28 +1218,33 @@ def scatter(
                         color = eval(markerstyle[j-1][:-1]) if markerstyle[j-1][:-1].startswith("(") else markerstyle[j-1][:-1],
                         marker = markerstyle[j-1][-1], 
                         label=legend[j-1] if labels else f"Sim {j}", 
-                        linestyle='None') 
+                        linestyle='None')
+                max_sim = np.max([max_sim, sims[f"sim_{j}"].iloc[:, i].max()])
+                min_sim = np.min([min_sim, sims[f"sim_{j}"].iloc[:, i].min()]) 
 
-            sim = sims[f"sim_{1}"]  # Use first simulation for best-fit
-            if best_fit:
-                # Getting a polynomial fit and defining a function with it
-                p = np.polyfit(sim.iloc[:, i], obs.iloc[:, i], 1)
-                f = np.poly1d(p)
+                if best_fit:
+                    # Getting a polynomial fit and defining a function with it
+                    p = np.polyfit(sims[f"sim_{j}"].iloc[:, i], obs.iloc[:, i], 1)
+                    f = np.poly1d(p)
 
-                # Calculating new x's and y's
-                x_new = np.linspace(sim.iloc[:, i].min(), sim.iloc[:, i].max(), sim.size)
-                y_new = f(x_new)
+                    # Calculating new x's and y's
+                    x_new = np.linspace(sims[f"sim_{j}"].iloc[:, i].min(), sims[f"sim_{j}"].iloc[:, i].max(), sims[f"sim_{j}"].iloc[:, i].size)
+                    y_new = f(x_new)
 
-                # Formatting the best fit equation to be able to display in latex
-                equation = "{} x + {}".format(np.round(p[0], 4), np.round(p[1], 4))
+                    # Formatting the best fit equation to be able to display in latex
+                    equation = "{} x + {}".format(np.round(p[0], 4), np.round(p[1], 4))
 
-                # Plotting the best fit line with the equation as a legend in latex
-                ax.plot(x_new, y_new, 'r', label="${}$".format(equation))
+                    # Plotting the best fit line with the equation as a legend in latex
+                    ax.plot(x_new, y_new,
+                            color = eval(markerstyle[j-1][:-1]) if markerstyle[j-1][:-1].startswith("(") else markerstyle[j-1][:-1], 
+                            label="${}$".format(equation))
 
             
             if line45:
-                max = np.nanmax([sim.iloc[:, i].max(), obs.iloc[:, i].max()])
-                ax.plot(np.arange(0, int(max) + 1), np.arange(0, int(max) + 1), 'r--', label='45$^\u00b0$ Line')
+                max = np.nanmax([max_sim, max_obs])
+                min = np.nanmin([min_sim, min_obs])
+                # Plotting the 45 degree line
+                ax.plot(np.arange(int(min), int(max) + 1), np.arange(int(min), int(max) + 1), 'r--', label='45$^\u00b0$ Line')
 
             
             if best_fit or line45:
@@ -1430,74 +1439,103 @@ def qqplot(
 
     """
 
+    # Get the number of simulated data columns
+    num_sim = sum(1 for col in  merged_df.columns if col[0] == merged_df.columns[0][0])-1 if merged_df is not None else sum(1 for col in  sim_df.columns if col[0] == sim_df.columns[0][0])
+    print(f"Number of simulated data columns: {num_sim}")
+
+    # Generate colors dynamically using Matplotlib colormap
+    color_map = plt.cm.get_cmap("tab10", num_sim)  # +1 for Observed
+    colors = [color_map(i) for i in range(num_sim)]
+
+    # Available marker styles
+    style = [".", "1", "v", "x", "*", "+", "X", "3", "^", "s", "D"] # default unless overwritten
+
+    # Generate linestyles dynamically
+    if len(markerstyle) < num_sim:
+        print("Number of markerstyles provided is less than the number of columns. "
+                "Number of columns : " + str(num_sim) + ". Number of markerstyles provided is: ", str(len(markerstyle)) +
+                ". Using Default Markerstyles.")
+        markerstyle = markerstyle + [f"{colors[i % len(colors)]}{style[i % len(style)]}" 
+                        for i in range(num_sim)]    
+
+    # Generate Legends dynamically
+    if legend is None:
+        legend = [f"Simulated {i}" for i in range(1, num_sim+1)]
+    elif len(legend) < num_sim:
+        print("Number of legends provided is less than the number of columns. "
+                "Number of columns : " + str(num_sim) + ". Number of legends provided is: ", str(len(legend)) +
+                ". Applying Default labels")
+        legend = legend + [f"Simulated {len(legend)+i}" for i in range(1, num_sim+1)]
+
+    sims = {}
+    obs = None
     if merged_df is not None:
         # If merged_df is provided, separate observed and simulated data
-        obs = merged_df.iloc[:, ::2]
-        sim = merged_df.iloc[:, 1::2]
+        obs = merged_df.iloc[:, ::num_sim+1]
+        for i in range(1, num_sim+1):
+            sims[f"sim_{i}"] = merged_df.iloc[:, i::num_sim+1]
     elif sim_df is not None and obs_df is not None:
         # If both sim_df and obs_df are provided
         obs = obs_df
-        sim = sim_df
+        for i in range(0, num_sim):
+            sims[f"sim_{i+1}"] = sim_df.iloc[:, i::num_sim]
     else:
         raise RuntimeError('Please provide valid data (merged_df, obs_df or sim_df)')
 
     for i in range (0, len(obs.columns)):
+        fig = plt.figure(figsize=fig_size, facecolor='w', edgecolor='k')
+        ax = fig.add_subplot(111)
+
         n = obs.iloc[:, i].size
         pvec = 100 * ((np.arange(1, n + 1) - 0.5) / n)
-        sim_perc = np.percentile(sim.iloc[:, i], pvec, method=method)
         obs_perc = np.percentile(obs.iloc[:, i], pvec, method=method)
-
         # Finding the interquartile range to plot the best fit line
-        quant_1_sim = np.percentile(obs.iloc[:, i], quantile[0], interpolation=method)
-        quant_3_sim = np.percentile(obs.iloc[:, i], quantile[1], interpolation=method)
         quant_1_obs = np.percentile(obs.iloc[:, i], quantile[0], interpolation=method)
         quant_3_obs = np.percentile(obs.iloc[:, i], quantile[1], interpolation=method)
-
-        dsim = quant_3_sim - quant_1_sim
         dobs = quant_3_obs - quant_1_obs
-        slope = dobs / dsim
 
-        centersim = (quant_1_sim + quant_3_sim) / 2
-        centerobs = (quant_1_obs + quant_3_obs) / 2
-        maxsim = np.max(obs.iloc[:, i])
-        minsim = np.min(obs.iloc[:, i])
-        maxobs = centerobs + slope * (maxsim - centersim)
-        minobs = centerobs - slope * (centersim - minsim)
+        for j in range(1, num_sim+1):
+            sim_perc = np.percentile(sims[f"sim_{j}"].iloc[:, i], pvec, method=method)
+            # Finding the interquartile range to plot the best fit line
+            quant_1_sim = np.percentile(sims[f"sim_{j}"].iloc[:, i], quantile[0], interpolation=method)
+            quant_3_sim = np.percentile(sims[f"sim_{j}"].iloc[:, i], quantile[1], interpolation=method)
+            dsim = quant_3_sim - quant_1_sim
 
-        msim = np.array([minsim, maxsim])
-        mobs = np.array([minobs, maxobs])
-        quant_sim = np.array([quant_1_sim, quant_3_sim])
-        quant_obs = np.array([quant_1_obs, quant_3_obs])
+            slope = dobs / dsim
 
-        fig = plt.figure(figsize=fig_size, facecolor='w', edgecolor='k')
-        ax = fig.add_subplot(111) 
+            centersim = (quant_1_sim + quant_3_sim) / 2
+            centerobs = (quant_1_obs + quant_3_obs) / 2
+            maxsim = np.max(sims[f"sim_{j}"].iloc[:, i])
+            minsim = np.min(sims[f"sim_{j}"].iloc[:, i])
+            maxobs = centerobs + slope * (maxsim - centersim)
+            minobs = centerobs - slope * (centersim - minsim)
+
+            msim = np.array([minsim, maxsim])
+            mobs = np.array([minobs, maxobs])
+            quant_sim = np.array([quant_1_sim, quant_3_sim])
+            quant_obs = np.array([quant_1_obs, quant_3_obs]) 
         
-        if not legend:
-            plt.plot(sim_perc, obs_perc, linestyle[0], markersize=2)
-            plt.plot(msim, mobs, linestyle[1], linewidth = linewidth[0])
-            plt.plot(quant_sim, quant_obs, linestyle[2], marker='o', markerfacecolor='k', linewidth = linewidth[1])
-        else:
+
             plt.plot(sim_perc, obs_perc, linestyle[0],  label = q_labels[0], markersize=2)
             plt.plot(msim, mobs, linestyle[1], label = q_labels[1], linewidth = linewidth[0])
             plt.plot(quant_sim, quant_obs, linestyle[2], label = q_labels[2], marker='o', markerfacecolor='w', linewidth = linewidth[1])
             plt.legend(fontsize=12)
 
-        _finalize_plot(ax, grid, labels, title, "qqplot", i)
+            _finalize_plot(ax, grid, labels, title, "qqplot", i)
 
-        # Save or auto-save for large column counts
-        auto_save = len(obs.columns) > 5
-        _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "qqplot")  
+            # Save or auto-save for large column counts
+            auto_save = len(obs.columns) > 5
+            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "qqplot")  
 
 
 def flow_duration_curve(
     merged_df: pd.DataFrame = None, 
-    obs_df: pd.DataFrame = None, 
     sim_df: pd.DataFrame = None,
     df: pd.DataFrame = None, 
     legend: tuple[str, str] = ('Data',), 
     grid: bool = False, 
     title: str = None, 
-    labels: tuple[str, str] = ('Exceedance Probability (%)', 'Flow (m³/s)'),
+    labels: tuple[str, str] = ('Exceedance Probability (%)', 'Flow'),
     linestyles: tuple[str, str] = ('r-',), 
     linewidth: tuple[float, float] = (1.5,),
     fig_size: tuple[float, float] = (10, 6), 
@@ -1520,9 +1558,6 @@ def flow_duration_curve(
     merged_df : pd.DataFrame, optional
         A DataFrame containing both observed and simulated streamflow data. The observed data should be 
         in the even-numbered columns, and the simulated data in the odd-numbered columns.
-        
-    obs_df : pd.DataFrame, optional
-        A DataFrame containing observed streamflow data. This is used if `merged_df` is not provided.
         
     sim_df : pd.DataFrame, optional
         A DataFrame containing simulated streamflow data. This is used if `merged_df` is not provided.
@@ -1642,23 +1677,6 @@ def flow_duration_curve(
         time = df.index
     else:
         raise RuntimeError('Please provide valid data (merged_df, sim_df, or df)')
-
-    # for i in range(len(obs.columns)):
-    #     fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
-        
-        # obs_sorted = np.sort(obs.iloc[:, i])[::-1]
-        # sim_sorted = np.sort(sim.iloc[:, i])[::-1]
-        # exceedance_prob = np.linspace(0, 100, len(obs_sorted))
-        
-    #     ax.plot(exceedance_prob, obs_sorted, linestyles[1], label=legend[1], linewidth=linewidth[1])
-    #     ax.plot(exceedance_prob, sim_sorted, linestyles[0], label=legend[0], linewidth=linewidth[0])
-    #     ax.legend(fontsize=15)
-        
-    #     _finalize_plot(ax, grid, labels, title, "fdc-plot", i)
-        
-    #     # Save or auto-save for large column counts
-    #     auto_save = len(obs.columns) > 5
-    #     _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "fdc-plot")  
 
     if df is not None:
         for i in range (0, len(line_df.columns)):
