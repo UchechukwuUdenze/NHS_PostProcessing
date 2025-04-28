@@ -27,6 +27,8 @@ A few of these are shown visually below:
 import numpy as np
 import pandas as pd
 import re
+from natsort import natsorted
+
 
 from postprocessinglib.utilities import _helper_functions as hlp
 
@@ -362,6 +364,70 @@ def seasonal_period(df: pd.DataFrame, daily_period: tuple[str, str],
     
     return df_copy
 
+def stat_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
+    """
+    Aggregates simulation columns (excluding 'QOMEAS') for each station on each date, using the specified method.
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+            Input DataFrame with MultiIndex columns (station, variable).
+    method: str
+            Aggregation method. One of ['mean', 'sum', 'min', 'max', 'median', or a quantile like 'q25'].
+
+    Returns
+    -------
+    pd.DataFrame: 
+            Aggregated DataFrame, same shape index, with (station, method) as column index.
+
+    Example
+    --------
+    >>> from postprocessinglib.evaluation import data
+    """
+    if not isinstance(df.columns, pd.MultiIndex):
+        raise ValueError("Expected df.columns to be a MultiIndex (station, variable).")
+
+    if not isinstance(method, str):
+        raise ValueError("Method must be a string.")
+
+    method = method.lower()
+    pattern = r'^[qQ]\d{2}(\.\d{1,2})?$'  # e.g. q25 or q33.3
+
+    # Create a copy to avoid modifying the original
+    df_copy = df.copy()
+
+    # Filter out 'QOMEAS' from the second level of column index
+    sim_df = df_copy.loc[:, df_copy.columns.get_level_values(1) != 'QOMEAS']
+
+    # Group simulation columns by station
+    result = {}
+
+    for station in sim_df.columns.get_level_values(0).unique():
+        station_data = sim_df[station]
+
+        if method == 'mean':
+            agg_series = station_data.mean(axis=1)
+        elif method == 'sum':
+            agg_series = station_data.sum(axis=1)
+        elif method == 'min':
+            agg_series = station_data.min(axis=1)
+        elif method == 'max':
+            agg_series = station_data.max(axis=1)
+        elif method == 'median':
+            agg_series = station_data.median(axis=1)
+        elif re.match(pattern, method):
+            quantile = float(re.match(pattern, method).group(1)) / 100
+            agg_series = station_data.quantile(q=quantile, axis=1)
+        else:
+            raise ValueError(f"Unknown method: '{method}'")
+
+        result[(station, method.upper())] = agg_series
+
+    # Create MultiIndex dataframe from result
+    result_df = pd.DataFrame(result)
+    result_df.columns = pd.MultiIndex.from_tuples(result_df.columns)
+
+    return result_df
 
 def daily_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
     """ Returns the daily aggregate value of a given dataframe based on the chosen method 
@@ -959,7 +1025,7 @@ def generate_dataframes(csv_fpaths: list=None, sim_fpaths: list = None, obs_fpat
                         daily_agg: bool = False, da_method: str = "", weekly_agg: bool = False, wa_method: str = "",
                         monthly_agg: bool = False, ma_method: str = "", yearly_agg: bool = False, ya_method: str = "",
                         seasonal_p: bool = False, sp_dperiod: tuple[str, str] = [], sp_subset: tuple[str, str] = None,
-                        long_term: bool = False, lt_method=None) -> dict[str, pd.DataFrame]:
+                        long_term: bool = False, lt_method=None, stat_agg: bool = False, stat_method: str=None) -> dict[str, pd.DataFrame]:
     """ 
     Function to Generate the required dataframes
     
@@ -1192,5 +1258,51 @@ def generate_dataframes(csv_fpaths: list=None, sim_fpaths: list = None, obs_fpat
             raise ValueError("Argument must be a string or a list of strings.")
         for method in lt_method:
             DATAFRAMES[f"LONG_TERM_{method.upper()}"] = long_term_seasonal(df=DATAFRAMES["DF_MERGED"], method=method)
+
+    # Step 7: Stat Aggregation
+    if stat_agg:
+        if stat_method is None:
+            stat_method = []
+        elif isinstance(stat_method, str):
+            stat_method = [stat_method]
+        elif not isinstance(stat_method, list):
+            raise ValueError("stat_method must be a string or a list of strings.")
+        
+        stat_method = ["min", "max", "median"] + stat_method  # Default aggregates
+        combined_cols = []
+        combined_data = []
+
+        # Create empty DF_STATS if not exists
+        if "DF_STATS" not in DATAFRAMES:
+            DATAFRAMES["DF_STATS"] = stat_aggregate(df=DATAFRAMES["DF_MERGED"], method="median") # Create it using a default method, in this case, the median
+        
+        # Loop through each method and apply stat_aggregate
+        for method in stat_method:
+            temp_df = stat_aggregate(df=DATAFRAMES["DF_MERGED"], method=method)
+
+            for station in DATAFRAMES["DF_STATS"].columns.get_level_values(0).unique():
+                temp_df_cols = temp_df[station]
+
+                # Important fix: Make sure temp_df_cols is DataFrame not Series
+                if isinstance(temp_df_cols, pd.Series):
+                    temp_df_cols = temp_df_cols.to_frame()
+
+                for col in temp_df_cols.columns:
+                    combined_cols.append((station, col))
+
+                combined_data.append(temp_df_cols)
+
+        # Now merge everything
+        final_df = pd.concat(combined_data, axis=1)
+        final_df.columns = pd.MultiIndex.from_tuples(combined_cols)
+        final_df = final_df.loc[:, ~final_df.columns.duplicated()]
+        sorted_stations = natsorted(final_df.T.index.get_level_values(0).unique())
+        new_blocks = [
+            final_df.T[final_df.T.index.get_level_values(0) == station].T
+            for station in sorted_stations
+        ]
+        final_df = pd.concat(new_blocks, axis=1)
+        final_df.columns = pd.MultiIndex.from_tuples(final_df.columns)
+        DATAFRAMES["DF_STATS"] = final_df
 
     return DATAFRAMES
