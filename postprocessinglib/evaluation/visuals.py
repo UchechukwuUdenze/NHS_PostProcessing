@@ -92,20 +92,75 @@ def _save_or_display_plot(fig, save: bool, save_as: Union[str, List[str]], dir: 
     else:
         plt.show()
 
-def _prepare_bounds(bounds: List[pd.DataFrame], col_index: int, observed: bool) -> List[pd.Series]:
+def _normalize_bounds(bounds, lines=None):
     """
-    Extracts the required column (observed or simulated) for all bounds.
-    
-    Args:
-        bounds (List[pd.DataFrame]): List of bound DataFrames.
-        col_index (int): Index of the column to extract.
-        observed (bool): Whether to extract the observed (True) or simulated (False) columns.
-    
+    Normalize bounds input into a consistent list-of-lists structure.
+
+    Parameters
+    ----------
+    bounds : Union[pd.DataFrame, List[pd.DataFrame], List[List[pd.DataFrame]]]
+        The bounds input can be:
+            - None
+            - A single DataFrame
+            - A list of DataFrames
+            - A list of lists of DataFrames
+
+    lines : Optional[List[pd.DataFrame]]
+        The list of lines. Used to determine if bounds should be aligned one-to-one with lines.
+
+    Returns
+    -------
+    List[List[pd.DataFrame]]
+        A nested list of bounds per line.
+
+    Raises
+    ------
+    ValueError:
+        If the input format is invalid or if bounds are ambiguous with respect to lines.
+    """
+    if bounds is None:
+        return None
+
+    if isinstance(bounds, pd.DataFrame):
+        return [[bounds]]
+
+    if isinstance(bounds, list):
+        if all(isinstance(b, pd.DataFrame) for b in bounds):
+            # Check if number of bounds matches number of lines (if lines are provided)
+            if lines and len(lines) == len(bounds):
+                return [[b] for b in bounds]  # Each bound belongs to one line
+            elif not lines or len(lines) == 1:
+                return [bounds]  # Multiple bounds for single line
+            else:
+                raise ValueError("Ambiguous bounds list: wrap them in sublists to indicate grouping per line.")
+        
+        if all(isinstance(b, list) and all(isinstance(df, pd.DataFrame) for df in b) for b in bounds):
+            return bounds  # Already normalized
+
+    raise ValueError("Bounds must be a DataFrame, a list of DataFrames, or a list of lists of DataFrames.")
+
+
+def _prepare_bounds(bounds, line_index, column_index):
+    """
+    Extracts the column-wise bounds for a specific line and column.
+
+    Parameters
+    ----------
+    bounds: Union[List[pd.DataFrame], List[List[pd.DataFrame]]] 
+            Nested list of DataFrames, structured as List[List[pd.DataFrame]]
+    line_index: int
+            Index of the current line in `lines`
+    column_index: int
+             Index of the current column within that line's DataFrame
+
     Returns:
-        List[pd.Series]: Extracted columns from the bounds.
+    List[pd.Series]:
+            A list of Series objects representing the bounds for the specified line and column.
     """
-    col_offset = 0 if observed else 1
-    return [b.iloc[:, col_index * 2 + col_offset] for b in bounds]
+    if bounds is None:
+        return []
+    line_bounds = bounds[line_index]  # List of DataFrames for this line
+    return [b.iloc[:, column_index] for b in line_bounds]
 
 def _finalize_plot(ax, grid, labels, title, name, i):
     """
@@ -117,7 +172,7 @@ def _finalize_plot(ax, grid, labels, title, name, i):
     plt.yticks(fontsize=15)
 
     if labels:
-        plt.xlabel(labels[0], fontsize=18)
+        plt.xlabel(labels[0]+" (m\u00B3/s)", fontsize=18)
         plt.ylabel(labels[1]+" (m\u00B3/s)", fontsize=18)
 
     if title:
@@ -149,9 +204,9 @@ def plot(
     save_as: str = None, 
     dir: str = os.getcwd()
     ) -> plt.figure:
-    """ Create a comparison time series line plot of simulated and observed time series data
+    """ Create a comparison time series line plot of simulated and optionally,  observed time series data
 
-    This function generates line plots for any number of observed and simulated data
+    This function generates line plots for any number of simulated and optionally observed data
     
     The function can handle data provided in three formats:
     - A merged DataFrame containing both observed and simulated data.
@@ -226,7 +281,6 @@ def plot(
     >>> # Example 1: Plotting merged data with simulated and observed values
     >>> merged_data = pd.DataFrame({...})  # Your merged dataframe
     >>> visuals.plot(merged_df = merged_data,
-                    num_sim = num_sim,
                     title='Simulated vs Observed',
                     labels=['Time', 'Value'], grid=True,
                     metrices = ['KGE','RMSE'])
@@ -236,7 +290,7 @@ def plot(
     >>> # Example 2: Plotting only observed and simulated data with custom linestyles and saving the plot
     >>> obs_data = pd.DataFrame({...})  # Your observed data
     >>> sim_data = pd.DataFrame({...})  # Your simulated data
-    >>> visuals.plot(obs_df = obs_data, sim_df = sim_data, linestyles=('g-', 'b-'), num_sim = num_sim,
+    >>> visuals.plot(obs_df = obs_data, sim_df = sim_data, linestyles=('g-', 'b-'),
                     save=True, save_as="plot2_example", dir="../Figures")
 
     .. image:: ../Figures/plot2_example.png
@@ -387,30 +441,29 @@ def plot(
             auto_save = len(sims["sim_1"].columns) > 5
             _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "plot")
 
-
-
 def bounded_plot(
     lines: Union[List[pd.DataFrame], pd.DataFrame],
+    extra_lines: List[pd.DataFrame] = None,
     upper_bounds: List[pd.DataFrame] = None,
     lower_bounds: List[pd.DataFrame] = None,
-    legend: Tuple[str, str] = ('Simulated Data', 'Observed Data'),
+    legend: Tuple[str, str] = None,
     grid: bool = False,
     title: Union[str, List[str]] = None,
     labels: Tuple[str, str] = None,
-    linestyles: Tuple[str, str] = ('r-', 'b-'),
+    linestyles: Tuple[str, str] = ('b-', 'r-'),
     padding: bool = False,
     fig_size: Tuple[float, float] = (10, 6),
-    transparency: Tuple[float, float] = (0.4, 0.4),
+    transparency: Tuple[float, float] = (0.4),
     save: bool = False,
     save_as: Union[str, List[str]] = None,
     dir: str = os.getcwd()
     ) -> plt.figure:
     """ 
     Plots time-series data with optional confidence bounds.
-    Generate a bounded time-series plot comparing observed and simulated streamflow with confidence intervals.
+    Generate a bounded time-series plot comparing model streamflow values with confidence intervals.
 
     A bounded plot is a time-series visualization that compares observed and simulated hydrological data while incorporating confidence bounds to represent uncertainty.
-    This function plots the streamflow data against Julian days, providing insights into seasonal variations and model performance over time. 
+    This function plots the streamflow data against Julian days/Datetime, providing insights into seasonal variations and model performance over time. 
     The confidence bounds, which can be defined using minimum-maximum ranges or percentiles (e.g., 5th-95th or 25th-75th percentiles), highlight the range of variability in the observed and simulated datasets. 
     The function allows for flexible customization of labels, legends, transparency, and line styles. 
     This visualization is particularly useful for evaluating hydrological models, identifying systematic biases, and assessing the reliability of simulated streamflow under different flow conditions. 
@@ -418,13 +471,21 @@ def bounded_plot(
     Parameters
     ----------
     lines : list of pd.DataFrame
-        A list of DataFrames containing the observed and simulated data series to be plotted. Each DataFrame must have a datetime index.
+        A list of DataFrames containing the observed and/or simulated data series to be plotted. Each DataFrame must have a datetime index.
 
     upper_bounds : list of pd.DataFrame, optional
-        A list of DataFrames containing the upper bounds for each series. If not provided, no upper bounds are plotted.
+        A list of DataFrames containing the upper bounds for each series. If not provided, no upper bounds are plotted. Each bound must be its own list.
 
     lower_bounds : list of pd.DataFrame, optional
-        A list of DataFrames containing the lower bounds for each series. If not provided, no lower bounds are plotted.
+        A list of DataFrames containing the lower bounds for each series. If not provided, no lower bounds are plotted. Each bound must be its own list.
+
+    extra_lines : list of pd.DataFrame, optional
+        A list of DataFrames containing additional lines to be plotted on the same graph. These lines will be plotted with dashed lines.
+        They have no associated bounds. If included though, it will take on the first item in all plot customization options i.e.,
+        - linestyles[0]
+        - legend[0]
+        - colors[0], etc.
+        Take note of this when plotting.  
 
     legend : tuple of str, optional
         A tuple containing the labels for the simulated and observed data, default is ('Simulated Data', 'Observed Data').
@@ -529,263 +590,101 @@ def bounded_plot(
 
     .. image:: ../Figures/bounded_plot_example_2.png
 
+    >>> # Example 3: Plotting with extra lines
+    >>> extra_lines = SingleDataFrame()  # Your extra lines DataFrame
+    >>> visuals.bounded_plot(
+    ...     lines = merged_df,
+    ...     upper_bounds = upper_bounds,
+    ...     lower_bounds = lower_bounds,
+    ...     extra_lines = extra_lines,
+    ...     title=['Long Term Aggregation by days of the Year'],
+    ...     legend = ['Extra Line','Predicted Streamflow'],
+    ...     linestyles=['b--', 'r-'],
+    ...     labels=['Datetime', 'Streamflow Values'],
+    ... )
+
+    .. image:: ../Figures/bounded_plot_example_3.png
+
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-visualizations.ipynb>`_
     
     """
 
-    ## Check that the inputs are DataFrames
+    ## Check that the lines inputs are DataFrames
     if isinstance(lines, pd.DataFrame):
         lines = [lines]
     elif not isinstance(lines, list):
         raise ValueError("Argument must be a dataframe or a list of dataframes.")
     
-    upper_bounds = upper_bounds or []
-    lower_bounds = lower_bounds or []
+    ## Check that the extra line inputs are DataFrames
+    if extra_lines is not None:
+        if isinstance(extra_lines, pd.DataFrame):
+            extra_lines = [extra_lines]
+        elif not isinstance(extra_lines, list):
+            raise ValueError("Argument must be a dataframe or a list of dataframes.")
+    
+    upper_bounds = _normalize_bounds(upper_bounds, lines=lines)
+    lower_bounds = _normalize_bounds(lower_bounds, lines=lines)
 
-    if not isinstance(upper_bounds, list) or not isinstance(lower_bounds, list):
-        raise ValueError("Bounds must be lists of DataFrames.")
-    if len(upper_bounds) != len(lower_bounds):
-        raise ValueError("Upper and lower bounds lists must have the same length.")
+    if upper_bounds is not None and lower_bounds is not None:
+        if len(upper_bounds) != len(lower_bounds):
+            raise ValueError("Upper and lower bounds lists must have the same length.")
 
     # Plotting
-    for line in lines:
-        if not isinstance(line, pd.DataFrame):
-            raise ValueError("All items in the 'lines' must be a DataFrame.")
-        
-        # Setting Variable for the simulated data, observed data, and time stamps
-        line_obs = line.iloc[:, ::2]
-        line_sim = line.iloc[:, 1::2]
-        time = line.index
+    num_columns = lines[0].shape[1]  # all lines have same number of columns
+    transparency = transparency * len(lines) # Extend transparency list to match number of lines
 
-        for i in range (0, len(line_obs.columns)):
-            fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
-            ax.plot(time, line_obs.iloc[:, i], linestyles[1], label=legend[1], linewidth = 1.5)
-            ax.plot(time, line_sim.iloc[:, i], linestyles[0], label=legend[0], linewidth = 1.5)
+    for i in range(num_columns):
+        fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
 
-            # Prepare bounds for the current column
-            upper_obs = _prepare_bounds(upper_bounds, i, observed=True)
-            lower_obs = _prepare_bounds(lower_bounds, i, observed=True)
-            upper_sim = _prepare_bounds(upper_bounds, i, observed=False)
-            lower_sim = _prepare_bounds(lower_bounds, i, observed=False)
+        # Plot extra lines (if any), column i
+        if extra_lines:
+            for extra_line in extra_lines:
+                ax.plot(
+                    extra_line.index,
+                    extra_line.iloc[:, i],
+                    color = linestyles[0][0],
+                    linestyle='--',
+                    label=legend[0] if legend is not None else "Extra Line",
+                    linewidth=1.5
+                )
 
-            # Plot bounds
-            for j in range(len(upper_bounds)):
-                ax.fill_between(time, lower_obs[j], upper_obs[j], alpha=transparency[1], color=linestyles[1][0])
-                ax.fill_between(time, lower_sim[j], upper_sim[j], alpha=transparency[0], color=linestyles[0][0])
+        # Plot each main line and its bounds
+        for line_index, line in enumerate(lines):
+            if not isinstance(line, pd.DataFrame):
+                raise ValueError("All items in 'lines' must be a DataFrame.")
             
-            if padding:
-                plt.xlim(time[0], time[-1])
-            _finalize_plot(ax, grid, labels, title, "bounded-plot", i)
+            ax.plot(
+                line.index,
+                line.iloc[:, i],
+                linestyles[line_index+1] if extra_lines else linestyles[line_index],
+                label = (
+                        legend[line_index+1] if legend is not None and extra_lines is not None
+                        else legend[line_index] if legend is not None
+                        else "Main Line"
+                    ),
+                linewidth=1.5
+            )
 
-            # Save or auto-save for large column counts
-            auto_save = len(line_obs.columns) > 5
-            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "bounded-plot")
-        
-# def bounded_plot(
-#     lines: Union[List[pd.DataFrame], pd.DataFrame],
-#     upper_bounds: List[pd.DataFrame] = None,
-#     lower_bounds: List[pd.DataFrame] = None,
-#     legend: Tuple[str, str] = ('Simulated Data', 'Observed Data'),
-#     grid: bool = False,
-#     title: Union[str, List[str]] = None,
-#     labels: Tuple[str, str] = None,
-#     linestyles: Tuple[str, str] = ('r-', 'b-'),
-#     padding: bool = False,
-#     fig_size: Tuple[float, float] = (10, 6),
-#     transparency: Tuple[float, float] = (0.4, 0.4),
-#     save: bool = False,
-#     save_as: Union[str, List[str]] = None,
-#     dir: str = os.getcwd()
-#     ) -> plt.figure:
-#     """ 
-#     Plots time-series data with optional confidence bounds.
-#     Generate a bounded time-series plot comparing observed and simulated streamflow with confidence intervals.
+            upper_obs = _prepare_bounds(upper_bounds, line_index, i)
+            lower_obs = _prepare_bounds(lower_bounds, line_index, i)
 
-#     A bounded plot is a time-series visualization that compares observed and simulated hydrological data while incorporating confidence bounds to represent uncertainty.
-#     This function plots the streamflow data against Julian days, providing insights into seasonal variations and model performance over time. 
-#     The confidence bounds, which can be defined using minimum-maximum ranges or percentiles (e.g., 5th-95th or 25th-75th percentiles), highlight the range of variability in the observed and simulated datasets. 
-#     The function allows for flexible customization of labels, legends, transparency, and line styles. 
-#     This visualization is particularly useful for evaluating hydrological models, identifying systematic biases, and assessing the reliability of simulated streamflow under different flow conditions. 
+            for j in range(len(upper_obs)):
+                ax.fill_between(
+                    line.index,
+                    lower_obs[j],
+                    upper_obs[j],
+                    alpha=transparency[line_index],
+                    color=linestyles[line_index+1][0] if extra_lines else linestyles[line_index][0],
+                )
 
-#     Parameters
-#     ----------
-#     lines : list of pd.DataFrame
-#         A list of DataFrames containing the observed and simulated data series to be plotted. Each DataFrame must have a datetime index.
+        if padding:
+            plt.xlim(lines[0].index[0], lines[0].index[-1])
 
-#     upper_bounds : list of pd.DataFrame, optional
-#         A list of DataFrames containing the upper bounds for each series. If not provided, no upper bounds are plotted.
+        _finalize_plot(ax, grid, labels, title, "bounded-plot", i)
 
-#     lower_bounds : list of pd.DataFrame, optional
-#         A list of DataFrames containing the lower bounds for each series. If not provided, no lower bounds are plotted.
+        auto_save = num_columns > 5
+        _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "bounded-plot")
 
-#     legend : tuple of str, optional
-#         A tuple containing the labels for the simulated and observed data, default is ('Simulated Data', 'Observed Data').
-
-#     grid : bool, optional
-#         Whether to display a grid on the plot, default is False.
-
-#     title : str, optional
-#         The title of the plot.
-
-#     labels : tuple of str, optional
-#         A tuple containing the labels for the x and y axes.
-
-#     linestyles : tuple of str, optional
-#         A tuple specifying the line styles for the simulated and observed data.
-
-#     padding : bool, optional
-#         Whether to add padding to the x-axis limits for a tighter plot, default is False.
-
-#     fig_size : tuple of float, optional
-#         A tuple specifying the size of the figure.
-
-#     transparency : list of float, optional
-#         A list specifying the transparency levels for the upper and lower bounds, default is [0.4, 0.4].
-
-#     save : bool, optional
-#         Whether to save the plot to a file, default is False.
-
-#     save_as : str or list of str, optional
-#         The name or list of names to save the plot as. If a list is provided, each plot will be saved with the corresponding name.
-
-#     dir : str, optional
-#         The directory to save the plot to, default is the current working directory.
-
-#     Returns
-#     -------
-#     fig : Matplotlib figure instance
-    
-#     Example
-#     -------
-#     Generate a bounded plot with simulated and observed data, along with upper and lower bounds.
-
-#     >>> import pandas as pd
-#     >>> import numpy as np
-#     >>> from postprocessinglib.evaluation import visuals
-
-#     >>> # Create an index for the data
-#     >>> time_index = pd.date_range(start='2025-01-01', periods=50, freq='D')
-#     >>> # Generate sample observed and simulated data
-#     >>> obs_data = pd.DataFrame({
-#     ...     "Station1_Observed": np.random.rand(50),
-#     ...     "Station2_Observed": np.random.rand(50)
-#     ... }, index=time_index)
-#     >>> sim_data = pd.DataFrame({
-#     ...     "Station1_Simulated": np.random.rand(50),
-#     ...     "Station2_Simulated": np.random.rand(50)
-#     ... }, index=time_index)
-
-#     >>> # Combine observed and simulated data
-#     >>> data = pd.concat([obs_data, sim_data], axis=1)
-#     >>> # Generate sample bounds
-#     >>> upper_bounds = [
-#     ...     pd.DataFrame({
-#     ...         "Station1_Upper": np.random.rand(50) + 0.5,
-#     ...         "Station2_Upper": np.random.rand(50) + 0.5
-#     ...     }, index=time_index)
-#     ... ]
-#     >>> lower_bounds = [
-#     ...     pd.DataFrame({
-#     ...         "Station1_Lower": np.random.rand(50) - 0.5,
-#     ...         "Station2_Lower": np.random.rand(50) - 0.5
-#     ...     }, index=time_index)
-#     ... ]
-
-#     >>> # Plot the data with bounds
-#     >>> visuals.bounded_plot(
-#     ...     lines=data,
-#     ...     upper_bounds=upper_bounds,
-#     ...     lower_bounds=lower_bounds,
-#     ...     legend=('Simulated Data', 'Observed Data'),
-#     ...     labels=('Datetime', 'Streamflow'),
-#     ...     transparency = [0.4, 0.3],
-#     ...     grid=True,
-#     ...     save=True,
-#     ...     save_as = 'bounded_plot_example',
-#     ...     dir = '../Figures'
-#     ... )
-
-#     .. image:: ../Figures/bounded_plot_example_1.png
-
-#     >>> # Adjust a few other metrics
-#     >>> visuals.bounded_plot(
-#     ...     lines = merged_df,
-#     ...     upper_bounds = upper_bounds,
-#     ...     lower_bounds = lower_bounds,
-#     ...     title=['Long Term Aggregation by days of the Year'],
-#     ...     legend = ['Predicted Streamflow','Recorded Streamflow'],
-#     ...     linestyles=['k', 'r-'],
-#     ...     labels=['Days of the year', 'Streamflow Values'],
-#     ...     transparency = [0.4, 0.7],
-#     ... )
-
-#     .. image:: ../Figures/bounded_plot_example_2.png
-
-#     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-visualizations.ipynb>`_
-    
-#     """
-
-#     ## Check that the inputs are DataFrames
-#     if isinstance(lines, pd.DataFrame):
-#         lines = [lines]
-#     elif not isinstance(lines, list):
-#         raise ValueError("Argument must be a dataframe or a list of dataframes.")
-    
-#     upper_bounds = upper_bounds or []
-#     lower_bounds = lower_bounds or []
-
-#     if not isinstance(upper_bounds, list) or not isinstance(lower_bounds, list):
-#         raise ValueError("Bounds must be lists of DataFrames.")
-#     if len(upper_bounds) != len(lower_bounds):
-#         raise ValueError("Upper and lower bounds lists must have the same length.")
-
-#     # Plotting
-#     for line in lines:
-#         if not isinstance(line, pd.DataFrame):
-#             raise ValueError("All items in the 'lines' must be a DataFrame.")
-
-#         # Get the number of simulated data columns
-#         num_sim = sum(1 for col in  line.columns if col[0] == line.columns[0][0])-1 #if line is not None else sum(1 for col in  sim_df.columns if col[0] == sim_df.columns[0][0])
-#         print(f"Number of simulated data columns: {num_sim}")
-        
-#         # Setting Variable for the simulated data, observed data, and time stamps
-#         time = line.index
-#         obs_cols = [col for col in line.columns if "QOMEAS" in col[1].upper()]
-#         sim_cols = [col for col in line.columns if "QOSIM" in col[1].upper()]
-
-
-#         for i in range (0, len(obs_cols) or 1):
-#             fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
-
-#             if obs_cols:
-#                 # Plot observed data
-#                 line_obs = line[obs_cols]
-#                 ax.plot(time, line_obs.iloc[:, i], 'k-', label=legend[1], linewidth = 1.5) # if theres observed, itll be a default black line
-
-#             # Plot all simulations
-#             for j, sim_col in enumerate(sim_cols):
-#                 label = f"Sim {j + 1}"
-#                 style = linestyles[j % len(linestyles)]
-#                 ax.plot(time, line[sim_col], style, label=label, linewidth=1.5)
-
-#             # Prepare bounds for the current column
-#             upper_obs = _prepare_bounds(upper_bounds, i, observed=True)
-#             lower_obs = _prepare_bounds(lower_bounds, i, observed=True)
-#             upper_sim = _prepare_bounds(upper_bounds, i, observed=False)
-#             lower_sim = _prepare_bounds(lower_bounds, i, observed=False)
-
-#             # Plot bounds
-#             for j in range(len(upper_bounds)):
-#                 ax.fill_between(time, lower_obs[j], upper_obs[j], alpha=transparency[1], color=linestyles[1][0])
-#                 ax.fill_between(time, lower_sim[j], upper_sim[j], alpha=transparency[0], color=linestyles[0][0])
-            
-#             if padding:
-#                 plt.xlim(time[0], time[-1])
-#             _finalize_plot(ax, grid, labels, title, "bounded-plot", i)
-
-#             # Save or auto-save for large column counts
-#             auto_save = len(line_obs.columns) > 5
-#             _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "bounded-plot")        
 
 def histogram(
     merged_df: pd.DataFrame = None, 
@@ -1058,9 +957,10 @@ def scatter(
 
     best_fit: bool
         If True, adds a best linear regression line on the graph with the equation for the line in the legend. 
+        If there are multiple columns, the best fit line will be added to each column i.e, multiple best fit lines.
 
     line45: bool
-        IF True, adds a 45 degree line to the plot and the legend. 
+        IF True, adds a 45 degree line to the plot and the legend. There is only one 45 degree line for all columns.
         
     save : bool, optional
         Whether to save the plot to a file, default is False.
@@ -1123,7 +1023,7 @@ def scatter(
     >>> }, index=index)
     >>> #
     >>> # Call the scatter plot function
-    >>> metrics.scatter(
+    >>> visuals.scatter(
     >>>     obs_df=obs_df,
     >>>     sim_df=sim_df,
     >>>     labels=("Observed", "Simulated"),
@@ -1132,12 +1032,22 @@ def scatter(
     >>>     metrices = ['KGE','RMSE'],
     >>>     line45=True,
     >>>     markerstyle = 'b.',
-    >>>     metrices = ['KGE','RMSE']
     >>>     save=True,
-    >>>     save_as="scatter_plot_example.png"
+    >>>     save_as="scatter_plot_example_1.png"
     >>> )
 
-    .. image:: ../Figures/scatter_plot_example.png
+    .. image:: ../Figures/scatter_plot_example_1.png
+
+    >>> visuals.scatter(
+    >>>     merged_df=merged_df,
+    >>>     labels=("Observed Data", "Simulated Data"),
+    >>>     title="Scatterplot of the data of 2015",
+    >>>     grid=True,
+    >>>     line45=True,
+    >>>     markerstyle = 'cx',
+    >>> )
+
+    .. image:: ../Figures/scatter_plot_example_2.png
 
     >>> shapefile_path = r"SaskRB_SubDrainage2.shp"
     >>> stations_path = 'Station_data.xlsx'
