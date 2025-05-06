@@ -11,6 +11,7 @@ It has other functions for aggregating the input data into aggregates
 - ``monthly_aggregate``
 - ``yearly_aggregate``
 - ``long_term_seasonal``
+- ``stat_aggregate``
 
 and it has a few for data and time preiod selections
 
@@ -360,7 +361,7 @@ def seasonal_period(df: pd.DataFrame, daily_period: tuple[str, str],
         df_copy = df_copy.loc[(df_copy['placeholder'] >= start) |
                               (df_copy['placeholder'] <= end)]
     # Dropping the placeholder
-    df_copy = df_copy.drop(columns=['placeholder'])
+    df_copy = df_copy.drop(columns=[col for col in df_copy.columns if col == 'placeholder' or (isinstance(col, tuple) and 'placeholder' in col)])
     
     return df_copy
 
