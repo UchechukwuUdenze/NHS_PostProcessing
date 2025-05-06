@@ -22,6 +22,8 @@ import matplotlib.pyplot as plt
 import datetime
 import os
 from shapely.geometry import Point
+import matplotlib.colors as mc
+import colorsys
 
 from postprocessinglib.evaluation import metrics
 from postprocessinglib.utilities import _helper_functions as hlp
@@ -87,7 +89,7 @@ def _save_or_display_plot(fig, save: bool, save_as: Union[str, List[str]], dir: 
         if not os.path.exists(dir):
             os.makedirs(dir)
         filename = f"{save_as}.png" if isinstance(save_as, str) else f"{type}_{i + 1}.png"
-        fig.savefig(os.path.join(dir, filename))
+        fig.savefig(os.path.join(dir, filename), bbox_inches='tight')
         plt.close(fig)
     else:
         plt.show()
@@ -166,8 +168,9 @@ def _finalize_plot(ax, grid, labels, title, name, i):
     """
     Finalizes the plot by setting labels, title, and grid options.
     """
-    ax.legend(fontsize=15)
-    
+    ax.legend(loc='best')
+
+    plt.tight_layout()    
     plt.xticks(fontsize=10, rotation=45)
     plt.yticks(fontsize=15)
 
@@ -1236,14 +1239,14 @@ def qqplot(
     labels: tuple[str, str] = None, 
     fig_size: tuple[float, float] = (10, 6),
     method: str = "linear", 
-    legend: bool = False, 
+    legend: list[str] = None, 
     linewidth: tuple[float, float] = (1, 2),
     merged_df: pd.DataFrame = None, 
     obs_df: pd.DataFrame = None, 
     sim_df: pd.DataFrame = None,
-    linestyle: tuple[str, str, str] = ['bo', 'r-.', 'r-'], 
-    quantile: tuple[int, int] = [25, 75],
-    q_labels: tuple[str, str, str] = ['Quantiles', 'Range of Quantiles', 'Inter Quartile Range'],
+    linestyle: tuple[str, str, str] = ('bo', 'r-.', 'r-'), 
+    quantile: tuple[int, int] = (25, 75),
+    q_labels: tuple[str, str, str] = ('Quantiles', 'Range of Quantiles', 'IQR'),
     save: bool = False, 
     save_as: str = None, 
     dir: str = os.getcwd()
@@ -1334,7 +1337,7 @@ def qqplot(
     >>> }, index=index)
     >>> #
     >>> # Call the QQ plot function
-    >>> metrics.qqplot(
+    >>> visuals.qqplot(
     >>>     obs_df=obs_df,
     >>>     sim_df=sim_df,
     >>>     labels=("Quantiles (Simulated)", "Quantiles (Observed)"),
@@ -1345,74 +1348,92 @@ def qqplot(
 
     .. image:: ../Figures/qqplot_example.png
 
+    >>> visuals.qqplot(
+    >>>     merged_df=merged_df,
+    >>>     labels=("Quantiles (Simulated)", "Quantiles (Observed)"),
+    >>>     title="QQ Plot of the simulated Dataset compared to the observed from 2000 till 2005",
+    >>>     grid=True,
+    >>>     save=True,
+    >>>     save_as="qqplot_example_2.png"
+    >>> )
+
+    .. image:: ../Figures/qqplot_example.png
+
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-visualizations.ipynb>`_
 
     """
+    def adjust_color_brightness(color, amount=1.0):
+        """
+        Adjusts the brightness of the given color.
+        Input can be a matplotlib color string, hex string, or RGB tuple.
+        The amount parameter >1 brightens the color, <1 darkens it.
+        """
+        try:
+            c = mc.cnames[color]
+        except:
+            c = color
+        c = colorsys.rgb_to_hls(*mc.to_rgb(c))
+        return colorsys.hls_to_rgb(c[0], max(0, min(1, amount * c[1])), c[2])
 
-    # Get the number of simulated data columns
-    num_sim = sum(1 for col in  merged_df.columns if col[0] == merged_df.columns[0][0])-1 if merged_df is not None else sum(1 for col in  sim_df.columns if col[0] == sim_df.columns[0][0])
+
+    # Determine the number of simulations
+    if merged_df is not None:
+        num_sim = sum(1 for col in merged_df.columns if col[0] == merged_df.columns[0][0]) - 1
+    elif sim_df is not None:
+        num_sim = sum(1 for col in sim_df.columns if col[0] == sim_df.columns[0][0])
+    else:
+        raise RuntimeError('Please provide valid data (merged_df, obs_df or sim_df)')
+
     print(f"Number of simulated data columns: {num_sim}")
 
     # Generate colors dynamically using Matplotlib colormap
-    color_map = plt.cm.get_cmap("tab10", num_sim)  # +1 for Observed
-    colors = [color_map(i) for i in range(num_sim)]
+    color_map = plt.cm.get_cmap("tab10", num_sim)
+    base_colors = [color_map(i) for i in range(num_sim)]
 
     # Available marker styles
-    style = [".", "1", "v", "x", "*", "+", "X", "3", "^", "s", "D"] # default unless overwritten
-
-    # Generate linestyles dynamically
-    if len(markerstyle) < num_sim:
-        print("Number of markerstyles provided is less than the number of columns. "
-                "Number of columns : " + str(num_sim) + ". Number of markerstyles provided is: ", str(len(markerstyle)) +
-                ". Using Default Markerstyles.")
-        markerstyle = markerstyle + [f"{colors[i % len(colors)]}{style[i % len(style)]}" 
-                        for i in range(num_sim)]    
+    style = [".", "1", "v", "x", "*", "+", "X", "3", "^", "s", "D"]
 
     # Generate Legends dynamically
     if legend is None:
         legend = [f"Simulated {i}" for i in range(1, num_sim+1)]
     elif len(legend) < num_sim:
-        print("Number of legends provided is less than the number of columns. "
-                "Number of columns : " + str(num_sim) + ". Number of legends provided is: ", str(len(legend)) +
-                ". Applying Default labels")
-        legend = legend + [f"Simulated {len(legend)+i}" for i in range(1, num_sim+1)]
+        print("Number of legends provided is less than the number of simulations. "
+              f"Number of simulations: {num_sim}. Number of legends provided: {len(legend)}. "
+              "Applying default labels.")
+        legend += [f"Simulated {i}" for i in range(len(legend)+1, num_sim+1)]
 
+    # Separate observed and simulated data
     sims = {}
-    obs = None
     if merged_df is not None:
-        # If merged_df is provided, separate observed and simulated data
         obs = merged_df.iloc[:, ::num_sim+1]
         for i in range(1, num_sim+1):
             sims[f"sim_{i}"] = merged_df.iloc[:, i::num_sim+1]
     elif sim_df is not None and obs_df is not None:
-        # If both sim_df and obs_df are provided
         obs = obs_df
-        for i in range(0, num_sim):
+        for i in range(num_sim):
             sims[f"sim_{i+1}"] = sim_df.iloc[:, i::num_sim]
     else:
         raise RuntimeError('Please provide valid data (merged_df, obs_df or sim_df)')
 
-    for i in range (0, len(obs.columns)):
-        fig = plt.figure(figsize=fig_size, facecolor='w', edgecolor='k')
-        ax = fig.add_subplot(111)
+    for i in range(len(obs.columns)):
+        fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
 
         n = obs.iloc[:, i].size
         pvec = 100 * ((np.arange(1, n + 1) - 0.5) / n)
         obs_perc = np.percentile(obs.iloc[:, i], pvec, method=method)
-        # Finding the interquartile range to plot the best fit line
-        quant_1_obs = np.percentile(obs.iloc[:, i], quantile[0], interpolation=method)
-        quant_3_obs = np.percentile(obs.iloc[:, i], quantile[1], interpolation=method)
+        quant_1_obs = np.percentile(obs.iloc[:, i], quantile[0], method=method)
+        quant_3_obs = np.percentile(obs.iloc[:, i], quantile[1], method=method)
         dobs = quant_3_obs - quant_1_obs
 
         for j in range(1, num_sim+1):
+            base_color = base_colors[j-1]
+            adjusted_color = adjust_color_brightness(base_color, 0.7)  # Adjust brightness
             sim_perc = np.percentile(sims[f"sim_{j}"].iloc[:, i], pvec, method=method)
-            # Finding the interquartile range to plot the best fit line
-            quant_1_sim = np.percentile(sims[f"sim_{j}"].iloc[:, i], quantile[0], interpolation=method)
-            quant_3_sim = np.percentile(sims[f"sim_{j}"].iloc[:, i], quantile[1], interpolation=method)
+            quant_1_sim = np.percentile(sims[f"sim_{j}"].iloc[:, i], quantile[0], method=method)
+            quant_3_sim = np.percentile(sims[f"sim_{j}"].iloc[:, i], quantile[1], method=method)
             dsim = quant_3_sim - quant_1_sim
 
             slope = dobs / dsim
-
             centersim = (quant_1_sim + quant_3_sim) / 2
             centerobs = (quant_1_obs + quant_3_obs) / 2
             maxsim = np.max(sims[f"sim_{j}"].iloc[:, i])
@@ -1424,18 +1445,16 @@ def qqplot(
             mobs = np.array([minobs, maxobs])
             quant_sim = np.array([quant_1_sim, quant_3_sim])
             quant_obs = np.array([quant_1_obs, quant_3_obs]) 
-        
 
-            plt.plot(sim_perc, obs_perc, linestyle[0],  label = q_labels[0], markersize=2)
-            plt.plot(msim, mobs, linestyle[1], label = q_labels[1], linewidth = linewidth[0])
-            plt.plot(quant_sim, quant_obs, linestyle[2], label = q_labels[2], marker='o', markerfacecolor='w', linewidth = linewidth[1])
-            plt.legend(fontsize=12)
+            ax.plot(sim_perc, obs_perc, linestyle='dotted', label=legend[j-1], markersize=2, color=base_color)
+            ax.plot(msim, mobs, linestyle=linestyle[1][1:], label=q_labels[1], linewidth=linewidth[0], color=adjusted_color)
+            ax.plot(quant_sim, quant_obs, linestyle=linestyle[2][1], label=q_labels[2], marker='o', markerfacecolor='w', linewidth=linewidth[1], color=adjusted_color)
 
-            _finalize_plot(ax, grid, labels, title, "qqplot", i)
+        _finalize_plot(ax, grid, labels, title, "qqplot", i)
 
-            # Save or auto-save for large column counts
-            auto_save = len(obs.columns) > 5
-            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "qqplot")  
+        # Save or auto-save for large column counts
+        auto_save = len(obs.columns) > 5
+        _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "qqplot")  
 
 
 def flow_duration_curve(
