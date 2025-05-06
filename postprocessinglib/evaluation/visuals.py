@@ -1362,7 +1362,7 @@ def qqplot(
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-visualizations.ipynb>`_
 
     """
-    def adjust_color_brightness(color, amount=1.0):
+    def _adjust_color_brightness(color, amount=1.0):
         """
         Adjusts the brightness of the given color.
         Input can be a matplotlib color string, hex string, or RGB tuple.
@@ -1427,7 +1427,7 @@ def qqplot(
 
         for j in range(1, num_sim+1):
             base_color = base_colors[j-1]
-            adjusted_color = adjust_color_brightness(base_color, 0.7)  # Adjust brightness
+            adjusted_color = _adjust_color_brightness(base_color, 0.7)  # Adjust brightness
             sim_perc = np.percentile(sims[f"sim_{j}"].iloc[:, i], pvec, method=method)
             quant_1_sim = np.percentile(sims[f"sim_{j}"].iloc[:, i], quantile[0], method=method)
             quant_3_sim = np.percentile(sims[f"sim_{j}"].iloc[:, i], quantile[1], method=method)

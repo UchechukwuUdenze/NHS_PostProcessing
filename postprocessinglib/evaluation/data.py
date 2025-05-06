@@ -231,7 +231,7 @@ def long_term_seasonal(df: pd.DataFrame, method: str= 'mean')-> pd.DataFrame:
             df_copy = df_copy.groupby(level = 'jday').sum()
         # Check the quartiles with the matching pattern 
         elif re.match(pattern=pattern, string=method):
-                df_copy = df_copy.groupby(level = 'jday').quantile(float(re.search(r'\d+', method).group())/100)
+                df_copy = df_copy.groupby(level = 'jday').quantile(float(re.search(r'\d+(\.\d+)?', method).group())/100)
     
     return df_copy
 
@@ -382,7 +382,43 @@ def stat_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
 
     Example
     --------
-    >>> from postprocessinglib.evaluation import data
+    >>> import pandas as pd
+    >>> import numpy as np
+    >>> from postprocessinglib.evaluation.data import stat_aggregate
+
+    >>> # Create a sample DataFrame with MultiIndex columns
+    >>> dates = pd.date_range(start="2020-01-01", periods=5)
+    >>> columns = pd.MultiIndex.from_tuples([
+    ...     ('station1', 'SIM1'), 
+    ...     ('station1', 'SIM2'), 
+    ...     ('station1', 'QOMEAS'),
+    ...     ('station2', 'SIM1'), 
+    ...     ('station2', 'SIM2'), 
+    ...     ('station2', 'QOMEAS')
+    ... ])
+    >>> data = np.random.rand(5, 6)
+    >>> df = pd.DataFrame(data, index=dates, columns=columns)
+    >>> print(df)
+                station1                      station2                    
+                    SIM1      SIM2    QOMEAS      SIM1      SIM2    QOMEAS
+    2020-01-01  0.932333  0.100856  0.267621  0.018376  0.120676  0.852772
+    2020-01-02  0.290211  0.974238  0.807189  0.904228  0.209833  0.187018
+    2020-01-03  0.886652  0.432085  0.028842  0.292808  0.236621  0.602609
+    2020-01-04  0.956156  0.586426  0.866117  0.630563  0.632772  0.722546
+    2020-01-05  0.941239  0.508157  0.355760  0.674235  0.668786  0.290178
+
+    >>> # Apply stat_aggregate
+    >>> agg_df = stat_aggregate(df, method='q75')
+    >>> print(agg_df)
+                station1  station2
+                    Q75       Q75
+    2020-01-01  0.724464  0.095101
+    2020-01-02  0.803231  0.730630
+    2020-01-03  0.773010  0.278761
+    2020-01-04  0.863723  0.632220
+    2020-01-05  0.832968  0.672872
+
+    `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-data-manipulation.ipynb>`_
     """
     if not isinstance(df.columns, pd.MultiIndex):
         raise ValueError("Expected df.columns to be a MultiIndex (station, variable).")
@@ -416,7 +452,8 @@ def stat_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
         elif method == 'median':
             agg_series = station_data.median(axis=1)
         elif re.match(pattern, method):
-            quantile = float(re.match(pattern, method).group(1)) / 100
+            quantile_str = method[1:]  # removes the leading 'q' or 'Q'
+            quantile = float(quantile_str) / 100
             agg_series = station_data.quantile(q=quantile, axis=1)
         else:
             raise ValueError(f"Unknown method: '{method}'")
@@ -429,22 +466,23 @@ def stat_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
 
     return result_df
 
-def daily_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
-    """ Returns the daily aggregate value of a given dataframe based on the chosen method 
+def daily_aggregate(df: pd.DataFrame, method: str = "mean", use_doy_index: bool = True) -> pd.DataFrame:
+    """ 
+    Aggregate a DataFrame by day using the specified method.
 
     Parameters
-    ---------- 
-    df: pd.DataFrame
-            A pandas DataFrame with a datetime index and columns containing float type values.
-    method: string
-            string indicating the method of aggregation
-            i.e, mean, min, max, median, sum and instantaenous
-            - default is mean
+    ----------
+    df : pd.DataFrame
+        DataFrame with a datetime index and numerical columns.
+    method : str
+        Aggregation method: "mean", "sum", "median", "min", "max", or "inst" (last value of day).
+    use_doy_index : bool
+        If True, index is formatted as "YYYY/DOY" (e.g., "1981/001"), else keep datetime index.
 
     Returns
     -------
-    pd.DataFrame:
-            The new dataframe with the values aggregated by day 
+    pd.DataFrame
+        Aggregated DataFrame indexed by day.
 
     Examples
     --------
@@ -488,45 +526,45 @@ def daily_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
 
     """
     # Check that there is a chosen method else return error
-    if not method:
-        raise RuntimeError("ERROR: A method of aggregation is required")
+    method = method.lower()
+    if method not in {"mean", "sum", "median", "min", "max", "inst"}:
+        raise ValueError(f"Unsupported aggregation method: {method}")
+
+    df_copy = df.copy()
+    if use_doy_index:
+        group_keys = df_copy.index.strftime("%Y/%j")
     else:
-        # Making a copy to avoid changing the original df
-        df_copy = df.copy()
+        group_keys = df_copy.index.normalize()
 
-        if method == "sum":
-            daily_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%j")).sum()
-        if method == "mean":
-            daily_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%j")).mean()
-        if method == "median":
-            daily_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%j")).median()
-        if method == "min":
-            daily_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%j")).min()
-        if method == "max":
-            daily_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%j")).max()
-        if method == "inst":
-            daily_aggr = df_copy.groupby(df_copy.index.strftime("%Y/%j")).last() 
-    
-    return daily_aggr
+    agg_funcs = {
+        "mean": pd.DataFrame.groupby(df_copy, group_keys).mean,
+        "sum": pd.DataFrame.groupby(df_copy, group_keys).sum,
+        "median": pd.DataFrame.groupby(df_copy, group_keys).median,
+        "min": pd.DataFrame.groupby(df_copy, group_keys).min,
+        "max": pd.DataFrame.groupby(df_copy, group_keys).max,
+        "inst": pd.DataFrame.groupby(df_copy, group_keys).last,
+    }
+
+    return agg_funcs[method]()
 
 
-def weekly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
-    """ Returns the weekly aggregate value of a given dataframe based
-        on the chosen method 
+def weekly_aggregate(df: pd.DataFrame, method: str = "mean", use_week_start_index: bool = True) -> pd.DataFrame:
+    """ 
+    Aggregates a DataFrame by week using the specified method.
 
     Parameters
-    ---------- 
-    df: pd.DataFrame
-            A pandas DataFrame with a datetime index and columns containing float type values.
-    method: string
-            string indicating the method of aggregation
-            i.e, mean, min, max, median, sum and instantaenous
-            - default is mean
+    ----------
+    df : pd.DataFrame
+        DataFrame with datetime index and numerical columns.
+    method : str
+        Aggregation method: "mean", "sum", "median", "min", "max", "inst" (last value).
+    use_week_start_index : bool
+        If True, the index will be the Monday of each week; otherwise, uses "YYYY.WW" string format.
 
     Returns
     -------
-    pd.DataFrame:
-            The new dataframe with the values aggregated by week 
+    pd.DataFrame
+        Aggregated DataFrame indexed by week. 
 
     Examples
     --------
@@ -570,30 +608,33 @@ def weekly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
 
     """
     # Check that there is a chosen method else return error
-    if not method:
-        raise RuntimeError("ERROR: A method of aggregation is required")
-    else:
-        # Making a copy to avoid changing the original df
-        df_copy = df.copy()
+    method = method.lower()
+    if method not in {"mean", "sum", "median", "min", "max", "inst"}:
+        raise ValueError(f"Unsupported aggregation method: {method}")
 
-        if method == "sum":
-            weekly_aggr = df_copy.groupby(df_copy.index.strftime("%Y.%U")).sum()
-        if method == "mean":
-            weekly_aggr = df_copy.groupby(df_copy.index.strftime("%Y.%U")).mean()
-        if method == "median":
-            weekly_aggr = df_copy.groupby(df_copy.index.strftime("%Y.%U")).median()
-        if method == "min":
-            weekly_aggr = df_copy.groupby(df_copy.index.strftime("%Y.%U")).min()
-        if method == "max":
-            weekly_aggr = df_copy.groupby(df_copy.index.strftime("%Y.%U")).max()
-        if method == "inst":
-            weekly_aggr = df_copy.groupby(df_copy.index.strftime("%Y.%U")).last()    
+    df_copy = df.copy()
     
-    return weekly_aggr
+    if use_week_start_index:
+        # Normalize to start of the week (Monday)
+        group_keys = df_copy.index.to_period("W").start_time
+    else:
+        # Keep as string like "YYYY.WW" if desired
+        group_keys = df_copy.index.strftime("%Y.%U")
+
+    aggregation = {
+        "mean": pd.DataFrame.groupby(df_copy, group_keys).mean,
+        "sum": pd.DataFrame.groupby(df_copy, group_keys).sum,
+        "median": pd.DataFrame.groupby(df_copy, group_keys).median,
+        "min": pd.DataFrame.groupby(df_copy, group_keys).min,
+        "max": pd.DataFrame.groupby(df_copy, group_keys).max,
+        "inst": pd.DataFrame.groupby(df_copy, group_keys).last,
+    }
+
+    return aggregation[method]()
 
 
 def monthly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
-    """ Returns the weekly aggregate value of a given dataframe based
+    """ Returns the monthly aggregate value of a given dataframe based
         on the chosen method 
 
     Parameters
@@ -602,7 +643,7 @@ def monthly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
             A pandas DataFrame with a datetime index and columns containing float type values.
     method: string
             string indicating the method of aggregation
-            i.e, mean, min, max, median, sum and instantaenous
+            i.e, mean, min, max, median, sum and instantaneous
             - default is mean
 
     Returns
@@ -661,22 +702,25 @@ def monthly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
 
         if method == "sum":
             monthly_aggr = df_copy.groupby(df_copy.index.strftime("%Y-%m")).sum()
-        if method == "mean":
+        elif method == "mean":
             monthly_aggr = df_copy.groupby(df_copy.index.strftime("%Y-%m")).mean()
-        if method == "median":
+        elif method == "median":
             monthly_aggr = df_copy.groupby(df_copy.index.strftime("%Y-%m")).median()
-        if method == "min":
+        elif method == "min":
             monthly_aggr = df_copy.groupby(df_copy.index.strftime("%Y-%m")).min()
-        if method == "max":
+        elif method == "max":
             monthly_aggr = df_copy.groupby(df_copy.index.strftime("%Y-%m")).max()
-        if method == "inst":
-            monthly_aggr = df_copy.groupby(df_copy.index.strftime("%Y-%m")).last()    
+        elif method == "inst":
+            monthly_aggr = df_copy.groupby(df_copy.index.strftime("%Y-%m")).last()
+        else:
+            raise ValueError(f"Unsupported aggregation method: {method}")
+   
     
     return monthly_aggr
 
 
 def yearly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
-    """ Returns the weekly aggregate value of a given dataframe based
+    """ Returns the yearly aggregate value of a given dataframe based
         on the chosen method 
 
     Parameters
@@ -685,7 +729,7 @@ def yearly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
             A pandas DataFrame with a datetime index and columns containing float type values.
     method: string
             string indicating the method of aggregation
-            i.e, mean, min, max, median, sum and instantaenous
+            i.e, mean, min, max, median, sum and instantaneous
             - default is mean
 
     Returns
@@ -769,257 +813,23 @@ def yearly_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
         df_copy = df.copy()
         
         if method == "sum":
-            yearly_aggr = df_copy.groupby(df_copy.index.strftime("%Y")).sum()
-        if method == "mean":
-            yearly_aggr = df_copy.groupby(df_copy.index.strftime("%Y")).mean()
-        if method == "median":
-            yearly_aggr = df_copy.groupby(df_copy.index.strftime("%Y")).median()
-        if method == "min":
-            yearly_aggr = df_copy.groupby(df_copy.index.strftime("%Y")).min()
-        if method == "max":
-            yearly_aggr = df_copy.groupby(df_copy.index.strftime("%Y")).max()  
-        if method == "inst":
-            yearly_aggr = df_copy.groupby(df_copy.index.strftime("%Y")).last()  
+            yearly_aggr = df_copy.groupby(df_copy.index.strftime("%Y-%m")).sum()
+        elif method == "mean":
+            yearly_aggr = df_copy.groupby(df_copy.index.strftime("%Y-%m")).mean()
+        elif method == "median":
+            yearly_aggr = df_copy.groupby(df_copy.index.strftime("%Y-%m")).median()
+        elif method == "min":
+            yearly_aggr = df_copy.groupby(df_copy.index.strftime("%Y-%m")).min()
+        elif method == "max":
+            yearly_aggr = df_copy.groupby(df_copy.index.strftime("%Y-%m")).max()
+        elif method == "inst":
+            yearly_aggr = df_copy.groupby(df_copy.index.strftime("%Y-%m")).last()
+        else:
+            raise ValueError(f"Unsupported aggregation method: {method}")
+  
     
     return yearly_aggr  
 
-
-# def generate_dataframes(csv_fpath: str='', sim_fpath: str='', obs_fpath: str='', warm_up: int = 0, start_date :str = "", end_date: str = "",
-#                         daily_agg:bool=False, da_method:str="", weekly_agg:bool=False, wa_method:str="",
-#                         monthly_agg:bool=False, ma_method:str="", yearly_agg:bool=False, ya_method:str="",
-#                         seasonal_p:bool=False, sp_dperiod:tuple[str, str]=[], sp_subset:tuple[str, str]=None,
-#                         long_term:bool=False, lt_method=None) -> dict[str, pd.DataFrame]:
-#     """ 
-#     Function to Generate the required dataframes
-
-#     Parameters
-#     ----------
-#     csv_fpath : string
-#             the path to the csv file. It can be relative or absolute. If given, sim_fpath and obs_fpath
-#             must be None.
-#     sim_fpath: str
-#         The filepath to the simulated csv of data. If given obs_fpath must also be given and csv_fpath
-#         must be None. 
-#     obs_fpath: str
-#         The filepath to the observed csv of the data. If given sim_fpath must also be given and csv_fpath
-#         must be None.
-#     warm_up: int 
-#             number of days required to "warm up" the system
-#     start_date: str 
-#             The date at which you want to start calculating the metric in the
-#             format yyyy-mm-dd
-#     end_date: str
-#             The date at which you want the calculations to end in the
-#             format yyyy-mm-dd
-#     daily_agg: bool = False
-#             If True calculate and return the daily aggregate of the combined dataframes
-#             using da_method if its available
-#     da_method: str = ""
-#             If provided, it determines the method of daily aggregation. It 
-#             is "mean" by default, see daily_aggregate() function
-#     weekly_agg: bool = False
-#             If True calculate and return the weekly aggregate of the combined dataframes
-#             using wa_method if its available
-#     wa_method: str = ""
-#             If provided, it determines the method of weekly aggregation. It 
-#             is "mean" by default, see weekly_aggregate() function
-#     monthly_agg: bool = False
-#             If True calculate and return the monrhly aggregate of the combined dataframes
-#             using ma_method if its available
-#     ma_method: str = ""
-#             If provided, it determines the method of monthly aggregation. It 
-#             is "mean" by default, see monthly_aggregate() function
-#     yearly_agg: bool = False
-#             If True calculate and return the yearly aggregate of the combined dataframes
-#             using ya_method if its available
-#     ya_method: str = ""
-#             If provided, it determines the method of yearly aggregation. It 
-#             is "mean" by default, see yearly_aggregate() function
-#     seasonal_p: bool = False
-#             If True calculate and return a dataframe truncated to fit the parameters specified
-#             for the seasonal period 
-#             Requirement:- sp_dperiod.
-#     sp_dperiod: tuple(str, str)
-#             A list of length two with strings representing the start and end dates of the seasonal period (e.g.
-#             (01-01, 01-31) for Jan 1 to Jan 31.
-#     sp_subset: tuple(str, str)
-#             A tuple of string values representing the start and end dates of the time range. Format is YYYY-MM-DD.
-#     longterm: bool = False
-#             If True calculates the min, max and median values for the long term seasonal. It will also create
-#             additional dataframes depending on the value of 'lt_method'.
-#     lt_method
-#             Specifies extra long term dataframes to create
-
-#     Returns
-#     -------
-#     dict[str, pd.dataframe]
-#             A dictionary containing each Dataframe requested. Its default content is:
-
-#             - DF = merged dataframe
-#             - DF_SIMULATED = all simulated data
-#             - DF_OBSERVED = all observed data
-            
-#             Depending on which you requested it can also contain:
-
-#             - DF_DAILY = dataframe aggregated by days of the year
-#             - DF_WEEKLY = dataframe aggregated by the weeks of the year
-#             - DF_MONTHLY = dataframe aggregated by months of the year
-#             - DF_YEARLY = dataframe aggregated by all the years in the data
-#             - DF_CUSTOM = dataframe truncated as per the seasonal period parameters
-#             - DF_LONGTERM_MIN = long term seasonal dataframe aggregated using the min of its daily values 
-#             - DF_LONGTERM_MAX = long term seasonal dataframe aggregated using the max of its daily values
-#             - DF_LONGTERM_MEAN =  long term seasonal dataframe aggregated using the mean of its daily values
-              
-#               Depending on "lt_method," you can also request that it contain:
-
-#                 - DF_LONGTERM_SUM = long term seasonal dataframe aggregated using the sum of its daily values
-#                 - DF_LONGTERM_MEDIAN = long term seasonal dataframe aggregated using the median of its daily values
-#                 - DF_LONGTERM_Q1 = long term seasonal dataframe aggregated showing the first quartile of its daily
-#                 - DF_LONGTERM_Q2 = long term seasonal dataframe aggregated showing the second quartile of its daily
-#                 - DF_LONGTERM_Q3 = long term seasonal dataframe aggregated showing the third quartile of its daily
-         
-
-#     Example
-#     -------
-#     See linked jupyter `notebook <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-data-manipulation.ipynb>`_ file for usage instances
-            
-#     """
-
-#     DATAFRAMES = {}
-#     if csv_fpath:
-#         # read the combined csv file into a dataframe
-#         df = pd.read_csv(csv_fpath, skipinitialspace = True, index_col = [0, 1])
-#         # if there are any extra columns at the end of the csv file, remove them
-#         if len(df.columns) % 2 != 0:
-#             df.drop(columns=df.columns[-1], inplace = True)        
-#         # Convert the year and jday index to datetime indexing
-#         start_day = hlp.MultiIndex_to_datetime(df.index[0])
-#         df.index = pd.to_datetime([i for i in range(len(df.index))], unit='D',origin=pd.Timestamp(start_day))
-#         # replace all invalid values with NaN
-#         df = df.replace([-1, 0], np.nan)   
-        
-#         # Take off the warm up time
-#         DATAFRAMES["DF"] = df[warm_up:]    
-#         observed = df[warm_up:].iloc[:, ::2] 
-#         simulated = df[warm_up:].iloc[:, 1::2]
-
-#     elif sim_fpath and obs_fpath:
-#         # read the simulated and observed csv files into dataframes
-#         sim_df = pd.read_csv(sim_fpath, skipinitialspace = True, index_col=[0, 1])
-#         obs_df = pd.read_csv(obs_fpath, skipinitialspace = True, index_col=[0, 1])
-
-#         # Convert the year and jday index to datetime indexing
-#         # simulated
-#         start_day = hlp.MultiIndex_to_datetime(sim_df.index[0])
-#         sim_df.index = pd.to_datetime([i for i in range(len(sim_df.index))], unit='D',origin=pd.Timestamp(start_day))
-        
-        
-#         # observed
-#         start_day = hlp.MultiIndex_to_datetime(obs_df.index[0])
-#         obs_df.index = pd.to_datetime([i for i in range(len(obs_df.index))], unit='D',origin=pd.Timestamp(start_day))
-
-#         # replace all invalid values with NaN
-#         sim_df = sim_df.replace([-1, 0], np.nan)
-#         obs_df = obs_df.replace([-1, 0], np.nan)
-#         df = pd.DataFrame(index = obs_df.index)
-#         for j in range(0, len(obs_df.columns)):
-#             arr1 = obs_df.iloc[:, j]
-#             arr2 = sim_df.iloc[:, j]
-#             df = pd.concat([df, arr1, arr2], axis = 1)
-
-#         # Take off the warm up time
-#         simulated = sim_df[warm_up:]
-#         observed = obs_df[warm_up:]                
-#         DATAFRAMES["DF"] = df[warm_up:] 
-
-#     else:
-#         raise RuntimeError('either sim_fpath and obs_fpath or csv_fpath are required inputs.')
-       
-
-#     # splice the dataframes according to the time frame
-#     if not start_date and end_date:
-#         # there's an end date but no start date
-#         simulated = simulated.loc[:end_date]
-#         observed = observed.loc[:end_date]
-#         DATAFRAMES["DF"] = DATAFRAMES["DF"][:end_date]
-#     elif not end_date and start_date:
-#         # there's and end date but no start date
-#         simulated = simulated.loc[start_date:]
-#         observed = observed.loc[start_date:]
-#         DATAFRAMES["DF"] = DATAFRAMES["DF"][start_date:]
-#     elif start_date and end_date:
-#         # there's a start and end date
-#         simulated = simulated.loc[start_date:end_date]
-#         observed = observed.loc[start_date:end_date]
-#         DATAFRAMES["DF"] = DATAFRAMES["DF"][start_date:end_date]
-
-#     print(f"The start date for the Observed Data is {observed.index[0].strftime('%Y-%m-%d')}")
-#     print(f"The start date for the Simulated Data is {simulated.index[0].strftime('%Y-%m-%d')}")
-#     print(f"The start date for the Merged Data is {DATAFRAMES['DF'].index[0].strftime('%Y-%m-%d')}")
-    
-#     # validate inputs
-#     hlp.validate_data(observed, simulated)
-    
-#     DATAFRAMES["DF_SIMULATED"] = simulated
-#     DATAFRAMES["DF_OBSERVED"] = observed
-
-#     # Creating the remaining dataframes based on input
-#     # 1. Daily aggregate
-#     if daily_agg and da_method:
-#         DATAFRAMES["DF_DAILY"] = daily_aggregate(df = DATAFRAMES["DF"], method=da_method)
-#     elif daily_agg:
-#         # mean by default
-#         DATAFRAMES["DF_DAILY"] = daily_aggregate(df = DATAFRAMES["DF"])
-
-#     # 2. Weekly aggregate
-#     if weekly_agg and wa_method:
-#         DATAFRAMES["DF_WEEKLY"] = weekly_aggregate(df = DATAFRAMES["DF"], method=wa_method)
-#     elif weekly_agg:
-#         # mean by default
-#         DATAFRAMES["DF_WEEKLY"] = weekly_aggregate(df = DATAFRAMES["DF"])
-
-#     # 3. Monthly aggregate
-#     if monthly_agg and ma_method:
-#         DATAFRAMES["DF_MONTHLY"] = monthly_aggregate(df = DATAFRAMES["DF"], method=ma_method)
-#     elif monthly_agg:
-#         # mean by default
-#         DATAFRAMES["DF_MONTHLY"] = monthly_aggregate(df = DATAFRAMES["DF"])
-
-#     # 4.Yearly aggregate
-#     if yearly_agg and ya_method:
-#         DATAFRAMES["DF_YEARLY"] = yearly_aggregate(df = DATAFRAMES["DF"], method=ya_method)
-#     elif yearly_agg:
-#         # mean by default
-#         DATAFRAMES["DF_YEARLY"] = yearly_aggregate(df = DATAFRAMES["DF"])
-
-#     # 5. Seasonal Period
-#     if seasonal_p and sp_dperiod == []:
-#         raise RuntimeError("You cannot calculate a seasonal period without a daily period")
-#     elif seasonal_p and sp_dperiod and sp_subset:
-#         DATAFRAMES["DF_CUSTOM"] = seasonal_period(df = DATAFRAMES["DF"], daily_period=sp_dperiod,
-#                                                   subset=sp_subset)    
-#     elif seasonal_p and sp_dperiod:
-#         DATAFRAMES["DF_CUSTOM"] = seasonal_period(df = DATAFRAMES["DF"], daily_period=sp_dperiod)
-
-#     # 6. long term seasonal
-#     if long_term:
-#         DATAFRAMES["LONG_TERM_MIN"] = long_term_seasonal(df=DATAFRAMES["DF"], method="min")
-#         DATAFRAMES["LONG_TERM_MAX"] = long_term_seasonal(df=DATAFRAMES["DF"], method="max")
-#         DATAFRAMES["LONG_TERM_MEDIAN"] = long_term_seasonal(df=DATAFRAMES["DF"], method="median")
-#         if lt_method is None:
-#             lt_method = []
-#         elif isinstance(lt_method, str):
-#             lt_method = [lt_method]
-#         elif not isinstance(lt_method, list):
-#             raise ValueError("Argument must be a string or a list of strings.")
-
-#         for method in lt_method:
-#             if not isinstance(method, str):
-#                 raise ValueError("All items in the list must be strings.")    
-#             DATAFRAMES[f"LONG_TERM_{method.upper()}"] = long_term_seasonal(df=DATAFRAMES["DF"], method=method)
-    
-    
-#     return DATAFRAMES
 
 def generate_dataframes(csv_fpaths: list=None, sim_fpaths: list = None, obs_fpath: str = '', warm_up: int = 0, start_date: str = "", end_date: str = "",
                         daily_agg: bool = False, da_method: str = "", weekly_agg: bool = False, wa_method: str = "",
@@ -1028,214 +838,206 @@ def generate_dataframes(csv_fpaths: list=None, sim_fpaths: list = None, obs_fpat
                         long_term: bool = False, lt_method=None, stat_agg: bool = False, stat_method: str=None) -> dict[str, pd.DataFrame]:
     """ 
     Function to Generate the required dataframes
+
+    Parameters
+    ----------
+    csv_fpath : string
+            the path to the csv file. It can be relative or absolute. If given, sim_fpath and obs_fpath
+            must be None.
+    sim_fpath: str
+        The filepath to the simulated csv of data. If given obs_fpath must also be given and csv_fpath
+        must be None. 
+    obs_fpath: str
+        The filepath to the observed csv of the data. If given sim_fpath must also be given and csv_fpath
+        must be None.
+    warm_up: int 
+            number of days required to "warm up" the system
+    start_date: str 
+            The date at which you want to start calculating the metric in the
+            format yyyy-mm-dd
+    end_date: str
+            The date at which you want the calculations to end in the
+            format yyyy-mm-dd
+    daily_agg: bool = False
+            If True calculate and return the daily aggregate of the combined dataframes
+            using da_method if its available
+    da_method: str = ""
+            If provided, it determines the method of daily aggregation. It 
+            is "mean" by default, see daily_aggregate() function
+    weekly_agg: bool = False
+            If True calculate and return the weekly aggregate of the combined dataframes
+            using wa_method if its available
+    wa_method: str = ""
+            If provided, it determines the method of weekly aggregation. It 
+            is "mean" by default, see weekly_aggregate() function
+    monthly_agg: bool = False
+            If True calculate and return the monrhly aggregate of the combined dataframes
+            using ma_method if its available
+    ma_method: str = ""
+            If provided, it determines the method of monthly aggregation. It 
+            is "mean" by default, see monthly_aggregate() function
+    yearly_agg: bool = False
+            If True calculate and return the yearly aggregate of the combined dataframes
+            using ya_method if its available
+    ya_method: str
+            If provided, it determines the method of yearly aggregation. It 
+            is "mean" by default, see yearly_aggregate() function
+    seasonal_p: bool = False
+            If True calculate and return a dataframe truncated to fit the parameters specified
+            for the seasonal period 
+            Requirement:- sp_dperiod.
+    sp_dperiod: tuple(str, str)
+            A list of length two with strings representing the start and end dates of the seasonal period (e.g.
+            (01-01, 01-31) for Jan 1 to Jan 31.
+    sp_subset: tuple(str, str)
+            A tuple of string values representing the start and end dates of the time range. Format is YYYY-MM-DD.
+    longterm: bool = False
+            If True calculates the min, max and median values for the long term seasonal. It will also create
+            additional dataframes depending on the value of 'lt_method'.
+    lt_method: list[str]
+            Specifies extra long term dataframes to create
+    stat_agg: bool = False
+            If True calculates the min, max and median values accross the datetime (every day). It will also create
+            additional series depending on the value of 'stat_method'. It returns a dataframe with the
+            aggregated values.
+    stat_method: list[str]
+            Specifies extra stat aggregations to perform
+
+    Returns
+    -------
+    dict[str, pd.dataframe]
+            A dictionary containing each Dataframe requested. Its default content is:
+
+            - DF = merged dataframe
+            - DF_SIMULATED = all simulated data
+            - DF_OBSERVED = all observed data
+            
+            Depending on which you requested it can also contain:
+
+            - DF_DAILY = dataframe aggregated by days of the year
+            - DF_WEEKLY = dataframe aggregated by the weeks of the year
+            - DF_MONTHLY = dataframe aggregated by months of the year
+            - DF_YEARLY = dataframe aggregated by all the years in the data
+            - DF_CUSTOM = dataframe truncated as per the seasonal period parameters
+            - DF_STATS = dataframe aggregated by the statistics of the data accross the datetime
+            - DF_LONGTERM_MIN = long term seasonal dataframe aggregated using the min of its daily values 
+            - DF_LONGTERM_MAX = long term seasonal dataframe aggregated using the max of its daily values
+            - DF_LONGTERM_MEAN =  long term seasonal dataframe aggregated using the mean of its daily values
+              
+              Depending on "lt_method," you can also request that it contain:
+
+                - DF_LONGTERM_SUM = long term seasonal dataframe aggregated using the sum of its daily values
+                - DF_LONGTERM_MEDIAN = long term seasonal dataframe aggregated using the median of its daily values
+                - DF_LONGTERM_Q1 = long term seasonal dataframe aggregated showing the first quartile of its daily
+                - DF_LONGTERM_Q2 = long term seasonal dataframe aggregated showing the second quartile of its daily
+                - DF_LONGTERM_Q3 = long term seasonal dataframe aggregated showing the third quartile of its daily
+         
+
+    Example
+    -------
+    See linked jupyter `notebook <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-data-manipulation.ipynb>`_ file for usage instances
     
-    Parameters have been modified to allow for multiple simulated datasets.
     """
 
+    def _merge_dataframes(obs, sim_dfs):
+        merged = pd.DataFrame(index=obs.index)
+        for j in range(obs.shape[1]):
+            merged = pd.concat([merged, obs.iloc[:, [j]]] +
+                               [sim.iloc[:, [j]] for sim in sim_dfs], axis=1)
+        merged.columns = hlp.columns_to_MultiIndex(merged.columns)
+        return merged
+    
+    def _read_and_process_csv(path, is_sim=False):
+        df = pd.read_csv(path, skipinitialspace=True, index_col=[0, 1])
+        df.drop(columns=df.columns[-1], inplace=True) if len(df.columns) % 2 != 0 else None
+        start_day = hlp.MultiIndex_to_datetime(df.index[0])
+        df.index = pd.date_range(start=start_day, periods=len(df), freq='D')
+        return df.replace([-1, 0], np.nan)
+    
     DATAFRAMES = {}
-
+    sim_dfs = []
     # Step 1: Handle input dataframes
-    if isinstance(csv_fpaths, str):
-        csv_fpaths = [csv_fpaths]  # Convert to list if it's a string
     if csv_fpaths:
-        for i, csv_fpath in enumerate(csv_fpaths):
-            # read the combined csv file into a dataframe
-            df = pd.read_csv(csv_fpath, skipinitialspace=True, index_col=[0, 1])
-            if len(df.columns) % 2 != 0:
-                df.drop(columns=df.columns[-1], inplace=True)
-            start_day = hlp.MultiIndex_to_datetime(df.index[0])
-            df.index = pd.to_datetime([j for j in range(len(df.index))], unit='D', origin=pd.Timestamp(start_day))
-            df = df.replace([-1, 0], np.nan)
-
-            # if there are any extra columns at the end of the csv file, remove them
-            if len(df.columns) % 2 != 0:
-              df.drop(columns=df.columns[-1], inplace = True)
-        
-            # Handle warm-up period
-            if len(csv_fpaths) == 1:
-                DATAFRAMES["DF"] = df[warm_up:]
-            else:
-                DATAFRAMES[f"DF_{i+1}"] = df[warm_up:]
+        if isinstance(csv_fpaths, str):
+            csv_fpaths = [csv_fpaths]
+        for i, path in enumerate(csv_fpaths):
+            df = _read_and_process_csv(path)
+            df = df.iloc[warm_up:]
+            key = "DF" if len(csv_fpaths) == 1 else f"DF_{i+1}"
+            DATAFRAMES[key] = df
 
         # Check that the 'observed' values match up if there are multiple csv files
         if len(csv_fpaths) > 1:
-            # Get the indices of the even rows (0, 2, 4, ...)
-            even_indices = list(range(0, len(DATAFRAMES["DF_1"]), 2))
-            # Check for consistency of Observed rows across all the DataFrames in the current state of the dictionary
-            reference_row = None
-            prev_idx = None
-            for idx in even_indices:
-                for df_name, df in DATAFRAMES.items():
-                    if df_name != "NUM_SIMS":
-                        row = df.iloc[idx]
-                        if reference_row is None or prev_idx != idx:
-                            reference_row = row
-                        elif not row.equals(reference_row):
-                            print(f"Previous Index is {prev_idx}.\n")
-                            print(f"Error: Row {idx} in {df_name} does not match the reference row!\n")
-                            print(f"Reference row: {reference_row}.\n")
-                            print(f"Current row: {row}\n")
-                            # You can raise an exception here or handle it differently
-                            # TODO: Decide exception or otherwise.
-                            raise ValueError(f"Inconsistent rows at index {idx} in DataFrame {df_name}")
-                prev_idx = idx            
-            print("All Observed rows are consistent across DataFrames.")
+            ref_rows = DATAFRAMES["DF_1"].iloc[:, ::2]
+            for key, df in DATAFRAMES.items():
+                if key != "DF_1":
+                    if not df.iloc[:, ::2].equals(ref_rows):
+                        raise ValueError(f"Observed rows in {key} do not match.")
 
-        # Since they are all the same. I will read observed off one of them.
-        DATAFRAMES["DF_OBSERVED"] = DATAFRAMES["DF"].iloc[:, ::2] if len(csv_fpaths) == 1 else DATAFRAMES["DF_1"].iloc[:, ::2]
-        observed = DATAFRAMES["DF_OBSERVED"]
-
-        # Assign simulated dataframes dynamically
-        if len(csv_fpaths) == 1:
-            DATAFRAMES["DF_SIMULATED"] = DATAFRAMES["DF"].iloc[:, 1::2]
-        else:
-            for i in range(len(csv_fpaths)):
-                DATAFRAMES[f"DF_SIMULATED_{i+1}"] = DATAFRAMES[f"DF_{i+1}"].iloc[:, 1::2] 
-
-
-        # Merge all dataframes
-        simulated_dfs = [df for key, df in DATAFRAMES.items() if key.startswith("DF_SIMULATED")]
-        merged = pd.DataFrame(index = DATAFRAMES["DF_OBSERVED"].index)
-        for j in range(0, len(DATAFRAMES["DF_OBSERVED"].columns)):
-            merged = pd.concat([merged, DATAFRAMES["DF_OBSERVED"].iloc[:, j]], axis = 1)
-            for sim_df in simulated_dfs:
-                merged = pd.concat([merged, sim_df.iloc[:, j]], axis = 1)
-
-        DATAFRAMES["DF_MERGED"] = merged
-        DATAFRAMES["DF_MERGED"].columns = hlp.columns_to_MultiIndex(DATAFRAMES["DF_MERGED"].columns)
+        sim_dfs = [df.iloc[:, 1::2] for key, df in DATAFRAMES.items() if key.startswith("DF")]
+        obs = DATAFRAMES["DF"] if "DF" in DATAFRAMES else DATAFRAMES["DF_1"]
+        DATAFRAMES["DF_OBSERVED"] = obs.iloc[:, ::2]
+        for i, sim_df in enumerate(sim_dfs):
+            key = "DF_SIMULATED" if len(sim_dfs) == 1 else f"DF_SIMULATED_{i+1}"
+            DATAFRAMES[key] = sim_df
+        DATAFRAMES["DF_MERGED"] = _merge_dataframes(DATAFRAMES["DF_OBSERVED"], sim_dfs)
 
     elif sim_fpaths:
         if isinstance(sim_fpaths, str):
-            sim_fpaths = [sim_fpaths] # Convert to list if it's a string
-        # Initialize a list for simulated data
-        simulated_dfs = []
-        for i, sim_fpath in enumerate(sim_fpaths):
-            sim_df = pd.read_csv(sim_fpath, skipinitialspace=True, index_col=[0, 1])
-            start_day = hlp.MultiIndex_to_datetime(sim_df.index[0])
-            sim_df.index = pd.to_datetime([j for j in range(len(sim_df.index))], unit='D', origin=pd.Timestamp(start_day))
-            sim_df = sim_df.replace([-1, 0], np.nan)
-            sim_df = sim_df
-            simulated_dfs.append(sim_df)
+            sim_fpaths = [sim_fpaths]
+        sim_dfs = [_read_and_process_csv(path, is_sim=True) for path in sim_fpaths]
+        for i, sim_df in enumerate(sim_dfs):
             DATAFRAMES[f"DF_SIMULATED_{i+1}"] = sim_df
-                   
+
         if obs_fpath:
-            # read the observed data
-            obs_df = pd.read_csv(obs_fpath, skipinitialspace=True, index_col=[0, 1])
-            start_day = hlp.MultiIndex_to_datetime(obs_df.index[0])
-            obs_df.index = pd.to_datetime([i for i in range(len(obs_df.index))], unit='D', origin=pd.Timestamp(start_day))
-            obs_df = obs_df.replace([-1, 0], np.nan)
-            obs_df = obs_df[warm_up:]
-            DATAFRAMES["DF_OBSERVED"] = obs_df
-            observed = DATAFRAMES["DF_OBSERVED"]
-
-        #### MERGE ####
-            # Merge observed and simulated data
-            # 1. Individual Station merges
-            for i, sim_df in enumerate(simulated_dfs):
-                df = pd.DataFrame(index=obs_df.index)  # Initialize empty df with observed index
-                for j in range(0, len(obs_df.columns)):
-                    arr1 = obs_df.iloc[:, j]
-                    arr2 = sim_df.iloc[:, j]
-                    df = pd.concat([df, arr1, arr2], axis = 1)
+            obs = _read_and_process_csv(obs_fpath)
+            obs = obs.iloc[warm_up:]
+            DATAFRAMES["DF_OBSERVED"] = obs
+            for i, sim_df in enumerate(sim_dfs):
+                df = pd.concat([obs.iloc[:, [j]] for j in range(obs.shape[1])] +
+                               [sim_df.iloc[:, [j]] for j in range(sim_df.shape[1])], axis=1)
                 DATAFRAMES[f"DF_{i+1}"] = df
-
-            # 2. Umbrella merge - obsereved and all simulated data
-            merged = pd.DataFrame(index = obs_df.index)
-            for j in range(0, len(obs_df.columns)):
-                merged = pd.concat([merged, obs_df.iloc[:, j]], axis = 1)
-                for sim_df in simulated_dfs:
-                    merged = pd.concat([merged, sim_df.iloc[:, j]], axis = 1)
-
-            DATAFRAMES["DF_MERGED"] = merged
-            DATAFRAMES["DF_MERGED"].columns = hlp.columns_to_MultiIndex(DATAFRAMES["DF_MERGED"].columns)
-
-        # in the absence of observed data, we will still umbrella merge all simulated data
-        else:  
-            merged = pd.DataFrame(index = simulated_dfs[0].index)
-            for i in range(len(simulated_dfs[0].columns)):
-                for sim_df in simulated_dfs:
-                    merged = pd.concat([merged, sim_df.iloc[:, i]], axis=1)
-        
-            DATAFRAMES["DF_MERGED"] = merged
-            DATAFRAMES["DF_MERGED"].columns = hlp.columns_to_MultiIndex(DATAFRAMES["DF_MERGED"].columns)
-        #### END OF MERGE ####
+            DATAFRAMES["DF_MERGED"] = _merge_dataframes(obs, sim_dfs)
+        else:
+            DATAFRAMES["DF_MERGED"] = _merge_dataframes(sim_dfs[0], sim_dfs[1:])
     else:
         raise RuntimeError('Either sim_fpaths or obs_fpath or csv_fpaths are required inputs.')
 
     # Step 2: Date Range Filtering (for both observed and simulated data)
-    if start_date and not end_date:
-        DATAFRAMES["DF_MERGED"] = DATAFRAMES["DF_MERGED"][start_date:]
-        if csv_fpaths or obs_fpath:
-            DATAFRAMES["DF_OBSERVED"] = DATAFRAMES["DF_OBSERVED"][start_date:]
-        multiple_sims = len(csv_fpaths) > 1 or (sim_fpaths and len(sim_fpaths) > 1)
-        if multiple_sims:            
-            for i in range(len(csv_fpaths) if csv_fpaths else len(sim_fpaths)):
-                DATAFRAMES[f"DF_SIMULATED_{i+1}"] = DATAFRAMES[f"DF_SIMULATED_{i+1}"][start_date:]
-                DATAFRAMES[f"DF_{i+1}"] = DATAFRAMES[f"DF_{i+1}"][start_date:]
-        else:
-            DATAFRAMES["DF_SIMULATED"] = DATAFRAMES["DF_SIMULATED"][start_date:]
-            DATAFRAMES["DF"] = DATAFRAMES["DF"][start_date:]
-    elif end_date and not start_date:
-        DATAFRAMES["DF_MERGED"] = DATAFRAMES["DF_MERGED"][:end_date]
-        if csv_fpaths or obs_fpath:
-            DATAFRAMES["DF_OBSERVED"] = DATAFRAMES["DF_OBSERVED"][:end_date]
-        multiple_sims = len(csv_fpaths) > 1 or (sim_fpaths and len(sim_fpaths) > 1)
-        if multiple_sims:            
-            for i in range(len(csv_fpaths) if csv_fpaths else len(sim_fpaths)):
-                DATAFRAMES[f"DF_SIMULATED_{i+1}"] = DATAFRAMES[f"DF_SIMULATED_{i+1}"][:end_date]
-                DATAFRAMES[f"DF_{i+1}"] = DATAFRAMES[f"DF_{i+1}"][:end_date]
-        else:
-            DATAFRAMES["DF_SIMULATED"] = DATAFRAMES["DF_SIMULATED"][:end_date]
-            DATAFRAMES["DF"] = DATAFRAMES["DF"][:end_date]
-    elif start_date and end_date:
-        DATAFRAMES["DF_MERGED"] = DATAFRAMES["DF_MERGED"][start_date:end_date]
-        if csv_fpaths or obs_fpath:
-            DATAFRAMES["DF_OBSERVED"] = DATAFRAMES["DF_OBSERVED"][start_date:end_date]
-        multiple_sims = len(csv_fpaths) > 1 or (sim_fpaths and len(sim_fpaths) > 1)
-        if multiple_sims:            
-            for i in range(len(csv_fpaths) if csv_fpaths else len(sim_fpaths)):
-                DATAFRAMES[f"DF_SIMULATED_{i+1}"] = DATAFRAMES[f"DF_SIMULATED_{i+1}"][start_date:end_date]
-                DATAFRAMES[f"DF_{i+1}"] = DATAFRAMES[f"DF_{i+1}"][start_date:end_date]
-        else:
-            DATAFRAMES["DF_SIMULATED"] = DATAFRAMES["DF_SIMULATED"][start_date:end_date]
-            DATAFRAMES["DF"] = DATAFRAMES["DF"][start_date:end_date]
+    if start_date or end_date:
+        slice_ = slice(start_date if start_date else None, end_date if end_date else None)
+        for key in list(DATAFRAMES.keys()):
+            DATAFRAMES[key] = DATAFRAMES[key].loc[slice_]
 
     print(f"The start date for the Data is {DATAFRAMES['DF_MERGED'].index[0].strftime('%Y-%m-%d')}")
     
     # Step 3: Validate inputs
-    if len(csv_fpaths) > 1:
-        for i in range(len(csv_fpaths)):
-            hlp.validate_data(DATAFRAMES["DF_OBSERVED"], DATAFRAMES[f"DF_SIMULATED_{i+1}"])
-    elif len(csv_fpaths) == 1:
-        hlp.validate_data(DATAFRAMES["DF_OBSERVED"], DATAFRAMES["DF_SIMULATED"])
-    elif len(sim_fpaths) > 1 and obs_fpath:
+    if obs_fpath or ("DF_OBSERVED" in DATAFRAMES):
+        if sim_fpaths and len(sim_fpaths) > 1:
+            # Multiple simulations with observation
+            for i in range(len(sim_fpaths)):
+                hlp.validate_data(DATAFRAMES["DF_OBSERVED"], DATAFRAMES.get(f"DF_SIMULATED_{i+1}"))
+        elif (sim_fpaths and len(sim_fpaths) == 1) or len(csv_fpaths) == 1:
+            # One simulation with observation
+            hlp.validate_data(DATAFRAMES["DF_OBSERVED"], DATAFRAMES.get("DF_SIMULATED"))
+    else:
+        # No observation file; compare simulations to each other if > 1
         for i in range(len(sim_fpaths)):
-            hlp.validate_data(DATAFRAMES["DF_OBSERVED"], DATAFRAMES[f"DF_SIMULATED_{i+1}"])
-    elif len(sim_fpaths) > 1:
-        for i in range(len(sim_fpaths)):
-            hlp.validate_data(DATAFRAMES[f"DF_{i+1}"], DATAFRAMES[f"DF_SIMULATED_{i+1}"])        
+            hlp.validate_data(DATAFRAMES.get(f"DF_{i+1}"), DATAFRAMES.get(f"DF_SIMULATED_{i+1}"))        
         
 
     # Step 4: Aggregation (Daily, Weekly, Monthly, Yearly)
     if daily_agg and da_method:
-        DATAFRAMES["DF_DAILY"] = daily_aggregate(df=DATAFRAMES["DF_MERGED"], method=da_method)
-    elif daily_agg:
-        DATAFRAMES["DF_DAILY"] = daily_aggregate(df=DATAFRAMES["DF_MERGED"])
+        DATAFRAMES["DF_DAILY"] = daily_aggregate(df=DATAFRAMES["DF_MERGED"], method=da_method or 'mean')
 
     if weekly_agg and wa_method:
-        DATAFRAMES["DF_WEEKLY"] = weekly_aggregate(df=DATAFRAMES["DF_MERGED"], method=wa_method)
-    elif weekly_agg:
-        DATAFRAMES["DF_WEEKLY"] = weekly_aggregate(df=DATAFRAMES["DF_MERGED"])
+        DATAFRAMES["DF_WEEKLY"] = weekly_aggregate(df=DATAFRAMES["DF_MERGED"], method=wa_method or 'mean')
 
     if monthly_agg and ma_method:
-        DATAFRAMES["DF_MONTHLY"] = monthly_aggregate(df=DATAFRAMES["DF_MERGED"], method=ma_method)
-    elif monthly_agg:
-        DATAFRAMES["DF_MONTHLY"] = monthly_aggregate(df=DATAFRAMES["DF_MERGED"])
+        DATAFRAMES["DF_MONTHLY"] = monthly_aggregate(df=DATAFRAMES["DF_MERGED"], method=ma_method or 'mean')
 
     if yearly_agg and ya_method:
-        DATAFRAMES["DF_YEARLY"] = yearly_aggregate(df=DATAFRAMES["DF_MERGED"], method=ya_method)
-    elif yearly_agg:
-        DATAFRAMES["DF_YEARLY"] = yearly_aggregate(df=DATAFRAMES["DF_MERGED"])
+        DATAFRAMES["DF_YEARLY"] = yearly_aggregate(df=DATAFRAMES["DF_MERGED"], method=ya_method or 'mean')
 
     # Step 5: Seasonal Period
     if seasonal_p and sp_dperiod == []:
@@ -1257,7 +1059,8 @@ def generate_dataframes(csv_fpaths: list=None, sim_fpaths: list = None, obs_fpat
         elif not isinstance(lt_method, list):
             raise ValueError("Argument must be a string or a list of strings.")
         for method in lt_method:
-            DATAFRAMES[f"LONG_TERM_{method.upper()}"] = long_term_seasonal(df=DATAFRAMES["DF_MERGED"], method=method)
+            key = f"LONG_TERM_{method.upper()}"
+            DATAFRAMES[key] = long_term_seasonal(df=DATAFRAMES["DF_MERGED"], method=method)
 
     # Step 7: Stat Aggregation
     if stat_agg:
