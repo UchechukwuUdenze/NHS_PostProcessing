@@ -1547,6 +1547,12 @@ def flow_duration_curve(
 
     .. image:: ../Figures/FDC_Example.png
 
+    >>> # Example merged dataframe
+    >>> merged_df = pd.concat([observed, simulated], axis=1)
+    >>> visuals.flow_duration_curve(merged_df = merged_df, title="Flow Duration Curve of the Model Result", grid =True)
+
+    .. image:: ../Figures/FDC_Example_2.png
+
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-visualizations.ipynb>`_
     """
 
