@@ -27,6 +27,8 @@ All these functions along side their expected inputs and outputs are shown below
 
 import numpy as np
 import pandas as pd
+from typing import Union, List, Tuple
+
 
 from postprocessinglib.utilities import _helper_functions as hlp
 
@@ -70,14 +72,14 @@ def available_metrics() -> list[int]:
     
     return metrics
 
-def mse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]) -> float:
+def mse(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.DataFrame]], stations: list[int]=[]) -> float:
     """ Calculates the Mean Square value of the data
 
     Parameters
     ---------- 
     observed: pd.DataFrame
             Observed values[1: Datetime ; 2+: Streamflow Values]
-    simulated: pd.DataFrame
+    simulated: pd.DataFrame or list[pd.DataFrame]
             Simulated values[1: Datetime ; 2+: Streamflow Values]
     stations: list[int]
             numbers pointing to the location of the stations in the list of stations.
@@ -85,7 +87,7 @@ def mse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
 
     Returns
     -------
-    float:
+    pd.DataFrame:
         the mean square value of the data
 
     Example
@@ -120,42 +122,52 @@ def mse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
     >>> Calculate the Mean Square Error
     >>> mse = metrics.mse(observed = obs, simulated = sim)
     >>> print(mse)
-        [0.08408, 0.2463]
+                    model1
+        Station 1  0.22170
+        Station 2  0.08079
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
 
     """     
+    if (isinstance(simulated, pd.DataFrame)):
+        # If simulated is a single DataFrame, convert it to a list of DataFrames
+        simulated = [simulated]
+    
     # validate inputs
-    hlp.validate_data(observed, simulated)
+    for i in range(len(simulated)):
+        if not isinstance(simulated[i], pd.DataFrame):
+            raise ValueError(f"Simulated data at index {i} is not a DataFrame.")
+        hlp.validate_data(observed, simulated[i])
 
-    MSE = []
+    stations_to_process = [s - 1 for s in stations] if stations else list(range(observed.shape[1]))
 
-    # If no stations specified, calculate MSE for all columns
-    stations_to_process = stations if stations else range(observed.columns.size)    
-    
+    mse_results = {}
+
     for j in stations_to_process:
-        # If using 1-indexed stations, adjust by subtracting 1 for 0-indexing
-        if stations:
-            j = j-1
+        valid_observed = hlp.filter_valid_data(observed, station_num=j)
 
-        # Remove the invalid values from that station
-        valid_observed = hlp.filter_valid_data(observed, station_num=j)        
-        
-        summation = np.sum((valid_observed.iloc[:, j] - simulated.loc[valid_observed.index].iloc[:, j])**2)      
-        mse = summation / len(valid_observed)  # Dividing summation by total number of values to obtain average    
-        MSE.append(hlp.sig_figs(mse, 4))
-    
-    return MSE
+        station_mse = {}
+        for k, sim in enumerate(simulated):
+            sim_values = sim.loc[valid_observed.index].iloc[:, j]
+            obs_values = valid_observed.iloc[:, j]
+
+            mse_val = np.mean((obs_values - sim_values) ** 2)
+            station_mse[f"model{k+1}"] = hlp.sig_figs(mse_val, 4)
+
+        # Store per-station result (station index is 1-based)
+        mse_results[f"Station {j+1}"] = station_mse
+
+    return pd.DataFrame(mse_results).T  # Transpose so stations are rows
 
 
-def rmse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]) -> float:
+def rmse(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.DataFrame]], stations: list[int]=[]) -> float:
     """ Calculates the Root Mean Square value of the data
 
     Parameters
     ---------- 
     observed: pd.DataFrame
             Observed values[1: Datetime ; 2+: Streamflow Values]
-    simulated: pd.DataFrame
+    simulated: pd.DataFrame or list[pd.DataFrame]
             Simulated values[1: Datetime ; 2+: Streamflow Values]
     stations: list[int]
             numbers pointing to the location of the stations in the list of stations.
@@ -163,7 +175,7 @@ def rmse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
 
     Returns
     -------
-    float:
+    pd.DataFrame:
         the root mean square value of the data
 
     Example
@@ -198,32 +210,42 @@ def rmse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
     >>> Calculate the Root Mean Square Error
     >>> rmse = metrics.rmse(observed = obs, simulated = sim)
     >>> print(rmse)
-        [0.3760, 0.3398]
+                   model1
+        Station 1  0.3760
+        Station 2  0.3398
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
 
     """   
-    # validate inputs
-    hlp.validate_data(observed, simulated)
+    if (isinstance(simulated, pd.DataFrame)):
+        # If simulated is a single DataFrame, convert it to a list of DataFrames
+        simulated = [simulated]
     
-    RMSE =[]
+    # validate inputs
+    for i in range(len(simulated)):
+        if not isinstance(simulated[i], pd.DataFrame):
+            raise ValueError(f"Simulated data at index {i} is not a DataFrame.")
+        hlp.validate_data(observed, simulated[i])
 
-    # If no stations specified, calculate MSE for all columns
-    stations_to_process = stations if stations else range(observed.columns.size)    
+    stations_to_process = [s - 1 for s in stations] if stations else list(range(observed.shape[1]))
+
+    rmse_results = {}    
     
     for j in stations_to_process:
-        # If using 1-indexed stations, adjust by subtracting 1 for 0-indexing
-        if stations:
-            j = j-1
+        valid_observed = hlp.filter_valid_data(observed, station_num=j)
 
-        # Remove the invalid values from that station 
-        valid_observed = hlp.filter_valid_data(observed, station_num = j)
-        
-        summation = np.sum((abs((valid_observed.iloc[:, j]) - simulated.loc[valid_observed.index].iloc[:, j]))**2)
-        rmse = np.sqrt(summation/len(valid_observed)) #dividing summation by total number of values to obtain average    
-        RMSE.append(hlp.sig_figs(rmse, 4))
+        station_rmse = {}
+        for k, sim in enumerate(simulated):
+            sim_values = sim.loc[valid_observed.index].iloc[:, j]
+            obs_values = valid_observed.iloc[:, j]
 
-    return RMSE
+            rmse_val = np.sqrt(np.mean((obs_values - sim_values) ** 2))
+            station_rmse[f"model{k+1}"] = hlp.sig_figs(rmse_val, 4)
+
+        # Store per-station result (station index is 1-based)
+        rmse_results[f"Station {j+1}"] = station_rmse
+
+    return pd.DataFrame(rmse_results).T  # Transpose so stations are rows
 
 
 def mae(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]) -> float:

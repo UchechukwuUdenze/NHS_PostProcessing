@@ -94,7 +94,7 @@ def _save_or_display_plot(fig, save: bool, save_as: Union[str, List[str]], dir: 
     else:
         plt.show()
 
-def _normalize_bounds(bounds, lines=None):
+def _normalize_bounds(bounds: Union[pd.DataFrame, List[pd.DataFrame], List[List[pd.DataFrame]]], lines=None):
     """
     Normalize bounds input into a consistent list-of-lists structure.
 
@@ -141,7 +141,6 @@ def _normalize_bounds(bounds, lines=None):
 
     raise ValueError("Bounds must be a DataFrame, a list of DataFrames, or a list of lists of DataFrames.")
 
-
 def _prepare_bounds(bounds, line_index, column_index):
     """
     Extracts the column-wise bounds for a specific line and column.
@@ -163,6 +162,62 @@ def _prepare_bounds(bounds, line_index, column_index):
         return []
     line_bounds = bounds[line_index]  # List of DataFrames for this line
     return [b.iloc[:, column_index] for b in line_bounds]
+
+def _prepare_bound_layers(upper: List[pd.Series], main_line: pd.Series, lower: List[pd.Series],
+                           column_idx: int, bound_labels: List[str] = None ) -> Tuple[List[pd.Series], List[str]]:
+    """
+    Prepares the vertical layers (upper → main line → lower) for plotting bounded areas.
+    Automatically generates band labels unless custom ones are provided.
+
+    Parameters
+    ----------
+    upper : List[pd.Series]
+        List of upper bound series (ordered outermost to closest to line).
+    main_line : pd.Series
+        The main simulation or observed line.
+    lower : List[pd.Series]
+        List of lower bound series (ordered closest to line to outermost).
+    bound_labels : List[str]
+        Optional list of labels for the fill_between bands.
+
+    Returns
+    -------
+    Tuple[List[pd.Series], List[str]]
+        - `layers`: Ordered list of layers from top to bottom.
+        - `labels`: Corresponding labels for the bands between layers.
+    """
+
+    # Reverse upper bounds so outermost is first (top-down)
+    layers = []
+
+    # Add reversed upper bounds (top-down)
+    if upper:
+        for upp in reversed(upper):
+            for ub in upp:
+                layers.append(ub.iloc[:, column_idx])
+
+    # Add the line itself
+    layers.append(main_line.iloc[:, column_idx])
+
+    # Add lower bounds (bottom-up)
+    if lower:
+        for low in reversed(lower):
+            for lb in low:
+                layers.append(lb.iloc[:, column_idx])
+    print(layers)
+
+    # Auto-generate labels if none were provided
+    if bound_labels is None:
+        bound_labels = [
+            f"Band {j + 1}: {layers[j].name[1] or f'Layer {j}'} → {layers[j+1].name[1] or f'Layer {j+1}'}"
+            for j in range(len(layers) - 1)
+        ]
+    elif len(bound_labels) != len(layers) - 1:
+        raise ValueError(
+            f"Expected {len(layers) - 1} bound labels, got {len(bound_labels)}."
+        )
+
+    return layers, bound_labels
 
 def _finalize_plot(ax, grid, labels, title, name, i):
     """
@@ -187,6 +242,7 @@ def _finalize_plot(ax, grid, labels, title, name, i):
 
     if grid:
         plt.grid(True) 
+
 
 def plot(
     merged_df: pd.DataFrame = None, 
@@ -401,7 +457,7 @@ def plot(
             if padding:
                 plt.xlim(time[0], time[-1])
             _finalize_plot(ax, grid, labels, title, "plot", i)
-            auto_save = len(sims["sim_1"].columns) > 5
+            auto_save = len(line_df.columns) > 5
             _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "plot")
     else:
         # In either case of merged or sim_df, we will alwaays have simulated data, so we plot the obs first if we have it.
@@ -441,14 +497,16 @@ def plot(
             #     plt.subplots_adjust(right = 1-plot_adjust)
 
             # Save or auto-save for large column counts
-            auto_save = len(sims["sim_1"].columns) > 5
+            auto_save = len(sims["sim_1"].columns) > 5 
             _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "plot")
+
 
 def bounded_plot(
     lines: Union[List[pd.DataFrame], pd.DataFrame],
     extra_lines: List[pd.DataFrame] = None,
     upper_bounds: List[pd.DataFrame] = None,
     lower_bounds: List[pd.DataFrame] = None,
+    bound_legend: List[str] = None,
     legend: Tuple[str, str] = None,
     grid: bool = False,
     title: Union[str, List[str]] = None,
@@ -647,7 +705,7 @@ def bounded_plot(
                     extra_line.iloc[:, i],
                     color = linestyles[0][0],
                     linestyle='--',
-                    label=legend[0] if legend is not None else "Extra Line",
+                    label=legend[0] if legend else "Extra Line",
                     linewidth=1.5
                 )
 
@@ -661,12 +719,26 @@ def bounded_plot(
                 line.iloc[:, i],
                 linestyles[line_index+1] if extra_lines else linestyles[line_index],
                 label = (
-                        legend[line_index+1] if legend is not None and extra_lines is not None
-                        else legend[line_index] if legend is not None
-                        else "Main Line"
+                        legend[line_index+1] if legend and extra_lines
+                        else legend[line_index] if legend
+                        else f"Line {line_index+1}"
                     ),
                 linewidth=1.5
             )
+
+            # # Build all Y layers (top-down)
+            # y_layers, bound_legend = _prepare_bound_layers(upper_bounds, line, lower_bounds, i, bound_legend)
+
+            # # Plot fill_between for each adjacent pair
+            # for j in range(len(y_layers) - 1):
+            #     ax.fill_between(
+            #         line.index,
+            #         y_layers[j],
+            #         y_layers[j + 1],
+            #         alpha=transparency[line_index],
+            #         color=linestyles[line_index + 1][0] if extra_lines else linestyles[line_index][0],
+            #         label=bound_legend[j] if bound_legend and j < len(bound_legend) else None
+            #     )
 
             upper_obs = _prepare_bounds(upper_bounds, line_index, i)
             lower_obs = _prepare_bounds(lower_bounds, line_index, i)
@@ -678,6 +750,7 @@ def bounded_plot(
                     upper_obs[j],
                     alpha=transparency[line_index],
                     color=linestyles[line_index+1][0] if extra_lines else linestyles[line_index][0],
+                    label=bound_legend[j] if bound_legend and j < len(bound_legend) else None
                 )
 
         if padding:
@@ -878,6 +951,7 @@ def histogram(
         auto_save = len(obs.columns) > 5
         _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "histogram")
 
+
 def scatter(
   grid: bool = False, 
   title: str = None, 
@@ -904,6 +978,8 @@ def scatter(
   metric: str = "", 
   observed: pd.DataFrame = None, 
   simulated: pd.DataFrame = None,
+  mode:str = 'median',
+  models:List[str] = None,
   cmap: str='jet',
   vmin: float=None,
   vmax:float=None
@@ -991,6 +1067,14 @@ def scatter(
 
     simulated : pd.DataFrame, optional
         Used to calculate the metric for the scatter plot.
+
+    mode: str, optional
+        The mode used to calculate the metric for the scatter plot. Default is 'median'. But it can be 'models' or 'mean'.
+        It can also be models used to indicate that the metric is to be calculated for each model as specified in the models list.
+
+    models: list of str, optional
+        A list of model names to be used when calculating the metric for the scatter plot. Default is None.
+        It is only used when mode is 'models'.    
     
     cmap: string, optional
         Used to determine the color scheme of the color map for the shapefile plot 
@@ -1189,48 +1273,52 @@ def scatter(
             auto_save = len(obs.columns) > 5
             _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "scatter-plot")
     else:
+        # Calculate metrics: returns MultiIndex column DataFrame
         metr = metrics.calculate_metrics(observed=observed, simulated=simulated, metrices=[metric])
-        data = {
+        metric_df = metr[metric]  # e.g., metr["KGE"] gives all models for KGE
+
+        # Determine values to plot
+        if mode == "median":
+            values = metric_df.median(axis=1)
+            columns = [f"{metric}_median"]
+        elif mode == "models" and models:
+            values = metric_df[models]  # select specific models
+            columns = values.columns.tolist()
+        else:
+            raise ValueError("Invalid mode or missing model list for 'models' mode")
+    
+        # Create DataFrame for coordinates
+        base_data = pd.DataFrame({
             'latitude': y_axis.values,
-            'longitude': x_axis.values,
-            list(metr)[0] : metr[list(metr)[0]]
-        }
-        dataframe = pd.DataFrame(data)
- 
-        # Convert the pandas DataFrame into a GeoDataFrame
-        geometry = [Point(xy) for xy in zip(dataframe['longitude'], dataframe['latitude'])]
-        gdf_points = gpd.GeoDataFrame(dataframe, geometry=geometry)
-        
+            'longitude': x_axis.values
+        })
+
         # Read the shapefile using GeoPandas
         gdf_shapefile = gpd.read_file(shapefile_path)
-        
-        fig= plt.figure(figsize=fig_size, dpi =150, frameon=True)
-        ax = fig.add_axes([0,0.,.4,.1])
-        gdf_shapefile.plot(ax=ax, edgecolor='black', facecolor= "None", linewidth=0.5, legend=True)
-        
-        # Plot the points with color based on 'kge' column
-        sc = gdf_points.plot(ax=ax, column=list(metr)[0], cmap=cmap, vmin = vmin, vmax=vmax,legend=True, markersize=40, legend_kwds={'label': list(metr)[0]+" Value", "orientation": "vertical"})
+ 
+        # Plotting logic
+        for idx, col in enumerate(columns):
+            fig = plt.figure(figsize=fig_size, dpi=150, frameon=True)
+            ax = fig.add_axes([0, 0., .4, .1])
 
-        # Placing Labels if requested
-        if labels:
-            # Plotting Labels
-            plt.xlabel(labels[0], fontsize=12)
-            plt.ylabel(labels[1], fontsize=12)
+            # Create per-plot DataFrame
+            data = base_data.copy()
+            data[metric] = values[col] if mode == "models" else values
+            geometry = [Point(xy) for xy in zip(data['longitude'], data['latitude'])]
+            gdf_points = gpd.GeoDataFrame(data, geometry=geometry)
 
-        if title:
-            title_dict = {'family': 'sans-serif',
-                        'color': 'black',
-                        'weight': 'normal',
-                        'size': 20,
-                        }
-            ax.set_title(label=title, fontdict=title_dict, pad=25)
+            # Base map
+            gdf_shapefile.plot(ax=ax, edgecolor='black', facecolor="None", linewidth=0.5)
 
-        # Placing a grid if requested
-        if grid:
-            plt.grid(True)
+            # Plot metric values
+            gdf_points.plot(ax=ax, column=metric, cmap=cmap, vmin=vmin, vmax=vmax,
+                            legend=True, markersize=40,
+                            legend_kwds={'label': f"{col} Value", "orientation": "vertical"})
+
+            _finalize_plot(ax, grid, labels, title, "shapefile-plot", idx)
         
-        # Save or auto-save for large column counts
-        _save_or_display_plot(fig, save, save_as, dir, i=0, type="shapefile-plot")
+            # Save or auto-save for large column counts
+            _save_or_display_plot(fig, save, save_as, dir, i=idx, type="shapefile-plot")
 
 
 def qqplot(
@@ -1240,13 +1328,13 @@ def qqplot(
     fig_size: tuple[float, float] = (10, 6),
     method: str = "linear", 
     legend: list[str] = None, 
-    linewidth: tuple[float, float] = (1, 2),
+    linewidth: tuple[float, float] = (1.5, 2.5),
     merged_df: pd.DataFrame = None, 
     obs_df: pd.DataFrame = None, 
     sim_df: pd.DataFrame = None,
-    linestyle: tuple[str, str, str] = ('bo', 'r-.', 'r-'), 
+    linestyle: tuple[str, str, str] = ('b:', 'r-.', 'r-'), 
     quantile: tuple[int, int] = (25, 75),
-    q_labels: tuple[str, str, str] = ('Quantiles', 'Range of Quantiles', 'IQR'),
+    q_labels: tuple[str, str, str] = ('Range of Quantiles', 'IQR'),
     save: bool = False, 
     save_as: str = None, 
     dir: str = os.getcwd()
@@ -1446,9 +1534,9 @@ def qqplot(
             quant_sim = np.array([quant_1_sim, quant_3_sim])
             quant_obs = np.array([quant_1_obs, quant_3_obs]) 
 
-            ax.plot(sim_perc, obs_perc, linestyle='dotted', label=legend[j-1], markersize=2, color=base_color)
-            ax.plot(msim, mobs, linestyle=linestyle[1][1:], label=q_labels[1], linewidth=linewidth[0], color=adjusted_color)
-            ax.plot(quant_sim, quant_obs, linestyle=linestyle[2][1], label=q_labels[2], marker='o', markerfacecolor='w', linewidth=linewidth[1], color=adjusted_color)
+            ax.plot(sim_perc, obs_perc, linestyle=linestyle[0][1:], label=legend[j-1], markersize=2, color=base_color)
+            ax.plot(msim, mobs, linestyle=linestyle[1][1:], label=q_labels[0], linewidth=linewidth[0], color=adjusted_color)
+            ax.plot(quant_sim, quant_obs, linestyle=linestyle[2][1], label=q_labels[1], marker='o', markerfacecolor='w', linewidth=linewidth[1], color=adjusted_color)
 
         _finalize_plot(ax, grid, labels, title, "qqplot", i)
 
