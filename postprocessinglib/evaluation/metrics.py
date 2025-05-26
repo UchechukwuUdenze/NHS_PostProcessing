@@ -248,14 +248,14 @@ def rmse(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.DataFram
     return pd.DataFrame(rmse_results).T  # Transpose so stations are rows
 
 
-def mae(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]) -> float:
+def mae(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.DataFrame]], stations: list[int]=[]) -> float:
     """ Calculates the Mean Average value of the data
 
     Parameters
     ---------- 
     observed: pd.DataFrame
             Observed values[1: Datetime ; 2+: Streamflow Values]
-    simulated: pd.DataFrame
+    simulated: pd.DataFrame or list[pd.DataFrame]
             Simulated values[1: Datetime ; 2+: Streamflow Values]
     stations: list[int]
             numbers pointing to the location of the stations in the list of stations.
@@ -263,7 +263,7 @@ def mae(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
 
     Returns
     -------
-    float:
+    pd.DataFrame:
         the mean average value of the data
 
     Example
@@ -298,42 +298,52 @@ def mae(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
     >>> Calculate the Mean Average Error
     >>> mae = metrics.mae(observed = obs, simulated = sim)
     >>> print(mae)
-        [0.3132, 0.2709]
+                   model1
+        Station 1  0.3760
+        Station 2  0.3398
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
 
     """
+    if (isinstance(simulated, pd.DataFrame)):
+        # If simulated is a single DataFrame, convert it to a list of DataFrames
+        simulated = [simulated]
+    
     # validate inputs
-    hlp.validate_data(observed, simulated)
-    
-    MAE = []
-    
-    # If no stations specified, calculate RMSE for all columns
-    stations_to_process = stations if stations else range(observed.columns.size)    
+    for i in range(len(simulated)):
+        if not isinstance(simulated[i], pd.DataFrame):
+            raise ValueError(f"Simulated data at index {i} is not a DataFrame.")
+        hlp.validate_data(observed, simulated[i])
+
+    stations_to_process = [s - 1 for s in stations] if stations else list(range(observed.shape[1]))
+
+    mae_results = {}    
     
     for j in stations_to_process:
-        # If using 1-indexed stations, adjust by subtracting 1 for 0-indexing
-        if stations:
-            j = j-1
+        valid_observed = hlp.filter_valid_data(observed, station_num=j)
 
-        # Remove the invalid values from that station 
-        valid_observed = hlp.filter_valid_data(observed, station_num = j)
-        
-        summation = np.sum(abs(valid_observed.iloc[:, j] - simulated.loc[valid_observed.index].iloc[:, j]))
-        mae = summation/len(valid_observed)  #dividing summation by total number of values to obtain average   
-        MAE.append(hlp.sig_figs(mae, 4))
+        station_mae = {}
+        for k, sim in enumerate(simulated):
+            sim_values = sim.loc[valid_observed.index].iloc[:, j]
+            obs_values = valid_observed.iloc[:, j]
 
-    return MAE
+            mae_val = np.mean(np.sum(abs(obs_values - sim_values)))
+            station_mae[f"model{k+1}"] = hlp.sig_figs(mae_val, 4)
+
+        # Store per-station result (station index is 1-based)
+        mae_results[f"Station {j+1}"] = station_mae
+
+    return pd.DataFrame(mae_results).T  # Transpose so stations are rows
 
 
-def nse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]) -> float:
+def nse(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.DataFrame]], stations: list[int]=[]) -> float:
     """ Calculates the Nash-Sutcliffe Efficiency of the data
 
     Parameters
     ---------- 
     observed: pd.DataFrame
             Observed values[1: Datetime ; 2+: Streamflow Values]
-    simulated: pd.DataFrame
+    simulated: pd.DataFrame or list[pd.DataFrame]
             Simulated values[1: Datetime ; 2+: Streamflow Values]
     stations: list[int]
             numbers pointing to the location of the stations in the list of stations.
@@ -341,7 +351,7 @@ def nse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
 
     Returns
     -------
-    float:
+    pd.DataFrame:
         the Nash-Sutcliffe Efficiency of the data
 
     Example
@@ -376,47 +386,53 @@ def nse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[])
     >>> Calculate the Nash-Sutcliffe Efficiency 
     >>> nse = metrics.nse(observed = obs, simulated = sim)
     >>> print(nse)
-        [-0.9713, 0.01669]
+                    model1
+        Station 1  -0.9713
+        Station 2  0.01669
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
 
     """       
+    if (isinstance(simulated, pd.DataFrame)):
+        # If simulated is a single DataFrame, convert it to a list of DataFrames
+        simulated = [simulated]
+    
     # validate inputs
-    hlp.validate_data(observed, simulated)
+    for i in range(len(simulated)):
+        if not isinstance(simulated[i], pd.DataFrame):
+            raise ValueError(f"Simulated data at index {i} is not a DataFrame.")
+        hlp.validate_data(observed, simulated[i])
 
-    NSE = []
-    
-    # If no stations specified, calculate NSE for all columns
-    stations_to_process = stations if stations else range(observed.columns.size)    
-    
+    stations_to_process = [s - 1 for s in stations] if stations else list(range(observed.shape[1]))
+
+    nse_results = {}
+
     for j in stations_to_process:
-        # If using 1-indexed stations, adjust by subtracting 1 for 0-indexing
-        if stations:
-            j = j-1
+        valid_observed = hlp.filter_valid_data(observed, station_num=j)
+        obs_values = valid_observed.iloc[:, j]
+        obs_mean = obs_values.mean()
 
-        # Remove the invalid values from that station 
-        valid_observed = hlp.filter_valid_data(observed, station_num = j)
-        
-        num_valid = len(valid_observed.iloc[:, j])
-        observed_mean = np.sum(valid_observed.iloc[:, j])
-        observed_mean = observed_mean/num_valid
+        station_nse = {}
+        for k, sim in enumerate(simulated):
+            sim_values = sim.loc[valid_observed.index].iloc[:, j]
+            numerator = np.sum((obs_values - sim_values) ** 2)
+            denominator = np.sum((obs_values - obs_mean) ** 2)
+            nse_val = 1 - (numerator / denominator)
+            station_nse[f"model{k+1}"] = hlp.sig_figs(nse_val, 4)
 
-        summation_num = np.sum((abs(valid_observed.iloc[:, j] - simulated.loc[valid_observed.index].iloc[:, j]))**2)
-        summation_denom = np.sum((abs(valid_observed.iloc[:, j] - observed_mean))**2)
-        
-        nse = (1 - (summation_num/summation_denom))  #dividing summation by total number of values to obtain average
-        NSE.append(hlp.sig_figs(nse, 4))
-        
-    return NSE
+        nse_results[f"Station {j+1}"] = station_nse
 
-def lognse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]) -> float:
+    return pd.DataFrame(nse_results).T
+
+
+def lognse(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.DataFrame]], stations: list[int]=[]) -> float:
     """ Calculates the Logarithmic Nash-Sutcliffe Efficiency of the data
 
     Parameters
     ---------- 
     observed: pd.DataFrame
             Observed values[1: Datetime ; 2+: Streamflow Values]
-    simulated: pd.DataFrame
+    simulated: pd.DataFrame or list[pd.DataFrame]
             Simulated values[1: Datetime ; 2+: Streamflow Values]
     stations: list[int]
             numbers pointing to the location of the stations in the list of stations.
@@ -424,7 +440,7 @@ def lognse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=
 
     Returns
     -------
-    float:
+    pd.DataFrame:
         the Logarithmic Nash-Sutcliffe Efficiency of the data
 
     Example
@@ -459,49 +475,54 @@ def lognse(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=
     >>> Calculate the Log of Nash-Sutcliffe Efficiency 
     >>> lognse = metrics.lognse(observed = obs, simulated = sim)
     >>> print(lognse)
-        [-0.4923, -0.4228]
+                    model1
+        Station 1  -0.4923
+        Station 2  -0.4228
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
 
     """       
+    if (isinstance(simulated, pd.DataFrame)):
+        # If simulated is a single DataFrame, convert it to a list of DataFrames
+        simulated = [simulated]
+    
     # validate inputs
-    hlp.validate_data(observed, simulated)
+    for i in range(len(simulated)):
+        if not isinstance(simulated[i], pd.DataFrame):
+            raise ValueError(f"Simulated data at index {i} is not a DataFrame.")
+        hlp.validate_data(observed, simulated[i])
 
-    LOGNSE = []
-    
-    # If no stations specified, calculate LOGNSE for all columns
-    stations_to_process = stations if stations else range(observed.columns.size)    
-    
+    stations_to_process = [s - 1 for s in stations] if stations else list(range(observed.shape[1]))
+
+    lognse_results = {}
+
     for j in stations_to_process:
-        # If using 1-indexed stations, adjust by subtracting 1 for 0-indexing
-        if stations:
-            j = j-1
+        valid_observed = hlp.filter_valid_data(observed, station_num=j)
+        obs_values = np.log(valid_observed.iloc[:, j])
+        obs_mean = obs_values.mean()
 
-        # Remove the invalid values from that station 
-        valid_observed = hlp.filter_valid_data(observed, station_num = j)
-        
-        num_valid = len(valid_observed.iloc[:, j])
-        observed_mean = np.sum(np.log(valid_observed.iloc[:, j]))
-        observed_mean = observed_mean/num_valid
+        station_lognse = {}
+        for k, sim in enumerate(simulated):
+            sim_values = np.log(sim.loc[valid_observed.index].iloc[:, j])
+            numerator = np.sum((obs_values - sim_values) ** 2)
+            denominator = np.sum((obs_values - obs_mean) ** 2)
+            lognse_val = 1 - (numerator / denominator)
+            station_lognse[f"model{k+1}"] = hlp.sig_figs(lognse_val, 4)
 
-        summation_num = np.sum((abs(np.log(valid_observed.iloc[:, j]) - np.log(simulated.loc[valid_observed.index].iloc[:, j])))**2)
-        summation_denom = np.sum((abs(np.log(valid_observed.iloc[:, j]) - observed_mean))**2)
-        
-        lognse = (1 - (summation_num/summation_denom))  #dividing summation by total number of values to obtain average
-        LOGNSE.append(hlp.sig_figs(lognse, 4))
+        lognse_results[f"Station {j+1}"] = station_lognse
 
-    return LOGNSE
+    return pd.DataFrame(lognse_results).T
 
 
-def kge(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[],
-             scale: list[float]=[1. ,1. ,1.]) -> float:
+def kge(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.DataFrame]],
+            stations: list[int]=[], scale: list[float]=[1. ,1. ,1.]) -> float:
     """ Calculates the Kling-Gupta Efficiency of the data
 
     Parameters
     ---------- 
     observed: pd.DataFrame
             Observed values[1: Datetime ; 2+: Streamflow Values]
-    simulated: pd.DataFrame
+    simulated: pd.DataFrame or list[pd.DataFrame]
             Simulated values[1: Datetime ; 2+: Streamflow Values]
     stations: list[int]
             numbers pointing to the location of the stations in the list of stations.
@@ -512,7 +533,7 @@ def kge(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[],
 
     Returns
     -------
-    float:
+    pd.DataFrame:
         the Kling-Gupta Efficiency of the data
 
     Example
@@ -547,64 +568,64 @@ def kge(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[],
     >>> Calculate the Kling-Gupta Efficiency 
     >>> kge = metrics.kge(observed = obs, simulated = sim)
     >>> print(kge)
-        [-0.02108, 0.4929]
+                    model1
+        Station 1  -0.02108
+        Station 2  -0.4929
     
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
 
     """
-    # validate inputs
-    hlp.validate_data(observed, simulated)
+    if isinstance(simulated, pd.DataFrame):
+        simulated = [simulated]
 
-    KGE = []
-    
-    # If no stations specified, calculate KGE for all columns
-    stations_to_process = stations if stations else range(observed.columns.size)    
-    
+    for i, sim in enumerate(simulated):
+        if not isinstance(sim, pd.DataFrame):
+            raise ValueError(f"Simulated data at index {i} is not a DataFrame.")
+        hlp.validate_data(observed, sim)
+
+    stations_to_process = [s - 1 for s in stations] if stations else list(range(observed.shape[1]))
+    kge_results = {}
+
     for j in stations_to_process:
-        # If using 1-indexed stations, adjust by subtracting 1 for 0-indexing
-        if stations:
-            j = j-1
+        valid_observed = hlp.filter_valid_data(observed, station_num=j)
+        obs_values = valid_observed.iloc[:, j]
+        mean_obs = obs_values.mean()
+        std_obs = obs_values.std(ddof=1)
 
-        # Remove the invalid values from that station 
-        valid_observed = hlp.filter_valid_data(observed, station_num = j)
-        
-        num_valid = len(valid_observed.iloc[:, j])
-        mean_observed = np.sum(valid_observed.iloc[:, j]) 
-        mean_simulated = np.sum(simulated.iloc[:, j][valid_observed.iloc[:, j].index])
-        mean_observed = mean_observed / num_valid
-        mean_simulated = mean_simulated / num_valid
-        
-        
-        std_observed = np.sum((valid_observed.iloc[:, j] - mean_observed)**2) 
-        std_simulated = np.sum((simulated.iloc[:, j][valid_observed.iloc[:, j].index] - mean_simulated)**2)
-        sum = np.sum((valid_observed.iloc[:, j] - mean_observed) * (simulated.loc[valid_observed.index].iloc[:, j] - mean_simulated))
-        
-        # r: Pearson's Correlation Coefficient
-        r = sum / np.sqrt(std_simulated * std_observed)
-        
-        std_observed = np.sqrt(std_observed/(num_valid - 1))
-        std_simulated = np.sqrt(std_simulated/(num_valid - 1))
+        station_kge = {}
+        for k, sim in enumerate(simulated):
+            sim_values = sim.loc[valid_observed.index].iloc[:, j]
+            mean_sim = sim_values.mean()
+            std_sim = sim_values.std(ddof=1)
 
-        # a: A term representing the variability of prediction errors,
-        # b: A bias term
-        b = mean_simulated / mean_observed
-        a = std_simulated / std_observed
-        
-        kge = 1 - np.sqrt((scale[0]*(r - 1))**2 + (scale[1]*(a - 1))**2 + (scale[2]*(b - 1))**2)
-        KGE.append(hlp.sig_figs(kge, 4))
+            r_numerator = np.sum((obs_values - mean_obs) * (sim_values - mean_sim))
+            r_denominator = np.sqrt(np.sum((obs_values - mean_obs) ** 2) * np.sum((sim_values - mean_sim) ** 2))
+            r = r_numerator / r_denominator if r_denominator != 0 else np.nan
 
-    return KGE
+            b = mean_sim / mean_obs if mean_obs != 0 else np.nan
+            a = std_sim / std_obs if std_obs != 0 else np.nan
+
+            kge_val = 1 - np.sqrt(
+                (scale[0] * (r - 1)) ** 2 +
+                (scale[1] * (a - 1)) ** 2 +
+                (scale[2] * (b - 1)) ** 2
+            )
+            station_kge[f"model{k+1}"] = hlp.sig_figs(kge_val, 4)
+
+        kge_results[f"Station {j+1}"] = station_kge
+
+    return pd.DataFrame(kge_results).T
 
 
-def kge_2012(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[],
-             scale: list[float]=[1. ,1. ,1.]) -> float:
+def kge_2012(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.DataFrame]],
+             stations: list[int]=[], scale: list[float]=[1. ,1. ,1.]) -> float:
     """ Calculates the Kling-Gupta Efficiency of the data
 
     Parameters
     ---------- 
     observed: pd.DataFrame
             Observed values[1: Datetime ; 2+: Streamflow Values]
-    simulated: pd.DataFrame
+    simulated: pd.DataFrame or list[pd.DataFrame]
             Simulated values[1: Datetime ; 2+: Streamflow Values]
     stations: list[int]
             numbers pointing to the location of the stations in the list of stations.
@@ -615,13 +636,13 @@ def kge_2012(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int
 
     Returns
     -------
-    float:
+    pd.DataFrame:
         the Kling-Gupta Efficiency of the data
 
     Note
     ----
     This is different from the regular kge in that this uses the coefficient of Variation
-    as its bias term (i.e., std/mean) as oppased to just the mean
+    as its bias term (i.e., std/mean) as opposed to just the mean
 
     Example
     -------
@@ -655,63 +676,63 @@ def kge_2012(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int
     >>> Calculate the Kling-Gupta Efficiency 
     >>> kge_2012 = metrics.kge_2012(observed = obs, simulated = sim)
     >>> print(kge_2012)
-        [-0.02567, 0.4894]
+                    model1
+        Station 1  -0.0210
+        Station 2  0.48940
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
 
     """
-    # validate inputs
-    hlp.validate_data(observed, simulated)
+    if isinstance(simulated, pd.DataFrame):
+        simulated = [simulated]
 
-    KGE = []
-    
-    # If no stations specified, calculate KGE_2012 for all columns
-    stations_to_process = stations if stations else range(observed.columns.size)    
-    
+    for i, sim in enumerate(simulated):
+        if not isinstance(sim, pd.DataFrame):
+            raise ValueError(f"Simulated data at index {i} is not a DataFrame.")
+        hlp.validate_data(observed, sim)
+
+    stations_to_process = [s - 1 for s in stations] if stations else list(range(observed.shape[1]))
+    kge_results = {}
+
     for j in stations_to_process:
-        # If using 1-indexed stations, adjust by subtracting 1 for 0-indexing
-        if stations:
-            j = j-1
+        valid_observed = hlp.filter_valid_data(observed, station_num=j)
+        obs_values = valid_observed.iloc[:, j]
+        mean_obs = obs_values.mean()
+        std_obs = obs_values.std(ddof=1)
 
-        # Remove the invalid values from that station 
-        valid_observed = hlp.filter_valid_data(observed, station_num = j)
-        
-        num_valid = len(valid_observed.iloc[:, j])
-        mean_observed = np.sum(valid_observed.iloc[:, j]) 
-        mean_simulated = np.sum(simulated.iloc[:, j][valid_observed.iloc[:, j].index])
-        mean_observed = mean_observed / num_valid
-        mean_simulated = mean_simulated / num_valid
-        
-        
-        std_observed = np.sum((valid_observed.iloc[:, j] - mean_observed)**2) 
-        std_simulated = np.sum((simulated.iloc[:, j][valid_observed.iloc[:, j].index] - mean_simulated)**2)
-        sum = np.sum((valid_observed.iloc[:, j] - mean_observed) * (simulated.loc[valid_observed.index].iloc[:, j] - mean_simulated))
-        
-        # r: Pearson's Correlation Coefficient
-        r = sum / np.sqrt(std_simulated * std_observed)
-        
-        std_observed = np.sqrt(std_observed/(num_valid - 1))
-        std_simulated = np.sqrt(std_simulated/(num_valid - 1))
+        station_kge = {}
+        for k, sim in enumerate(simulated):
+            sim_values = sim.loc[valid_observed.index].iloc[:, j]
+            mean_sim = sim_values.mean()
+            std_sim = sim_values.std(ddof=1)
 
-        # a: A term representing the variability of prediction errors,
-        # b: A bias term
-        b = mean_simulated / mean_observed
-        a =  (std_simulated/ mean_simulated)/(std_observed / mean_observed)
-        
-        kge = 1 - np.sqrt((scale[0]*(r - 1))**2 + (scale[1]*(a - 1))**2 + (scale[2]*(b - 1))**2)
-        KGE.append(hlp.sig_figs(kge, 4))
+            r_numerator = np.sum((obs_values - mean_obs) * (sim_values - mean_sim))
+            r_denominator = np.sqrt(np.sum((obs_values - mean_obs) ** 2) * np.sum((sim_values - mean_sim) ** 2))
+            r = r_numerator / r_denominator if r_denominator != 0 else np.nan
 
-    return KGE
+            b = mean_sim / mean_obs if mean_obs != 0 else np.nan
+            a = (std_sim/mean_sim) / (std_obs/mean_obs) if (std_obs/mean_obs) != 0 else np.nan
+
+            kge_val = 1 - np.sqrt(
+                (scale[0] * (r - 1)) ** 2 +
+                (scale[1] * (a - 1)) ** 2 +
+                (scale[2] * (b - 1)) ** 2
+            )
+            station_kge[f"model{k+1}"] = hlp.sig_figs(kge_val, 4)
+
+        kge_results[f"Station {j+1}"] = station_kge
+
+    return pd.DataFrame(kge_results).T
 
 
-def bias(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]) -> float:
+def bias(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.DataFrame]], stations: list[int]=[]) -> float:
     """ Calculates the Percentage Bias of the data
 
     Parameters
     ---------- 
     observed: pd.DataFrame
             Observed values[1: Datetime ; 2+: Streamflow Values]
-    simulated: pd.DataFrame
+    simulated: pd.DataFrame or list[pd.DataFrame]
             Simulated values[1: Datetime ; 2+: Streamflow Values]
     stations: list[int]
             numbers pointing to the location of the stations in the list of stations.
@@ -719,7 +740,7 @@ def bias(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
 
     Returns
     -------
-    float:
+    pd.DataFrame:
         the Percentage Bias of the data
 
     Example
@@ -754,31 +775,40 @@ def bias(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[]
     >>> # Calculate the percentage Bias
     >>> bias = metrics.bias(observed = obs, simulated = sim)
     >>> print(bias)
-        [-22.92, 3.873]
+                   model1
+        Station 1  -22.92
+        Station 2  3.873
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
 
     """    
-    # validate inputs
-    hlp.validate_data(observed, simulated)
-    
-    BIAS = []
-    
-    # If no stations specified, calculate BIAS for all columns
-    stations_to_process = stations if stations else range(observed.columns.size)    
-    
+    if isinstance(simulated, pd.DataFrame):
+        simulated = [simulated]
+
+    for i, sim in enumerate(simulated):
+        if not isinstance(sim, pd.DataFrame):
+            raise ValueError(f"Simulated data at index {i} is not a DataFrame.")
+        hlp.validate_data(observed, sim)
+
+    stations_to_process = [s - 1 for s in stations] if stations else list(range(observed.shape[1]))
+    pbias_results = {}
+
     for j in stations_to_process:
-        # If using 1-indexed stations, adjust by subtracting 1 for 0-indexing
-        if stations:
-            j = j-1
+        valid_observed = hlp.filter_valid_data(observed, station_num=j)
+        obs_values = valid_observed.iloc[:, j]
+        station_pbias = {}
 
-        # Remove the invalid values from that station 
-        valid_observed = hlp.filter_valid_data(observed, station_num = j)
-        
-        bias = np.sum(simulated.iloc[:, j] - valid_observed.iloc[:, j])/np.sum(abs(valid_observed.iloc[:, j])) * 100
-        BIAS.append(hlp.sig_figs(bias, 4))
+        for k, sim in enumerate(simulated):
+            sim_values = sim.loc[valid_observed.index].iloc[:, j]
+            numerator = np.sum(obs_values - sim_values)
+            denominator = np.sum(obs_values)
 
-    return BIAS
+            pbias_val = 100 * numerator / denominator if denominator != 0 else np.nan
+            station_pbias[f"model{k+1}"] = hlp.sig_figs(pbias_val, 4)
+
+        pbias_results[f"Station {j+1}"] = station_pbias
+
+    return pd.DataFrame(pbias_results).T
         
 
 def time_to_peak(df: pd.DataFrame, stations: list[int]=[])->float:
@@ -845,53 +875,38 @@ def time_to_peak(df: pd.DataFrame, stations: list[int]=[])->float:
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_ 
     
     """
-    TTP = []
     last_year = df.index[-1].year
     if not stations:
-        for j in range(0, df.columns.size):
-            year = df.index[0].year
-            first = 0
-            yearly_ttp = []
-            while year != last_year:
-                # check the number of days
-                num_of_days = 365
-                if hlp.is_leap_year(year):
-                    num_of_days = 366
-                
-                valid_values = np.sum(np.fromiter((df.index[i].year == year for i in range(first, num_of_days+first)), int))
-                
-                if valid_values > 200 and np.nansum(df.iloc[first:num_of_days+first, j]) > 0.0:
-                    peak_day = np.nanargmax(df.iloc[first:num_of_days+first, j]) + 1
-                    yearly_ttp.append(peak_day)
-                first += valid_values
-                year += 1
-            ttp = np.mean(yearly_ttp)
-            TTP.append(hlp.sig_figs(ttp, 3))
-    else:
-        for j in stations:
-            # Adjust for zero indexing
-            j -= 1
+        stations = list(range(1, df.shape[1] + 1))
 
-            year = df.index[0].year
-            first = 0
-            yearly_ttp = []
-            while year != last_year:
-                # check the number of days
-                num_of_days = 365
-                if hlp.is_leap_year(year):
-                    num_of_days = 366
-                
-                valid_values = np.sum(np.fromiter((df.index[i].year == year for i in range(first, num_of_days+first)), int))
-                
-                if valid_values > 200 and np.nansum(df.iloc[first:num_of_days+first, j]) > 0.0:
-                    peak_day = np.nanargmax(df.iloc[first:num_of_days+first, j]) + 1
-                    yearly_ttp.append(peak_day)
-                first += valid_values
-                year += 1
-            ttp = np.mean(yearly_ttp)
-            TTP.append(hlp.sig_figs(ttp, 3))
+    results = {}
+    for station in stations:
+        col_index = station - 1
+        year = df.index[0].year
+        start = 0
+        yearly_peaks = []
 
-    return TTP
+        while year < last_year:
+            num_days = 366 if hlp.is_leap_year(year) else 365
+            valid_days = np.sum(np.fromiter((df.index[i].year == year for i in range(start, start + num_days)), int))
+
+            if valid_days > 200:
+                data = df.iloc[start:start + valid_days, col_index]
+                if np.nansum(data) > 0:
+                    peak_day = np.nanargmax(data.values) + 1
+                    yearly_peaks.append(peak_day)
+
+            start += valid_days
+            year += 1
+
+        avg_peak = np.mean(yearly_peaks) if yearly_peaks else np.nan
+        results[station] = hlp.sig_figs(avg_peak, 3)
+
+    df_out = pd.DataFrame.from_dict(results, orient='index', columns=['ttp']).sort_index()
+    # Rename the index to be more descriptive and to match with the other metrics
+    df_out.index = [f"Station {i}" for i in df_out.index]
+    return df_out
+
 
 def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[])->float:
     """ Calculates the time it takes to obtain 50% of the stream flow in a given year
@@ -956,71 +971,54 @@ def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[])->float:
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
 
     """
-    TTCoM = []
     last_year = df.index[-1].year
     if not stations:
-        for j in range(0, df.columns.size):
-            year = df.index[0].year
-            first = 0
-            yearly_ttcom = []
-            while year != last_year:
-                # check the number of days
-                num_of_days = 365
-                if hlp.is_leap_year(year):
-                    num_of_days = 366
+        stations = list(range(1, df.shape[1] + 1))
 
-                valid_values = np.sum(np.fromiter((df.index[i].year == year for i in range(first, num_of_days+first)), int))
-                
-                if valid_values > 200 and np.nansum(df.iloc[first:num_of_days+first, j]) > 0.0:
-                    CoM = np.sum(np.arange(1, num_of_days+1) * df.iloc[first:num_of_days+first, j])
-                    CoM = CoM / np.nansum(df.iloc[first:num_of_days+first, j])
-                    yearly_ttcom.append(CoM)
-                first += valid_values
-                year += 1
-            ttcom = np.mean(yearly_ttcom)
-            TTCoM.append(hlp.sig_figs(ttcom, 3))
-    else:
-        for j in stations:
-            # Adjust for zero indexing
-            j -= 1
+    results = {}
+    for station in stations:
+        col_index = station - 1
+        year = df.index[0].year
+        start = 0
+        yearly_com = []
 
-            year = df.index[0].year
-            first = 0
-            yearly_ttcom = []
-            while year != last_year:
-                # check the number of days
-                num_of_days = 365
-                if hlp.is_leap_year(year):
-                    num_of_days = 366
+        while year < last_year:
+            num_days = 366 if hlp.is_leap_year(year) else 365
+            valid_days = np.sum(np.fromiter((df.index[i].year == year for i in range(start, start + num_days)), int))
 
-                valid_values = np.sum(np.fromiter((df.index[i].year == year for i in range(first, num_of_days+first)), int))
-                
-                if valid_values > 200 and np.nansum(df.iloc[first:num_of_days+first, j]) > 0.0:
-                    CoM = np.sum(np.arange(1, num_of_days+1) * df.iloc[first:num_of_days+first, j])
-                    CoM = CoM / np.nansum(df.iloc[first:num_of_days+first, j])
-                    yearly_ttcom.append(CoM)
-                first += valid_values
-                year += 1
-            ttcom = np.mean(yearly_ttcom)
-            TTCoM.append(hlp.sig_figs(ttcom, 3))
+            if valid_days > 200:
+                data = df.iloc[start:start + valid_days, col_index]
+                if np.nansum(data) > 0:
+                    days = np.arange(1, valid_days + 1)
+                    com = np.sum(days * data.values) / np.nansum(data)
+                    yearly_com.append(com)
 
-    return TTCoM
+            start += valid_days
+            year += 1
+
+        avg_com = np.mean(yearly_com) if yearly_com else np.nan
+        results[station] = hlp.sig_figs(avg_com, 3)
+
+    df_out = pd.DataFrame.from_dict(results, orient='index', columns=['ttcom']).sort_index()
+    # Rename the index to be more descriptive and to match with the other metrics
+    df_out.index = [f"Station {i}" for i in df_out.index]
+    return df_out
+
 
 def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
-    """ Calculates when spring start i.e., the beginning of snowmelt
+    """ Calculates the average day of year when the spring pulse (snowmelt) begins for each station.
 
     Parameters
     ----------
-    df: pd.DataFrame
-            the observed or simulated dataframe
-    stations: list[int]
-            numbers pointing to the location of the stations in the list of stations.
-            Values can be any number from 1 to number of stations in the data
+    df : pd.DataFrame
+        Observed or simulated streamflow data with a MultiIndex (YEAR, JDAY).
+    stations : list[int], optional
+        List of 1-indexed station numbers to evaluate. If empty, all stations are used.
 
     Returns
     -------
-    int:
-        the average time it takes till when snowmelt begins 
+    pd.DataFrame
+        DataFrame with station indices and average spring pulse onset day.
 
     Example
     -------
@@ -1069,88 +1067,60 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
 
     """
-    SPOD = []
-    last_year = df.index[-1].year
     if not stations:
-        for j in range(0, df.columns.size):
-            year = df.index[0].year
-            first = 0
-            yearly_spod = []
-            while year != last_year:
-                # check the number of days
-                num_of_days = 365
-                if hlp.is_leap_year(year):
-                    num_of_days = 366
+        stations = list(range(1, df.columns.size + 1))  # 1-based indexing
 
-                # Check for number of days in the year
-                valid_values = np.sum(np.fromiter((df.index[i].year == year for i in range(first, num_of_days+first)), int))
-                # print(f"valid values {valid_values}")
+    results = []
 
-                if valid_values > 200 and np.nansum(df.iloc[first:first+valid_values, j]) > 0.0 and not pd.isna(df.iloc[first:first+valid_values, j]).any():
-                    # print(np.sum(df.iloc[first:first+valid_values, j]))
-                    mean = np.nanmean(df.iloc[first:valid_values+first, j])
-                    # print(mean)
-                    minimum_cumulative = 1.0E38         # Some Arbitrarily large number
-                    cumulative = 0
-                    onset_day = 0
-                    for index in range(first, valid_values+first):
-                        # if not np.isnan(df.iloc[index, j]):
-                        cumulative += (df.iloc[index, j] - mean)
-                        if cumulative < minimum_cumulative:
-                            minimum_cumulative = cumulative
-                            # onset_day = (index % valid_values) + (num_of_days-valid_values) + 1
-                            onset_day = (index % num_of_days) + 1
-                    yearly_spod.append(onset_day)
-                    # print(yearly_spod)
-                    # print("/n")
-                first += valid_values
-                year += 1          
-            spod = np.mean(yearly_spod)
-            SPOD.append(hlp.sig_figs(spod, 3))
-            SPOD.append(spod)
-    else:
-        for j in stations:
-            # Adjust for zero indexing
-            j -= 1
+    for j in stations:
+        col_idx = j - 1
+        year = df.index[0].year
+        last_year = df.index[-1].year
+        first = 0
+        yearly_spod = []
 
-            year = df.index[0].year
-            first = 0
-            yearly_spod = []
-            while year != last_year:
-                # check the number of days
-                num_of_days = 365
-                if hlp.is_leap_year(year):
-                    num_of_days = 366
+        while year != last_year:
+            num_of_days = 366 if hlp.is_leap_year(year) else 365
+            valid_values = np.sum(
+                np.fromiter((df.index[i].year == year for i in range(first, first + num_of_days)), int)
+            )
+            data_slice = df.iloc[first:first + valid_values, col_idx]
 
-                # Check for number of days in the year
-                valid_values = np.sum(np.fromiter((df.index[i].year == year for i in range(first, num_of_days+first)), int))
-                # print(f"valid values {valid_values}")
+            if (
+                valid_values > 200 and
+                np.nansum(data_slice) > 0.0 and
+                not pd.isna(data_slice).any()
+            ):
+                mean = np.nanmean(data_slice)
+                cumulative = 0
+                min_cumulative = 1.0E38
+                onset_day = 0
 
-                if valid_values > 200 and np.nansum(df.iloc[first:first+valid_values, j]) > 0.0 and not pd.isna(df.iloc[first:first+valid_values, j]).any():
-                    # print(np.sum(df.iloc[first:first+valid_values, j]))
-                    mean = np.nanmean(df.iloc[first:valid_values+first, j])
-                    # print(mean)
-                    minimum_cumulative = 1.0E38         # Some Arbitrarily large number
-                    cumulative = 0
-                    onset_day = 0
-                    for index in range(first, valid_values+first):
-                        # if not np.isnan(df.iloc[index, j]):
-                        cumulative += (df.iloc[index, j] - mean)
-                        if cumulative < minimum_cumulative:
-                            minimum_cumulative = cumulative
-                            # onset_day = (index % valid_values) + (num_of_days-valid_values) + 1
-                            onset_day = (index % num_of_days) + 1
-                    yearly_spod.append(onset_day)
-                    # print(yearly_spod)
-                    # print("/n")
-                first += valid_values
-                year += 1          
-            spod = np.mean(yearly_spod)
-            SPOD.append(hlp.sig_figs(spod, 3))
+                for index in range(first, first + valid_values):
+                    cumulative += (df.iloc[index, col_idx] - mean)
+                    if cumulative < min_cumulative:
+                        min_cumulative = cumulative
+                        onset_day = (index % num_of_days) + 1
 
-    return SPOD
+                yearly_spod.append(onset_day)
 
-def slope_fdc(df: pd.DataFrame, percentiles: tuple[float, float] = (33, 66), stations: list[int] = []) -> list[float]:
+            first += valid_values
+            year += 1
+
+        if yearly_spod:
+            spod = hlp.sig_figs(np.mean(yearly_spod), 3)
+        else:
+            spod = np.nan
+
+        results.append({
+            "Station": f"Station {j}",
+            "SPOD": spod
+        })
+
+    return pd.DataFrame(results).set_index("Station")
+
+
+def slope_fdc(df: pd.DataFrame, percentiles: tuple[float, float] = [33, 66], stations: list[int] = []) -> list[float]:
     """
     Calculates the slope of the Flow Duration Curve (FDC).
 
@@ -1180,25 +1150,24 @@ def slope_fdc(df: pd.DataFrame, percentiles: tuple[float, float] = (33, 66), sta
     >>> slope_fdc(df=data, percentiles=(33, 66))
     [0.693, 0.847]
     """
-    slopes = []
-    stations_to_process = stations if stations else range(df.shape[1])
+    if not stations:
+        stations = list(range(1, df.shape[1] + 1))
 
-    for j in stations_to_process:
-        # Adjust for 0-indexing if stations are provided
-        col_index = j - 1 if stations else j
+    results = {}
+    for station in stations:
+        col = df.iloc[:, station - 1]
+        q_low = col.quantile(percentiles[0] / 100)
+        q_high = col.quantile(percentiles[1] / 100)
+        slope = (np.log(q_high) - np.log(q_low)) / ((percentiles[1] - percentiles[0]) / 100)
+        results[station] = round(slope, 4)
 
-        # Calculate the required percentiles
-        q33 = df.iloc[:, col_index].quantile(percentiles[0] / 100)
-        q66 = df.iloc[:, col_index].quantile(percentiles[1] / 100)
-
-        # Compute the slope
-        slope = (np.log(q66) - np.log(q33)) / (percentiles[1] / 100 - percentiles[0] / 100)
-        slopes.append(round(slope, 4))  # Round to 4 significant figures
-
-    return slopes
+    df_out = pd.DataFrame.from_dict(results, orient='index', columns=['fdc_Slope']).sort_index()
+    # Rename the index to be more descriptive and to match with the other metrics
+    df_out.index = [f"Station {i}" for i in df_out.index]
+    return df_out
 
 
-def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, stations: list[int]=[],
+def calculate_all_metrics(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.DataFrame]], stations: list[int]=[],
                           format: str="", out: str='metrics_out') -> dict[str, float]:
     """Calculate all metrics.
 
@@ -1206,7 +1175,7 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, stati
     ---------- 
     observed: pd.DataFrame
             Observed values[1: Datetime ; 2+: Streamflow Values]
-    simulated: pd.DataFrame
+    simulated: pd.DataFrame or list[pd.DataFrame]
             Simulated values[1: Datetime ; 2+: Streamflow Values]
     stations: list[int]
             numbers pointing to the location of the stations in the list of stations.
@@ -1242,42 +1211,63 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, stati
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
             
     """
-    # validate inputs
-    hlp.validate_data(observed, simulated)
+    if isinstance(simulated, pd.DataFrame):
+        simulated = [simulated]
     parameters = (observed, simulated, stations)
 
-    hlp.check_valid_dataframe(observed, simulated)
-
-    results = {
-        "MSE" : mse(*parameters),
-        "RMSE" : rmse(*parameters),
-        "MAE" : mae(*parameters),
-        "NSE" : nse(*parameters),
-        "NegNSE" : [-x for x in nse(*parameters)],
-        "LogNSE" : lognse(*parameters),
-        "NegLogNSE" : [-x for x in lognse(*parameters)],
-        "KGE" : kge(*parameters),
-        "NegKGE" : [-x for x in kge(*parameters)],
-        "KGE 2012" : kge_2012(*parameters),
-        "BIAS" : bias(*parameters),
-        "AbsBIAS" : list(map(abs, bias(*parameters))), 
-        "TTP_obs" : time_to_peak(observed,stations),
-        "TTP_sim" : time_to_peak(simulated, stations),
-        "TTCoM_obs" : time_to_centre_of_mass(observed, stations),
-        "TTCoM_sim" : time_to_centre_of_mass(simulated, stations),
-        "SPOD_obs" : SpringPulseOnset(observed, stations),
-        "SPOD_sim" : SpringPulseOnset(simulated, stations),
-        "FDC_Slope_obs": slope_fdc(observed, stations=stations),
-        "FDC_Slope_sim": slope_fdc(simulated, stations=stations),
+    # Define all metric functions and any tweaks
+    metric_funcs = {
+        "MSE": mse,
+        "RMSE": rmse,
+        "MAE": mae,
+        "NSE": nse,
+        "NegNSE": lambda *args: -nse(*args),
+        "LogNSE": lognse,
+        "NegLogNSE": lambda *args: -lognse(*args),
+        "KGE": kge,
+        "NegKGE": lambda *args: -kge(*args),
+        "KGE 2012": kge_2012,
+        "BIAS": bias,
+        "AbsBIAS": lambda *args: bias(*args).abs()
     }
+    
+    metric_dfs = []
+
+    for name, func in metric_funcs.items():
+        df = func(*parameters)  # Expecting a DataFrame with index=station, columns=model1, model2...
+        df.columns = pd.MultiIndex.from_product([[name], df.columns])  # e.g., ('KGE', 'model1')
+        metric_dfs.append(df)
+    
+    # Observed-only single-DF metrics
+    single_obs_metrics = {
+        "TTP_obs": time_to_peak,
+        "TTCoM_obs": time_to_centre_of_mass,
+        "SPOD_obs": SpringPulseOnset,
+        # "FDC_Slope_obs": slope_fdc,
+    }
+
+    for name, func in single_obs_metrics.items():
+        df = func(observed, stations)  # Each returns a single DF
+        df.columns = pd.MultiIndex.from_product([[name], df.columns])
+        metric_dfs.append(df)
+
+    # Per-model single-DF metrics
+    for idx, sim_df in enumerate(simulated):
+        model_name = f"model{idx+1}"
+
+        for prefix, func in single_obs_metrics.items():
+            name = f"{prefix.replace('_obs', f'_sim_{model_name}')}"
+            df = func(sim_df, stations)
+            df.columns = pd.MultiIndex.from_product([[name], df.columns])
+            metric_dfs.append(df)
+
+    final_df = pd.concat(metric_dfs, axis=1)
 
     # Check for a specified format, else print to screen
     if format:
-        val = pd.DataFrame(results)
-        val.index = val.index+1 # so the index starts form 1 and not 0
         if format == "txt":
-            val_txt = val.to_csv(sep='\t', index=False, lineterminator='\n')
-            lines = val_txt.split('\n')
+            final_df_txt = final_df.to_csv(sep='\t', index=False, lineterminator='\n')
+            lines = final_df_txt.split('\n')
             columns = [line.split('\t') for line in lines if line]
             formatted_lines = []
             for line in columns:
@@ -1290,14 +1280,14 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, stati
             file.close()
             print(f"See {out}.{format} file in directory")
         elif format == "csv":
-            val.to_csv(f"{out}.{format}")
+            final_df.to_csv(f"{out}.{format}")
             print(f"See {out}.{format} file in directory")            
         else:
             print("unknown or uncoded format - " + format)
     else:
-        return results
+        return final_df
 
-def calculate_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, metrices: list[str],
+def calculate_metrics(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.DataFrame]], metrices: list[str],
                       stations: list[int]=[], format: str="", out: str='metrics_out') -> dict[str, float]:
     """Calculate the requested metrics.
 
@@ -1339,83 +1329,91 @@ def calculate_metrics(observed: pd.DataFrame, simulated: pd.DataFrame, metrices:
                
     """
     # validate inputs
-    hlp.validate_data(observed, simulated)
-    parameters = (observed, simulated, stations)
-
-    if "all" in metrices:
-        return calculate_all_metrics(*parameters)
+    if isinstance(simulated, pd.DataFrame):
+        simulated = [simulated]
     
-    hlp.check_valid_dataframe(observed, simulated)
+    parameters_list = [(observed, sim_df, stations) for sim_df in simulated]
 
-    values = {}
+    # Mapping of metrics to their functions
+    metric_funcs = {
+        "mse": mse,
+        "rmse": rmse,
+        "mae": mae,
+        "nse": nse,
+        "negnse": lambda obs, sim, st: -nse(obs, sim, st),
+        "lognse": lognse,
+        "neglognse": lambda obs, sim, st: -lognse(obs, sim, st),
+        "kge": kge,
+        "negkge": lambda obs, sim, st: -kge(obs, sim, st),
+        "kge 2012": kge_2012,
+        "bias": bias,
+        "absbias": lambda obs, sim, st: bias(obs, sim, st).abs(),
+    }
+
+    # Single-input metrics
+    single_input_metrics = {
+        "ttp_obs": lambda: time_to_peak(observed, stations),
+        "ttcom_obs": lambda: time_to_centre_of_mass(observed, stations),
+        "spod_obs": lambda: SpringPulseOnset(observed, stations),
+        "fdc_obs": lambda: slope_fdc(observed, stations),
+
+        "ttp_sim": lambda sim: time_to_peak(sim, stations),
+        "ttcom_sim": lambda sim: time_to_centre_of_mass(sim, stations),
+        "spod_sim": lambda sim: SpringPulseOnset(sim, stations),
+        "fdc_sim": lambda sim: slope_fdc(sim, stations),
+    }
+
+    metric_dfs = []
+
     for metric in metrices:
-        if metric.lower() ==  "mse":
-            values["MSE"] = mse(*parameters)
-        elif metric.lower() ==  "rmse":
-            values["RMSE"] = rmse(*parameters)
-        elif metric.lower() ==  "mae":
-            values["MAE"] = mae(*parameters)
-        elif metric.lower() ==  "nse":
-            values["NSE"] = nse(*parameters)
-        elif metric.lower() ==  "negnse":
-            values["NegNSE"] = [-x for x in nse(*parameters)]
-        elif metric.lower() ==  "lognse":
-            values["LogNSE"] = lognse(*parameters)
-        elif metric.lower() ==  "neglognse":
-            values["NegLogNSE"] = [-x for x in lognse(*parameters)]
-        elif metric.lower() ==  "kge":
-            values["KGE"] = kge(*parameters)
-        elif metric.lower() ==  "negkge":
-            values["NegKGE"] = [-x for x in kge(*parameters)]
-        elif metric.lower() ==  "kge 2012":
-            values["KGE 2012"] = kge_2012(*parameters)
-        elif metric.lower() ==  "bias":
-            values["BIAS"] = bias(*parameters)
-        elif metric.lower() == "pbias":
-            values["BIAS"] = bias(*parameters)
-        elif metric.lower() ==  "absbias":
-            values["AbsBIAS"] = list(map(abs, bias(*parameters))),
-        elif metric.lower() == "ttp_obs":
-            values["TTP_obs"] = time_to_peak(observed, stations)
-        elif metric.lower() == "ttp_sim":
-            values["TTP_sim"] = time_to_peak(simulated, stations)
-        elif metric.lower() == "ttcom_obs":
-            values["TTCoM_obs"] = time_to_centre_of_mass(observed, stations)
-        elif metric.lower() == "ttcom_sim":
-            values["TTCoM_sim"] = time_to_centre_of_mass(simulated, stations)
-        elif metric.lower() == "spod_obs":
-            values["SPOD_obs"] = SpringPulseOnset(observed, stations)
-        elif metric.lower() == "spod_sim":
-            values["SPOD_sim"] = SpringPulseOnset(simulated, stations)
-        elif metric.lower() == "fdc_obs":
-            values["FDC_Slope_obs"] = slope_fdc(observed, stations=stations)
-        elif metric.lower() == "fdc_sim":
-            values["FDC_Slope_sim"] = slope_fdc(simulated, stations=stations)
+        metric_lower = metric.lower()
+
+        # Sim-obs comparison metrics (computed per model)
+        if metric_lower in metric_funcs:
+            for idx, (obs, sim, st) in enumerate(parameters_list):
+                result = metric_funcs[metric_lower](obs, sim, st)
+                model_name = f"model{idx+1}"
+                df = result.copy()
+                df.columns = pd.MultiIndex.from_product([[metric.upper()], [model_name]])
+                metric_dfs.append(df)
+
+        # Obs-only metrics
+        elif metric_lower in ["ttp_obs", "ttcom_obs", "spod_obs", "fdc_obs"]:
+            result = single_input_metrics[metric_lower]()
+            df = result.copy()
+            df.columns = pd.MultiIndex.from_product([[metric.upper()], result.columns])
+            metric_dfs.append(df)
+
+        # Sim-only metrics (computed per model)
+        elif metric_lower in ["ttp_sim", "ttcom_sim", "spod_sim", "fdc_sim"]:
+            for idx, sim in enumerate(simulated):
+                result = single_input_metrics[metric_lower](sim)
+                model_name = f"model{idx+1}"
+                df = result.copy()
+                df.columns = pd.MultiIndex.from_product([[f"{metric.upper()}_{model_name}"], result.columns])
+                metric_dfs.append(df)
+
         else:
-            raise RuntimeError(f"Unknown metric {metric}")
-        
-    # Check for a specified format, else print to screen
+            raise RuntimeError(f"Unknown metric '{metric}'")
+
+    final_df = pd.concat(metric_dfs, axis=1)
+
     if format:
-        val = pd.DataFrame(values)
-        val.index = val.index+1 # so the index starts form 1 and not 0
         if format == "txt":
-            val_txt = val.to_csv(sep='\t', index=False, lineterminator='\n')
-            lines = val_txt.split('\n')
+            txt_data = final_df.to_csv(sep='\t', index=False, lineterminator='\n')
+            lines = txt_data.split('\n')
             columns = [line.split('\t') for line in lines if line]
-            formatted_lines = []
-            for line in columns:
-                formatted_line = ''.join(f'{col:<{12}}' for col in line)
-                formatted_lines.append(formatted_line)            
-            # Join the formatted lines into a single string
-            formatted_str = '\n'.join(formatted_lines)
-            with open(out+"."+format, "w") as file:
-                file.write(formatted_str)
-            file.close()
+            formatted_lines = [''.join(f'{col:<{12}}' for col in row) for row in columns]
+            with open(f"{out}.{format}", "w") as file:
+                file.write('\n'.join(formatted_lines))
             print(f"See {out}.{format} file in directory")
+
         elif format == "csv":
-            val.to_csv(f"{out}.{format}")
-            print(f"See {out}.{format} file in directory")            
+            final_df.to_csv(f"{out}.{format}", index=False)
+            print(f"See {out}.{format} file in directory")
+
         else:
-            print("unknown or uncoded format - " + format)
+            print("Unknown or unsupported format:", format)
+
     else:
-        return values
+        return final_df
