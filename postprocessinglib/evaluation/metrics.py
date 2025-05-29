@@ -825,8 +825,8 @@ def time_to_peak(df: pd.DataFrame, stations: list[int]=[])->float:
 
     Returns
     -------
-    int:
-        the average time to peak value of the given data
+    pd.DataFrame
+        DataFrame of the average time to peak value of the given data
 
     Example
     -------
@@ -870,7 +870,9 @@ def time_to_peak(df: pd.DataFrame, stations: list[int]=[])->float:
     >>> # Calculating the time to peak
     >>> ttp = metrics.time_to_peak(df=observed)
     >>> print(ttp)
-        [167, 171]   
+                      ttp
+        Station 1   171.0
+        Station 2   177.0  
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_ 
     
@@ -921,8 +923,8 @@ def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[])->float:
 
     Returns
     -------
-    int:
-        the average time to the centre of mass for the station
+   pd.DataFrame
+        Dataframe containing the average time to the centre of mass for the stations
 
     Example
     -------
@@ -966,7 +968,9 @@ def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[])->float:
     >>> # Calculating the time to center of mass
     >>> ttcom = metrics.time_to_centre_of_mass(df=observed)
     >>> print(ttcom)
-        [194, 203]
+                    ttcom
+        Station 1   185.0
+        Station 2   166.0
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
 
@@ -1135,8 +1139,8 @@ def slope_fdc(df: pd.DataFrame, percentiles: tuple[float, float] = [33, 66], sta
 
     Returns
     -------
-    list[float]
-        Slope of the FDC for each station.
+    pd.DataFrame
+        DataFrame with the slope of the FDC for each station.
 
     Example
     -------
@@ -1148,7 +1152,9 @@ def slope_fdc(df: pd.DataFrame, percentiles: tuple[float, float] = [33, 66], sta
     >>>     "Station2": [2.0, 1.5, 1.0, 0.5, 0.2]
     >>> })
     >>> slope_fdc(df=data, percentiles=(33, 66))
-    [0.693, 0.847]
+                    fdc_Slope
+        Station 1      3.1566
+        Station 2      2.3474
     """
     if not stations:
         stations = list(range(1, df.shape[1] + 1))
@@ -1190,8 +1196,8 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: Union[pd.DataFrame,
 
     Returns
     -------
-    dict[str, float]
-            A dictionary containing every metric that can be evaluated and
+    pd.DataFrame
+        DataFrame containing every metric that can be evaluated and
             its result
 
     Example
@@ -1202,11 +1208,10 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: Union[pd.DataFrame,
     >>> path = 'MESH_output_streamflow_1.csv'
     >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365)
     >>> print(metrics.calculate_all_metrics(observed=DATAFRAMES["DF_OBSERVED"], simulated=DATAFRAMES["DF_SIMULATED"]))
-        {'MSE': [1890], 'RMSE': [43.47], 'MAE': [25.14], 'NSE': [0.09948],
-        'NegNSE': [-0.09948], 'LogNSE': [-0.3342], 'NegLogNSE': [0.3342], 'KGE': [0.4392],
-        'NegKGE': [-0.4392], 'KGE 2012': [0.3130], 'BIAS': [-34.60], 'AbsBIAS': [34.60],
-        'TTP_obs': [155], 'TTP_sim': [181], 'TTCoM_obs': [185], 'TTCoM_sim': [191], 'SPOD_obs': [72.0],
-        'SPOD_sim': [76.1]} 
+                    MSE	        RMSE	MAE	        NSE	       NegNSE	LogNSE	NegLogNSE	KGE	NegKGE	KGE 2012	BIAS	AbsBIAS	TTP_obs	TTCoM_obs	SPOD_obs	TTP_sim_model1	TTCoM_sim_model1	SPOD_sim_model1
+                    model1	    model1	model1	    model1	   model1	model1	model1	model1	model1	model1	model1	model1	ttp	ttcom	SPOD	ttp	ttcom	SPOD
+        Station 1	1299.000	36.050	209200.0	0.51660	  -0.51660	-0.25110	0.25110	0.50940	-0.50940	0.56060	34.160	34.160	157.0	NaN	113.0	171.0	185.0	128.0
+        Station 2	780.600	    27.940	29480.0	    -1.67500   1.67500	-0.16920	0.16920	-0.11130	0.11130	0.08006	-11.500	11.500	157.0	NaN	NaN	177.0	166.0	115.0
 
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
             
@@ -1287,6 +1292,7 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: Union[pd.DataFrame,
     else:
         return final_df
 
+
 def calculate_metrics(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.DataFrame]], metrices: list[str],
                       stations: list[int]=[], format: str="", out: str='metrics_out') -> dict[str, float]:
     """Calculate the requested metrics.
@@ -1311,8 +1317,8 @@ def calculate_metrics(observed: pd.DataFrame, simulated: Union[pd.DataFrame, Lis
 
     Returns
     -------
-    dict[str, float]
-            A dictionary containing each metric to be evaluated and its result 
+    pd.DataFrame
+        Dataframe containing each metric to be evaluated and its result 
 
     Example
     -------
