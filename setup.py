@@ -38,7 +38,7 @@ setup(
         'geopandas',
         'shapely',
         'openpyxl',
-        'natsorted'
+        'natsort'
     ],
     test_suite='tests',
     license='MIT'
