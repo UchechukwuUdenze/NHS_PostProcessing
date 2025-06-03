@@ -223,7 +223,7 @@ def _finalize_plot(ax, grid, labels, title, name, i):
     """
     Finalizes the plot by setting labels, title, and grid options.
     """
-    ax.legend(loc='best')
+    plt.legend(loc='best')
 
     plt.tight_layout()    
     plt.xticks(fontsize=10, rotation=45)
@@ -250,6 +250,8 @@ def plot(
     sim_df: pd.DataFrame = None,
     legend: tuple[str, str] = ('Data',), 
     metrices: list[str] = None,
+    mode:str = 'median',
+    models:List[str] = None,
     grid: bool = False, 
     title: str = None, 
     labels: list[str] = None, 
@@ -431,7 +433,7 @@ def plot(
     if not isinstance(time, pd.DatetimeIndex):
         # if the index is not a datetime, then it was converted during aggregation to
         # either a string (most likely) or an int or float
-        if (isinstance(time[0], int)) or (isinstance(time[0], float)):
+        if (isinstance(time[0], int)) or (isinstance(time[0], float)) or (isinstance(time[0],np.int64)):
             pass
         else:
             if '/' in time[0]:
@@ -449,7 +451,7 @@ def plot(
                 time = [pd.to_datetime(f"{year}-07-15") for year in time]
     
     if df is not None:
-        for i in range (0, len(line_df.columns)):
+        for i in range (0, len(line_df.columns)) if isinstance(line_df, pd.DataFrame) else range (0, len(line_df)):
             # Plotting the Data     
             fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
             ax.plot(time, line_df.iloc[:, i], linestyles[0], label=legend[0], linewidth = linewidth[0])
@@ -1275,17 +1277,25 @@ def scatter(
     else:
         # Calculate metrics: returns MultiIndex column DataFrame
         metr = metrics.calculate_metrics(observed=observed, simulated=simulated, metrices=[metric])
-        metric_df = metr[metric]  # e.g., metr["KGE"] gives all models for KGE
+        # metric_df = metr[metric]  # e.g., metr["KGE"] gives all models for KGE
+        # print(f"Metrics to plot: \n{metr}\n")
 
         # Determine values to plot
         if mode == "median":
-            values = metric_df.median(axis=1)
+            median_vals = metr.median(axis=1)
+            values = pd.DataFrame({f"{metric}_median": median_vals})
             columns = [f"{metric}_median"]
         elif mode == "models" and models:
-            values = metric_df[models]  # select specific models
-            columns = values.columns.tolist()
+            # Assume columns are like: MultiIndex([("MSE", "model1"), ("MSE", "model2"), ...])
+            values = metr.loc[:, (metric, models)]  # Use tuple to get (metric, modelX)
+            values.columns = models  # Flatten columns for plotting
+            columns = values.columns.tolist()            
         else:
             raise ValueError("Invalid mode or missing model list for 'models' mode")
+
+        # print(f"Values to plot: \n{values}\n")
+
+        # print(f"Columns to plot: \n{columns}\n")
     
         # Create DataFrame for coordinates
         base_data = pd.DataFrame({
@@ -1303,17 +1313,24 @@ def scatter(
 
             # Create per-plot DataFrame
             data = base_data.copy()
-            data[metric] = values[col] if mode == "models" else values
+            values_reset = values.reset_index(drop=True)
+            data[col] = values_reset[col]
+
             geometry = [Point(xy) for xy in zip(data['longitude'], data['latitude'])]
             gdf_points = gpd.GeoDataFrame(data, geometry=geometry)
+
+            # print(f"Metric data head:\n{data.head()}")
+            # print(f"Unique metric values: {data[col].unique()}")
+            # print(f"Geometry head:\n{geometry[:5]}")
 
             # Base map
             gdf_shapefile.plot(ax=ax, edgecolor='black', facecolor="None", linewidth=0.5)
 
             # Plot metric values
-            gdf_points.plot(ax=ax, column=metric, cmap=cmap, vmin=vmin, vmax=vmax,
-                            legend=True, markersize=40,
-                            legend_kwds={'label': f"{col} Value", "orientation": "vertical"})
+            legend_label = f"{col}" if mode == "models" else f"{metric} (median)"
+            gdf_points.plot(ax=ax, column=col, cmap=cmap, vmin=vmin, vmax=vmax,
+                            legend=True, markersize=40, label=legend_label,
+                            legend_kwds={'label': legend_label, "orientation": "vertical"})
 
             _finalize_plot(ax, grid, labels, title, "shapefile-plot", idx)
         
