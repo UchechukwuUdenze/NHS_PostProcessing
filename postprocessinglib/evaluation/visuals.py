@@ -260,7 +260,7 @@ def plot(
     linewidth: tuple[float, float] = (1.5,),
     fig_size: tuple[float, float] = (10, 6), 
     metrics_adjust: tuple[float, float] = (1.05, 0.5),
-    plot_adjust: float = 0.2, 
+    plot_adjust: float = 0.2,
     save: bool = False, 
     save_as: str = None, 
     dir: str = os.getcwd()
@@ -321,6 +321,14 @@ def plot(
 
     plot_adjust : float, optional
         A value to adjust the plot layout to avoid clipping.
+    
+    mode: str, optional
+        The mode used to calculate the metric for the scatter plot. Default is 'median'. But it can be 'models' or 'mean'.
+        It can also be models used to indicate that the metric is to be calculated for each model as specified in the models list.
+
+    models: list of str, optional
+        A list of model names to be used when calculating the metric for the scatter plot. Default is None.
+        It is only used when mode is 'models'.
 
     save : bool, optional
         Whether to save the plot to a file, default is False.
@@ -477,26 +485,38 @@ def plot(
             _finalize_plot(ax, grid, labels, title, "plot", i)
 
             # Placing Metrics on the Plot if requested
-            # if metrices:
-            #     formatted_selected_metrics = 'Metrics:\n'
-            #     if df is None:
-            #         if metrices == 'all':
-            #             for key, value in metrics.calculate_all_metrics(observed=obs, simulated=sim).items():
-            #                 formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
-            #         else: 
-            #             assert isinstance(metrices, list)
-            #             for key, value in metrics.calculate_metrics(observed=obs, simulated=sim, metrices=metrices).items():
-            #                 formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
+            if obs is not None and metrices:
+                observed = obs.iloc[:, [i]]
+                sim_list = [sims[f"sim_{j}"].iloc[:,[i]] for j in range(1, num_sim+1)]
+                metr = metrics.calculate_metrics(observed=observed, simulated=sim_list, metrices=metrices)
+                formatted_metrics = "Metrics:\n"
 
+                if mode == "median":
+                    assert isinstance(metr, pd.DataFrame)
+                    for metric_name in metrices:
+                        median_series = metr[metric_name].median(axis=1)
+                        formatted_metrics += f"{metric_name} : {median_series.iloc[0]:.3f}\n"
 
-            #     font = {'family': 'sans-serif',
-            #             'weight': 'normal',
-            #             'size': 12}
-            #     plt.text(metrics_adjust[0], metrics_adjust[1], formatted_selected_metrics, ha='left',
-            #             va='center', transform=ax.transAxes, fontdict=font, #mouseover = True,
-            #             bbox = dict(boxstyle = "round, pad = 0.5,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
+                elif mode == "models" and models:
+                    assert isinstance(metr, pd.DataFrame)
+                    for metric_name in metrices:
+                        formatted_metrics += f"{metric_name}:\n"
+                        for model in models:
+                            try:
+                                value = metr[(metric_name, model)].iloc[0]
+                                formatted_metrics += f"  {model} : {value:.3f}\n"
+                            except KeyError:
+                                formatted_metrics += f"  {model} : N/A\n"
+                else:
+                    raise ValueError("Invalid mode or missing models list.")
 
-            #     plt.subplots_adjust(right = 1-plot_adjust)
+                # Plot the text on the figure
+                font = {'family': 'sans-serif', 'weight': 'normal', 'size': 12}
+                plt.text(metrics_adjust[0], metrics_adjust[1], formatted_metrics,
+                        ha='left', va='center', transform=ax.transAxes, fontdict=font,
+                        bbox=dict(boxstyle="round, pad=0.5,rounding_size=0.3", facecolor="0.8", edgecolor="k"))
+
+                plt.subplots_adjust(right = 1-plot_adjust)
 
             # Save or auto-save for large column counts
             auto_save = len(sims["sim_1"].columns) > 5 
@@ -962,6 +982,8 @@ def scatter(
   fig_size: tuple[float, float] = (10, 6), 
   best_fit: bool = False, 
   line45: bool = False,
+  mode:str = 'median',
+  models:List[str] = None,
 
   merged_df: pd.DataFrame = None, 
   obs_df: pd.DataFrame = None, 
@@ -980,8 +1002,6 @@ def scatter(
   metric: str = "", 
   observed: pd.DataFrame = None, 
   simulated: pd.DataFrame = None,
-  mode:str = 'median',
-  models:List[str] = None,
   cmap: str='jet',
   vmin: float=None,
   vmax:float=None
@@ -1252,24 +1272,38 @@ def scatter(
             _finalize_plot(ax, grid, labels, title, "scatter-plot", i)               
 
             # Placing Metrics on the Plot if requested
-            # if metrices:
-            #     formatted_selected_metrics = 'Metrics: \n'
-            #     if metrices == 'all':
-            #         for key, value in metrics.calculate_all_metrics(observed=obs, simulated=sim).items():
-            #             formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
-            #     else: 
-            #         assert isinstance(metrices, list)
-            #         for key, value in metrics.calculate_metrics(observed=obs, simulated=sim, metrices=metrices).items():
-            #             formatted_selected_metrics += key + ' : ' + str(value[i]) + '\n'
+            if metrices:
+                observed = obs.iloc[:, [i]]
+                sim_list = [sims[f"sim_{j}"].iloc[:,[i]] for j in range(1, num_sim+1)]
+                metr = metrics.calculate_metrics(observed=observed, simulated=sim_list, metrices=metrices)
+                formatted_metrics = "Metrics:\n"
 
-            #     font = {'family': 'sans-serif',
-            #             'weight': 'normal',
-            #             'size': 12}
-            #     plt.text(metrics_adjust[0], metrics_adjust[1], formatted_selected_metrics, ha='left',
-            #         va='center', transform=ax.transAxes, fontdict=font, #mouseover = True,
-            #         bbox = dict(boxstyle = "round4, pad = 0.6,rounding_size=0.3", facecolor = "0.8", edgecolor="k"))
+                if mode == "median":
+                    assert isinstance(metr, pd.DataFrame)
+                    for metric_name in metrices:
+                        median_series = metr[metric_name].median(axis=1)
+                        formatted_metrics += f"{metric_name} : {median_series.iloc[0]:.3f}\n"
 
-            #     plt.subplots_adjust(right = 1-plot_adjust)
+                elif mode == "models" and models:
+                    assert isinstance(metr, pd.DataFrame)
+                    for metric_name in metrices:
+                        formatted_metrics += f"{metric_name}:\n"
+                        for model in models:
+                            try:
+                                value = metr[(metric_name, model)].iloc[0]
+                                formatted_metrics += f"  {model} : {value:.3f}\n"
+                            except KeyError:
+                                formatted_metrics += f"  {model} : N/A\n"
+                else:
+                    raise ValueError("Invalid mode or missing models list.")
+
+                # Plot the text on the figure
+                font = {'family': 'sans-serif', 'weight': 'normal', 'size': 12}
+                plt.text(metrics_adjust[0], metrics_adjust[1], formatted_metrics,
+                        ha='left', va='center', transform=ax.transAxes, fontdict=font,
+                        bbox=dict(boxstyle="round, pad=0.5,rounding_size=0.3", facecolor="0.8", edgecolor="k"))
+
+                plt.subplots_adjust(right = 1-plot_adjust)
 
             # Save or auto-save for large column counts
             auto_save = len(obs.columns) > 5
