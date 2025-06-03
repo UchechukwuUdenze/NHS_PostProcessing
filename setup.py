@@ -37,7 +37,8 @@ setup(
         'matplotlib',
         'geopandas',
         'shapely',
-        'openpyxl'
+        'openpyxl',
+        'natsorted'
     ],
     test_suite='tests',
     license='MIT'
