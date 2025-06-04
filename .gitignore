@@ -15,3 +15,5 @@ docs/source/api/
 docs/build/
 .ipynb_checkpoints
 TEST.py
+postprocessinglib/config.cfg
+LineUncerCCPlotFlow 1.ipynb
