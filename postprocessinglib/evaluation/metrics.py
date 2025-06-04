@@ -877,13 +877,17 @@ def time_to_peak(df: pd.DataFrame, stations: list[int]=[])->float:
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_ 
     
     """
+
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = df.columns.get_level_values(0)
+
     last_year = df.index[-1].year
     if not stations:
-        stations = list(range(1, df.shape[1] + 1))
+        stations = df.columns.tolist()
 
     results = {}
     for station in stations:
-        col_index = station - 1
+        station_data = df[station]
         year = df.index[0].year
         start = 0
         yearly_peaks = []
@@ -893,7 +897,7 @@ def time_to_peak(df: pd.DataFrame, stations: list[int]=[])->float:
             valid_days = np.sum(np.fromiter((df.index[i].year == year for i in range(start, start + num_days)), int))
 
             if valid_days > 200:
-                data = df.iloc[start:start + valid_days, col_index]
+                data = station_data.iloc[start:start + valid_days]
                 if np.nansum(data) > 0:
                     peak_day = np.nanargmax(data.values) + 1
                     yearly_peaks.append(peak_day)
@@ -904,9 +908,10 @@ def time_to_peak(df: pd.DataFrame, stations: list[int]=[])->float:
         avg_peak = np.mean(yearly_peaks) if yearly_peaks else np.nan
         results[station] = hlp.sig_figs(avg_peak, 3)
 
-    df_out = pd.DataFrame.from_dict(results, orient='index', columns=['ttp']).sort_index()
+    df_out = pd.DataFrame.from_dict(results, orient='index', columns=['ttp'])
     # Rename the index to be more descriptive and to match with the other metrics
-    df_out.index = [f"Station {i}" for i in df_out.index]
+    # df_out.index = [f"Station {i}" for i in df_out.index]
+    df_out.index.name = "Station"
     return df_out
 
 
@@ -975,13 +980,16 @@ def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[])->float:
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
 
     """
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = df.columns.get_level_values(0)
+
     last_year = df.index[-1].year
     if not stations:
-        stations = list(range(1, df.shape[1] + 1))
+        stations = df.columns.tolist()
 
     results = {}
     for station in stations:
-        col_index = station - 1
+        station_data = df[station]
         year = df.index[0].year
         start = 0
         yearly_com = []
@@ -991,7 +999,7 @@ def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[])->float:
             valid_days = np.sum(np.fromiter((df.index[i].year == year for i in range(start, start + num_days)), int))
 
             if valid_days > 200:
-                data = df.iloc[start:start + valid_days, col_index]
+                data = station_data.iloc[start:start + valid_days]
                 if np.nansum(data) > 0:
                     days = np.arange(1, valid_days + 1)
                     com = np.sum(days * data.values) / np.nansum(data)
@@ -1003,10 +1011,12 @@ def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[])->float:
         avg_com = np.mean(yearly_com) if yearly_com else np.nan
         results[station] = hlp.sig_figs(avg_com, 3)
 
-    df_out = pd.DataFrame.from_dict(results, orient='index', columns=['ttcom']).sort_index()
+    df_out = pd.DataFrame.from_dict(results, orient='index', columns=['ttcom'])
     # Rename the index to be more descriptive and to match with the other metrics
-    df_out.index = [f"Station {i}" for i in df_out.index]
+    # df_out.index = [f"Station {i}" for i in df_out.index]
+    df_out.index.name = "Station"
     return df_out
+
 
 
 def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
@@ -1072,44 +1082,42 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
 
     """
     if not stations:
-        stations = list(range(1, df.columns.size + 1))  # 1-based indexing
+        stations = list(range(1, df.shape[1] + 1))  # 1-based indexing
 
     results = []
 
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = df.columns.get_level_values(0)
+    # Handle MultiIndex (YEAR, JDAY) or DatetimeIndex
+    years = df.index.get_level_values(0).unique() if isinstance(df.index, pd.MultiIndex) else df.index.year.unique()
+
     for j in stations:
         col_idx = j - 1
-        year = df.index[0].year
-        last_year = df.index[-1].year
-        first = 0
+        station_col = df.columns[col_idx]
         yearly_spod = []
 
-        while year != last_year:
-            num_of_days = 366 if hlp.is_leap_year(year) else 365
-            valid_values = np.sum(
-                np.fromiter((df.index[i].year == year for i in range(first, first + num_of_days)), int)
-            )
-            data_slice = df.iloc[first:first + valid_values, col_idx]
+        for year in years:
+            try:
+                # Get the year's data
+                data_slice = df.loc[year, station_col] if isinstance(df.index, pd.MultiIndex) else df[df.index.year == year][station_col]
+            except KeyError:
+                continue
 
-            if (
-                valid_values > 200 and
-                np.nansum(data_slice) > 0.0 and
-                not pd.isna(data_slice).any()
-            ):
-                mean = np.nanmean(data_slice)
-                cumulative = 0
-                min_cumulative = 1.0E38
+            data_slice = data_slice.dropna()
+
+            if len(data_slice) > 200 and data_slice.sum() > 0:
+                mean_val = data_slice.mean()
+                cumulative = 0.0
+                min_cumulative = float("inf")
                 onset_day = 0
 
-                for index in range(first, first + valid_values):
-                    cumulative += (df.iloc[index, col_idx] - mean)
+                for idx, val in enumerate(data_slice, start=1):
+                    cumulative += val - mean_val
                     if cumulative < min_cumulative:
                         min_cumulative = cumulative
-                        onset_day = (index % num_of_days) + 1
+                        onset_day = idx
 
                 yearly_spod.append(onset_day)
-
-            first += valid_values
-            year += 1
 
         if yearly_spod:
             spod = hlp.sig_figs(np.mean(yearly_spod), 3)
@@ -1117,11 +1125,126 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
             spod = np.nan
 
         results.append({
-            "Station": f"Station {j}",
+            "Station": station_col,
             "SPOD": spod
         })
 
     return pd.DataFrame(results).set_index("Station")
+
+
+# def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
+#     """ Calculates the average day of year when the spring pulse (snowmelt) begins for each station.
+
+#     Parameters
+#     ----------
+#     df : pd.DataFrame
+#         Observed or simulated streamflow data with a MultiIndex (YEAR, JDAY).
+#     stations : list[int], optional
+#         List of 1-indexed station numbers to evaluate. If empty, all stations are used.
+
+#     Returns
+#     -------
+#     pd.DataFrame
+#         DataFrame with station indices and average spring pulse onset day.
+
+#     Example
+#     -------
+#     Calculation of the SpringPulseOnset
+
+#     >>> from postprocessinglib.evaluation import metrics, data
+#     >>> path = 'MESH_output_streamflow_1.csv'
+#     >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365)
+#     >>> observed = DATAFRAMES["DF_OBSERVED"] 
+#     >>> simulated = DATAFRAMES["DF_SIMULATED"]
+#     >>> print(observed)
+#                 QOMEAS_05BB001  QOMEAS_05BA001
+#     YEAR JDAY
+#     1980 366            10.20            NaN
+#     1981 1               9.85            NaN
+#          2              10.20            NaN
+#          3              10.00            NaN
+#          4              10.10            NaN
+#     ...                   ...             ...
+#     2017 361              NaN            NaN
+#          362              NaN            NaN
+#          363              NaN            NaN
+#          364              NaN            NaN
+#          365              NaN            NaN
+#     >>> .
+#     >>> print(simulated)
+#            QOSIM_05BB001  QOSIM_05BA001
+#     YEAR JDAY
+#     1980 366        2.530770       1.006860
+#     1981 1          2.518999       1.001954
+#          2          2.507289       0.997078
+#          3          2.495637       0.992233
+#          4          2.484073       0.987417
+#     ...                  ...            ...
+#     2017 361        4.418050       1.380227
+#          362        4.393084       1.372171
+#          363        4.368303       1.364174
+#          364        4.343699       1.356237
+#          365        4.319275       1.348359
+
+#     >>> # Calculating the spring pulse onset day
+#     >>> spod = metrics.SpringPulseOnset(df=simulated)
+#     >>> print(spod)
+#         [136, 143]
+
+#     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-metrics.ipynb>`_
+
+#     """
+#     if not stations:
+#         stations = list(range(1, df.columns.size + 1))  # 1-based indexing
+
+#     results = []
+
+#     for j in stations:
+#         col_idx = j - 1
+#         year = df.index[0].year
+#         last_year = df.index[-1].year
+#         first = 0
+#         yearly_spod = []
+
+#         while year != last_year:
+#             num_of_days = 366 if hlp.is_leap_year(year) else 365
+#             valid_values = np.sum(
+#                 np.fromiter((df.index[i].year == year for i in range(first, first + num_of_days)), int)
+#             )
+#             data_slice = df.iloc[first:first + valid_values, col_idx]
+
+#             if (
+#                 valid_values > 200 and
+#                 np.nansum(data_slice) > 0.0 and
+#                 not pd.isna(data_slice).any()
+#             ):
+#                 mean = np.nanmean(data_slice)
+#                 cumulative = 0
+#                 min_cumulative = 1.0E38
+#                 onset_day = 0
+
+#                 for index in range(first, first + valid_values):
+#                     cumulative += (df.iloc[index, col_idx] - mean)
+#                     if cumulative < min_cumulative:
+#                         min_cumulative = cumulative
+#                         onset_day = (index % num_of_days) + 1
+
+#                 yearly_spod.append(onset_day)
+
+#             first += valid_values
+#             year += 1
+
+#         if yearly_spod:
+#             spod = hlp.sig_figs(np.mean(yearly_spod), 3)
+#         else:
+#             spod = np.nan
+
+#         results.append({
+#             "Station": f"Station {j}",
+#             "SPOD": spod
+#         })
+
+#     return pd.DataFrame(results).set_index("Station")
 
 
 # def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:
