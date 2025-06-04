@@ -230,8 +230,8 @@ def _finalize_plot(ax, grid, labels, title, name, i):
     plt.yticks(fontsize=15)
 
     if labels:
-        plt.xlabel(labels[0]+" (m\u00B3/s)", fontsize=18)
-        plt.ylabel(labels[1]+" (m\u00B3/s)", fontsize=18)
+        plt.xlabel(labels[0], fontsize=18)
+        plt.ylabel(labels[1], fontsize=18)
 
     if title:
         title_dict = {'family': 'sans-serif', 'color': 'black', 'weight': 'normal', 'size': 20}
