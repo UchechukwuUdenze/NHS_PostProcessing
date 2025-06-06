@@ -536,6 +536,7 @@ def bounded_plot(
     linestyles: Tuple[str, str] = ('b-', 'r-'),
     padding: bool = False,
     fig_size: Tuple[float, float] = (10, 6),
+    metrices: List[str] = None,
     transparency: Tuple[float, float] = (0.4),
     save: bool = False,
     save_as: Union[str, List[str]] = None,
@@ -593,6 +594,10 @@ def bounded_plot(
 
     transparency : list of float, optional
         A list specifying the transparency levels for the upper and lower bounds, default is [0.4, 0.4].
+    
+    metrices : list of str, optional
+        A list of metrics to display on the plot, default is None. Because its a single line being plotted each time,
+        Only single line metrics are calculated and displayed i.e., TTCOM, TTP, SPOD, etc. 
 
     save : bool, optional
         Whether to save the plot to a file, default is False.
@@ -748,20 +753,6 @@ def bounded_plot(
                 linewidth=1.5
             )
 
-            # # Build all Y layers (top-down)
-            # y_layers, bound_legend = _prepare_bound_layers(upper_bounds, line, lower_bounds, i, bound_legend)
-
-            # # Plot fill_between for each adjacent pair
-            # for j in range(len(y_layers) - 1):
-            #     ax.fill_between(
-            #         line.index,
-            #         y_layers[j],
-            #         y_layers[j + 1],
-            #         alpha=transparency[line_index],
-            #         color=linestyles[line_index + 1][0] if extra_lines else linestyles[line_index][0],
-            #         label=bound_legend[j] if bound_legend and j < len(bound_legend) else None
-            #     )
-
             upper_obs = _prepare_bounds(upper_bounds, line_index, i)
             lower_obs = _prepare_bounds(lower_bounds, line_index, i)
 
@@ -774,6 +765,50 @@ def bounded_plot(
                     color=linestyles[line_index+1][0] if extra_lines else linestyles[line_index][0],
                     label=bound_legend[j] if bound_legend and j < len(bound_legend) else None
                 )
+
+            # Add single metrics calculation if requested
+            possible_metrices = ["SPOD", "TTP", "TTCOM"]
+            if metrices is not None:
+                if not isinstance(metrices, list):
+                    raise TypeError("Metrices must be a list.")
+                invalid = [x for x in metrices if x not in possible_metrices]
+                if invalid:
+                    raise ValueError(f"Invalid metrics: {', '.join(invalid)}. Valid options are: {', '.join(possible_metrices)}.")
+
+                # Mapping from metric name to the actual function
+                metric_funcs = {
+                    "SPOD": metrics.SpringPulseOnset,
+                    "TTP": metrics.time_to_peak,
+                    "TTCOM": metrics.time_to_centre_of_mass,
+                }
+
+                # Calculate and format metric values
+                text_lines = []
+                for metric in metrices:
+                    result_df = metric_funcs[metric](line.iloc[:, [i]], use_jday = True)
+                    # Assume single-row result, get the first value
+                    value = result_df.iloc[0, 0]
+                    text_lines.append(f"{metric}: {value}")
+
+                # Join all metric results into one multiline string
+                text_block = '\n'.join(text_lines)
+
+                # Display the text in the plot (top-left corner)
+                plt.text(
+                    0.01, 0.95 - 0.10 * line_index,  # Offset based on line index
+                    s=text_block,
+                    transform=plt.gca().transAxes,
+                    fontsize=10,
+                    verticalalignment='top',
+                    bbox=dict(
+                        boxstyle='round,pad=0.3',
+                        facecolor=linestyles[line_index+1][0] if extra_lines else linestyles[line_index][0],
+                        edgecolor='gray',
+                        alpha=0.7
+                    )
+                )
+
+                
 
         if padding:
             plt.xlim(lines[0].index[0], lines[0].index[-1])
