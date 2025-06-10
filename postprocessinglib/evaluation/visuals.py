@@ -403,7 +403,14 @@ def plot(
         if (isinstance(time[0], int)) or (isinstance(time[0], float)) or (isinstance(time[0],np.int64)):
             pass
         else:
-            if '/' in time[0]:
+            if '_' in time[0]:
+                parts = time[0].split('_')
+                if len(parts) == 3 and parts[1].isdigit() and parts[2].isdigit():
+                    # 12-hourly: YYYY_DDD_HH
+                    time = [datetime.datetime.strptime(day, "%Y_%j_%H") for day in time]
+                else:
+                    raise ValueError("Invalid format for 12-hourly timestamp. Expected format: YYYY_DDD_HH")
+            elif '/' in time[0]:
                 # daily
                 time = [pd.Timestamp(datetime.datetime.strptime(day, '%Y/%j').date()) for day in time]
             elif '.' in time[0]:
