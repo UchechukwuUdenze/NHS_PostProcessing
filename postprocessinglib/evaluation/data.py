@@ -467,6 +467,65 @@ def stat_aggregate(df: pd.DataFrame, method: str="mean") -> pd.DataFrame:
 
     return result_df
 
+def twelve_hour_aggregate(df: pd.DataFrame, method: str = "mean", use_custom_index: bool = True) -> pd.DataFrame:
+    """ 
+    Aggregate a DataFrame by 12-hour intervals using the specified method.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame with a datetime index and numerical columns.
+    method : str
+        Aggregation method: "mean", "sum", "median", "min", "max", or "inst" (last value of interval).
+    use_custom_index : bool
+        If True, index is formatted as "YYYY-MM-DD_HH:MM", else keep datetime index.
+
+    Returns
+    -------
+    pd.DataFrame
+        Aggregated DataFrame indexed by 12-hour interval.
+
+    Examples
+    --------
+    >>> from postprocessinglib.evaluation import data
+    >>> path = 'MESH_output_streamflow_1.csv'
+    >>> DATAFRAMES = data.generate_dataframes(csv_fpath=path, warm_up=365)
+    >>> merged_df = DATAFRAMES["DF"]
+    >>> twelve_hour_agg = data.twelve_hour_aggregate(df=merged_df)
+    >>> print(twelve_hour_agg)
+    """
+    method = method.lower()
+    if method not in {"mean", "sum", "median", "min", "max", "inst"}:
+        raise ValueError(f"Unsupported aggregation method: {method}")
+
+    df_copy = df.copy()
+    df_copy = df_copy.sort_index()  # Ensure it's time-ordered
+
+    # Group by 12-hour intervals
+    grouper = pd.Grouper(freq="12H")
+    grouped = df_copy.groupby(grouper)
+
+    # Aggregation methods
+    if method == "mean":
+        agg_df = grouped.mean()
+    elif method == "sum":
+        agg_df = grouped.sum()
+    elif method == "median":
+        agg_df = grouped.median()
+    elif method == "min":
+        agg_df = grouped.min()
+    elif method == "max":
+        agg_df = grouped.max()
+    elif method == "inst":
+        agg_df = grouped.last()
+
+    if use_custom_index:
+        # Format: 1981-01-01_00:00 or 1981-01-01_12:00
+        agg_df.index = agg_df.index.strftime("%Y-%m-%d_%H:%M")
+
+    return agg_df
+
+
 def daily_aggregate(df: pd.DataFrame, method: str = "mean", use_doy_index: bool = True) -> pd.DataFrame:
     """ 
     Aggregate a DataFrame by day using the specified method.
