@@ -28,6 +28,21 @@ import colorsys
 from postprocessinglib.evaluation import metrics
 from postprocessinglib.utilities import _helper_functions as hlp
 
+def parse_linestyle(linestyle):
+    """
+    Parses a linestyle string to extract color and style.
+    Handles both named colors and RGB tuples.
+    """
+    from ast import literal_eval
+    if not isinstance(linestyle, str) or len(linestyle) < 2:
+        raise ValueError(f"Invalid linestyle format: '{linestyle}' — must be at least 2 characters (color + style).")
+    color_str, style = linestyle[:-1], linestyle[-1]
+    if color_str.startswith('('):
+        color = literal_eval(color_str)
+    else:
+        color = color_str
+    return color, style
+
 def _save_or_display_plot(fig, save: bool, save_as: Union[str, List[str]], dir: str, i: int, type: str):
     """
     Save the plot to a file or display it based on user preferences.
@@ -478,8 +493,9 @@ def plot(
                 ax.plot(time, obs.iloc[:, i], color = eval(linestyles[0][:-1]) if linestyles[0][:-1].startswith("(") else linestyles[0][:-1], 
                         linestyle = linestyles[0][-1],label=legend[0], linewidth = linewidth[0])
             for j in range(1, num_sim+1):
-                ax.plot(time, sims[f"sim_{j}"].iloc[:, i], color = eval(linestyles[j][:-1]) if linestyles[j][:-1].startswith("(") else linestyles[j][:-1],
-                        linestyle = linestyles[j][-1], label=legend[j], linewidth = linewidth[j])            
+                color, style = parse_linestyle(linestyles[j])  # Parse the first linestyle for simulated data
+                ax.plot(time, sims[f"sim_{j}"].iloc[:, i], color = color,
+                        linestyle = style, label=legend[j], linewidth = linewidth[j])            
             if padding:
                 plt.xlim(time[0], time[-1])
             _finalize_plot(ax, grid, labels, title, "plot", i)
@@ -533,11 +549,11 @@ def bounded_plot(
     grid: bool = False,
     title: Union[str, List[str]] = None,
     labels: Tuple[str, str] = None,
-    linestyles: Tuple[str, str] = ('b-', 'r-'),
+    linestyles: Tuple[str, str] = ('m-',),
     padding: bool = False,
     fig_size: Tuple[float, float] = (10, 6),
     metrices: List[str] = None,
-    transparency: Tuple[float, float] = (0.4),
+    transparency: Tuple[float, float] = [0.4],
     save: bool = False,
     save_as: Union[str, List[str]] = None,
     dir: str = os.getcwd()
@@ -717,6 +733,21 @@ def bounded_plot(
         if len(upper_bounds) != len(lower_bounds):
             raise ValueError("Upper and lower bounds lists must have the same length.")
 
+    # Available line styles
+    # Generate colors dynamically using Matplotlib colormap
+    cmap = plt.cm.get_cmap("tab10", len(lines)+1)  # +1 for extra line
+    colors = [cmap(i) for i in range(len(lines)+1)]
+    # base_linestyles = ["-", "--", "-.", ":"]
+    style = ('-',) * (len(lines)+1) # default to solid lines unless overwritten
+
+    # Generate linestyles dynamically
+    if len(linestyles) < (len(lines)+1 if extra_lines else len(lines)):
+        print("Number of linestyles provided is less than the minimum required. "
+                "Number of Lines : " + str(len(lines)+ 1 if extra_lines else len(lines)) + ". Number of linestyles provided is: ", str(len(linestyles)) +
+                ". Defaulting to solid lines (-)")
+        linestyles = linestyles + tuple(f"{colors[i % len(colors)]}{style[i % len(style)]}" 
+                        for i in range(len(lines)+1 if extra_lines else len(lines)))
+
     # Plotting
     num_columns = lines[0].shape[1]  # all lines have same number of columns
     transparency = transparency * len(lines) # Extend transparency list to match number of lines
@@ -730,7 +761,7 @@ def bounded_plot(
                 ax.plot(
                     extra_line.index,
                     extra_line.iloc[:, i],
-                    color = linestyles[0][0],
+                    color =  eval(linestyles[0][:-1]) if linestyles[0][:-1].startswith("(") else linestyles[0][:-1], 
                     linestyle='--',
                     label=legend[0] if legend else "Extra Line",
                     linewidth=1.5
@@ -741,10 +772,13 @@ def bounded_plot(
             if not isinstance(line, pd.DataFrame):
                 raise ValueError("All items in 'lines' must be a DataFrame.")
             
+            color, style = parse_linestyle(linestyles[line_index+1] if extra_lines else linestyles[line_index])
+            
             ax.plot(
                 line.index,
                 line.iloc[:, i],
-                linestyles[line_index+1] if extra_lines else linestyles[line_index],
+                color = color, 
+                linestyle = style,
                 label = (
                         legend[line_index+1] if legend and extra_lines
                         else legend[line_index] if legend
@@ -762,8 +796,8 @@ def bounded_plot(
                     lower_obs[j],
                     upper_obs[j],
                     alpha=transparency[line_index],
-                    color=linestyles[line_index+1][0] if extra_lines else linestyles[line_index][0],
-                    label=bound_legend[j] if bound_legend and j < len(bound_legend) else None
+                    color = color,
+                    label=bound_legend[line_index] if bound_legend and line_index < len(bound_legend) else None
                 )
 
             # Add single metrics calculation if requested
@@ -802,7 +836,7 @@ def bounded_plot(
                     verticalalignment='top',
                     bbox=dict(
                         boxstyle='round,pad=0.3',
-                        facecolor=linestyles[line_index+1][0] if extra_lines else linestyles[line_index][0],
+                        facecolor=color,
                         edgecolor='gray',
                         alpha=0.7
                     )
