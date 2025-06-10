@@ -28,6 +28,21 @@ import colorsys
 from postprocessinglib.evaluation import metrics
 from postprocessinglib.utilities import _helper_functions as hlp
 
+def parse_linestyle(linestyle):
+    """
+    Parses a linestyle string to extract color and style.
+    Handles both named colors and RGB tuples.
+    """
+    from ast import literal_eval
+    if not isinstance(linestyle, str) or len(linestyle) < 2:
+        raise ValueError(f"Invalid linestyle format: '{linestyle}' — must be at least 2 characters (color + style).")
+    color_str, style = linestyle[:-1], linestyle[-1]
+    if color_str.startswith('('):
+        color = literal_eval(color_str)
+    else:
+        color = color_str
+    return color, style
+
 def _save_or_display_plot(fig, save: bool, save_as: Union[str, List[str]], dir: str, i: int, type: str):
     """
     Save the plot to a file or display it based on user preferences.
@@ -163,62 +178,6 @@ def _prepare_bounds(bounds, line_index, column_index):
     line_bounds = bounds[line_index]  # List of DataFrames for this line
     return [b.iloc[:, column_index] for b in line_bounds]
 
-def _prepare_bound_layers(upper: List[pd.Series], main_line: pd.Series, lower: List[pd.Series],
-                           column_idx: int, bound_labels: List[str] = None ) -> Tuple[List[pd.Series], List[str]]:
-    """
-    Prepares the vertical layers (upper → main line → lower) for plotting bounded areas.
-    Automatically generates band labels unless custom ones are provided.
-
-    Parameters
-    ----------
-    upper : List[pd.Series]
-        List of upper bound series (ordered outermost to closest to line).
-    main_line : pd.Series
-        The main simulation or observed line.
-    lower : List[pd.Series]
-        List of lower bound series (ordered closest to line to outermost).
-    bound_labels : List[str]
-        Optional list of labels for the fill_between bands.
-
-    Returns
-    -------
-    Tuple[List[pd.Series], List[str]]
-        - `layers`: Ordered list of layers from top to bottom.
-        - `labels`: Corresponding labels for the bands between layers.
-    """
-
-    # Reverse upper bounds so outermost is first (top-down)
-    layers = []
-
-    # Add reversed upper bounds (top-down)
-    if upper:
-        for upp in reversed(upper):
-            for ub in upp:
-                layers.append(ub.iloc[:, column_idx])
-
-    # Add the line itself
-    layers.append(main_line.iloc[:, column_idx])
-
-    # Add lower bounds (bottom-up)
-    if lower:
-        for low in reversed(lower):
-            for lb in low:
-                layers.append(lb.iloc[:, column_idx])
-    print(layers)
-
-    # Auto-generate labels if none were provided
-    if bound_labels is None:
-        bound_labels = [
-            f"Band {j + 1}: {layers[j].name[1] or f'Layer {j}'} → {layers[j+1].name[1] or f'Layer {j+1}'}"
-            for j in range(len(layers) - 1)
-        ]
-    elif len(bound_labels) != len(layers) - 1:
-        raise ValueError(
-            f"Expected {len(layers) - 1} bound labels, got {len(bound_labels)}."
-        )
-
-    return layers, bound_labels
-
 def _finalize_plot(ax, grid, labels, title, name, i):
     """
     Finalizes the plot by setting labels, title, and grid options.
@@ -230,8 +189,8 @@ def _finalize_plot(ax, grid, labels, title, name, i):
     plt.yticks(fontsize=15)
 
     if labels:
-        plt.xlabel(labels[0]+" (m\u00B3/s)", fontsize=18)
-        plt.ylabel(labels[1]+" (m\u00B3/s)", fontsize=18)
+        plt.xlabel(labels[0], fontsize=18)
+        plt.ylabel(labels[1], fontsize=18)
 
     if title:
         title_dict = {'family': 'sans-serif', 'color': 'black', 'weight': 'normal', 'size': 20}
@@ -478,8 +437,9 @@ def plot(
                 ax.plot(time, obs.iloc[:, i], color = eval(linestyles[0][:-1]) if linestyles[0][:-1].startswith("(") else linestyles[0][:-1], 
                         linestyle = linestyles[0][-1],label=legend[0], linewidth = linewidth[0])
             for j in range(1, num_sim+1):
-                ax.plot(time, sims[f"sim_{j}"].iloc[:, i], color = eval(linestyles[j][:-1]) if linestyles[j][:-1].startswith("(") else linestyles[j][:-1],
-                        linestyle = linestyles[j][-1], label=legend[j], linewidth = linewidth[j])            
+                color, style = parse_linestyle(linestyles[j])  # Parse the first linestyle for simulated data
+                ax.plot(time, sims[f"sim_{j}"].iloc[:, i], color = color,
+                        linestyle = style, label=legend[j], linewidth = linewidth[j])            
             if padding:
                 plt.xlim(time[0], time[-1])
             _finalize_plot(ax, grid, labels, title, "plot", i)
@@ -533,10 +493,11 @@ def bounded_plot(
     grid: bool = False,
     title: Union[str, List[str]] = None,
     labels: Tuple[str, str] = None,
-    linestyles: Tuple[str, str] = ('b-', 'r-'),
+    linestyles: Tuple[str, str] = ('m-',),
     padding: bool = False,
     fig_size: Tuple[float, float] = (10, 6),
-    transparency: Tuple[float, float] = (0.4),
+    metrices: List[str] = None,
+    transparency: Tuple[float, float] = [0.4],
     save: bool = False,
     save_as: Union[str, List[str]] = None,
     dir: str = os.getcwd()
@@ -593,6 +554,10 @@ def bounded_plot(
 
     transparency : list of float, optional
         A list specifying the transparency levels for the upper and lower bounds, default is [0.4, 0.4].
+    
+    metrices : list of str, optional
+        A list of metrics to display on the plot, default is None. Because its a single line being plotted each time,
+        Only single line metrics are calculated and displayed i.e., TTCOM, TTP, SPOD, etc. 
 
     save : bool, optional
         Whether to save the plot to a file, default is False.
@@ -712,6 +677,21 @@ def bounded_plot(
         if len(upper_bounds) != len(lower_bounds):
             raise ValueError("Upper and lower bounds lists must have the same length.")
 
+    # Available line styles
+    # Generate colors dynamically using Matplotlib colormap
+    cmap = plt.cm.get_cmap("tab10", len(lines)+1)  # +1 for extra line
+    colors = [cmap(i) for i in range(len(lines)+1)]
+    # base_linestyles = ["-", "--", "-.", ":"]
+    style = ('-',) * (len(lines)+1) # default to solid lines unless overwritten
+
+    # Generate linestyles dynamically
+    if len(linestyles) < (len(lines)+1 if extra_lines else len(lines)):
+        print("Number of linestyles provided is less than the minimum required. "
+                "Number of Lines : " + str(len(lines)+ 1 if extra_lines else len(lines)) + ". Number of linestyles provided is: ", str(len(linestyles)) +
+                ". Defaulting to solid lines (-)")
+        linestyles = linestyles + tuple(f"{colors[i % len(colors)]}{style[i % len(style)]}" 
+                        for i in range(len(lines)+1 if extra_lines else len(lines)))
+
     # Plotting
     num_columns = lines[0].shape[1]  # all lines have same number of columns
     transparency = transparency * len(lines) # Extend transparency list to match number of lines
@@ -725,7 +705,7 @@ def bounded_plot(
                 ax.plot(
                     extra_line.index,
                     extra_line.iloc[:, i],
-                    color = linestyles[0][0],
+                    color =  eval(linestyles[0][:-1]) if linestyles[0][:-1].startswith("(") else linestyles[0][:-1], 
                     linestyle='--',
                     label=legend[0] if legend else "Extra Line",
                     linewidth=1.5
@@ -736,10 +716,13 @@ def bounded_plot(
             if not isinstance(line, pd.DataFrame):
                 raise ValueError("All items in 'lines' must be a DataFrame.")
             
+            color, style = parse_linestyle(linestyles[line_index+1] if extra_lines else linestyles[line_index])
+            
             ax.plot(
                 line.index,
                 line.iloc[:, i],
-                linestyles[line_index+1] if extra_lines else linestyles[line_index],
+                color = color, 
+                linestyle = style,
                 label = (
                         legend[line_index+1] if legend and extra_lines
                         else legend[line_index] if legend
@@ -747,20 +730,6 @@ def bounded_plot(
                     ),
                 linewidth=1.5
             )
-
-            # # Build all Y layers (top-down)
-            # y_layers, bound_legend = _prepare_bound_layers(upper_bounds, line, lower_bounds, i, bound_legend)
-
-            # # Plot fill_between for each adjacent pair
-            # for j in range(len(y_layers) - 1):
-            #     ax.fill_between(
-            #         line.index,
-            #         y_layers[j],
-            #         y_layers[j + 1],
-            #         alpha=transparency[line_index],
-            #         color=linestyles[line_index + 1][0] if extra_lines else linestyles[line_index][0],
-            #         label=bound_legend[j] if bound_legend and j < len(bound_legend) else None
-            #     )
 
             upper_obs = _prepare_bounds(upper_bounds, line_index, i)
             lower_obs = _prepare_bounds(lower_bounds, line_index, i)
@@ -771,9 +740,53 @@ def bounded_plot(
                     lower_obs[j],
                     upper_obs[j],
                     alpha=transparency[line_index],
-                    color=linestyles[line_index+1][0] if extra_lines else linestyles[line_index][0],
-                    label=bound_legend[j] if bound_legend and j < len(bound_legend) else None
+                    color = color,
+                    label=bound_legend[line_index] if bound_legend and line_index < len(bound_legend) else None
                 )
+
+            # Add single metrics calculation if requested
+            possible_metrices = ["SPOD", "TTP", "TTCOM"]
+            if metrices is not None:
+                if not isinstance(metrices, list):
+                    raise TypeError("Metrices must be a list.")
+                invalid = [x for x in metrices if x not in possible_metrices]
+                if invalid:
+                    raise ValueError(f"Invalid metrics: {', '.join(invalid)}. Valid options are: {', '.join(possible_metrices)}.")
+
+                # Mapping from metric name to the actual function
+                metric_funcs = {
+                    "SPOD": metrics.SpringPulseOnset,
+                    "TTP": metrics.time_to_peak,
+                    "TTCOM": metrics.time_to_centre_of_mass,
+                }
+
+                # Calculate and format metric values
+                text_lines = []
+                for metric in metrices:
+                    result_df = metric_funcs[metric](line.iloc[:, [i]], use_jday = True)
+                    # Assume single-row result, get the first value
+                    value = result_df.iloc[0, 0]
+                    text_lines.append(f"{metric}: {value}")
+
+                # Join all metric results into one multiline string
+                text_block = '\n'.join(text_lines)
+
+                # Display the text in the plot (top-left corner)
+                plt.text(
+                    0.01, 0.95 - 0.10 * line_index,  # Offset based on line index
+                    s=text_block,
+                    transform=plt.gca().transAxes,
+                    fontsize=10,
+                    verticalalignment='top',
+                    bbox=dict(
+                        boxstyle='round,pad=0.3',
+                        facecolor=color,
+                        edgecolor='gray',
+                        alpha=0.7
+                    )
+                )
+
+                
 
         if padding:
             plt.xlim(lines[0].index[0], lines[0].index[-1])
@@ -1233,9 +1246,10 @@ def scatter(
             # Plotting the Data
             fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
             for j in range(1, num_sim+1):
+                color, marker = parse_linestyle(markerstyle[j-1])  # Parse the first linestyle for simulated data
                 ax.plot(sims[f"sim_{j}"].iloc[:, i], obs.iloc[:, i],
-                        color = eval(markerstyle[j-1][:-1]) if markerstyle[j-1][:-1].startswith("(") else markerstyle[j-1][:-1],
-                        marker = markerstyle[j-1][-1], 
+                        color = color,
+                        marker = marker, 
                         label=legend[j-1] if labels else f"Sim {j}", 
                         linestyle='None')
                 max_sim = np.max([max_sim, sims[f"sim_{j}"].iloc[:, i].max()])

@@ -68,9 +68,7 @@ It's development is based on the following priciples :
 
 All tutorials are available in the notebooks folder `here <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks>`_.
 
-Note
-----
-
+.. note:: 
    ***This project is still under Active Development***
 
 .. toctree::
