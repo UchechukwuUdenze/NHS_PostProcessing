@@ -178,62 +178,6 @@ def _prepare_bounds(bounds, line_index, column_index):
     line_bounds = bounds[line_index]  # List of DataFrames for this line
     return [b.iloc[:, column_index] for b in line_bounds]
 
-def _prepare_bound_layers(upper: List[pd.Series], main_line: pd.Series, lower: List[pd.Series],
-                           column_idx: int, bound_labels: List[str] = None ) -> Tuple[List[pd.Series], List[str]]:
-    """
-    Prepares the vertical layers (upper → main line → lower) for plotting bounded areas.
-    Automatically generates band labels unless custom ones are provided.
-
-    Parameters
-    ----------
-    upper : List[pd.Series]
-        List of upper bound series (ordered outermost to closest to line).
-    main_line : pd.Series
-        The main simulation or observed line.
-    lower : List[pd.Series]
-        List of lower bound series (ordered closest to line to outermost).
-    bound_labels : List[str]
-        Optional list of labels for the fill_between bands.
-
-    Returns
-    -------
-    Tuple[List[pd.Series], List[str]]
-        - `layers`: Ordered list of layers from top to bottom.
-        - `labels`: Corresponding labels for the bands between layers.
-    """
-
-    # Reverse upper bounds so outermost is first (top-down)
-    layers = []
-
-    # Add reversed upper bounds (top-down)
-    if upper:
-        for upp in reversed(upper):
-            for ub in upp:
-                layers.append(ub.iloc[:, column_idx])
-
-    # Add the line itself
-    layers.append(main_line.iloc[:, column_idx])
-
-    # Add lower bounds (bottom-up)
-    if lower:
-        for low in reversed(lower):
-            for lb in low:
-                layers.append(lb.iloc[:, column_idx])
-    print(layers)
-
-    # Auto-generate labels if none were provided
-    if bound_labels is None:
-        bound_labels = [
-            f"Band {j + 1}: {layers[j].name[1] or f'Layer {j}'} → {layers[j+1].name[1] or f'Layer {j+1}'}"
-            for j in range(len(layers) - 1)
-        ]
-    elif len(bound_labels) != len(layers) - 1:
-        raise ValueError(
-            f"Expected {len(layers) - 1} bound labels, got {len(bound_labels)}."
-        )
-
-    return layers, bound_labels
-
 def _finalize_plot(ax, grid, labels, title, name, i):
     """
     Finalizes the plot by setting labels, title, and grid options.
@@ -1302,9 +1246,10 @@ def scatter(
             # Plotting the Data
             fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
             for j in range(1, num_sim+1):
+                color, marker = parse_linestyle(markerstyle[j-1])  # Parse the first linestyle for simulated data
                 ax.plot(sims[f"sim_{j}"].iloc[:, i], obs.iloc[:, i],
-                        color = eval(markerstyle[j-1][:-1]) if markerstyle[j-1][:-1].startswith("(") else markerstyle[j-1][:-1],
-                        marker = markerstyle[j-1][-1], 
+                        color = color,
+                        marker = marker, 
                         label=legend[j-1] if labels else f"Sim {j}", 
                         linestyle='None')
                 max_sim = np.max([max_sim, sims[f"sim_{j}"].iloc[:, i].max()])
