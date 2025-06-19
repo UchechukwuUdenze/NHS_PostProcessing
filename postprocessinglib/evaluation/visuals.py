@@ -703,8 +703,8 @@ def bounded_plot(
         if extra_lines:
             for extra_line in extra_lines:
                 ax.plot(
-                    extra_line.index,
-                    extra_line.iloc[:, i].values if isinstance(line.columns, pd.MultiIndex) else line.iloc[:, i],
+                    extra_line.index.values,
+                    extra_line.iloc[:, i].values if isinstance(line.columns, pd.MultiIndex) else line.iloc[:, i].values,
                     color =  eval(linestyles[0][:-1]) if linestyles[0][:-1].startswith("(") else linestyles[0][:-1], 
                     linestyle='--',
                     label=legend[0] if legend else "Extra Line",
@@ -719,8 +719,8 @@ def bounded_plot(
             color, style = parse_linestyle(linestyles[line_index+1] if extra_lines else linestyles[line_index])
             
             ax.plot(
-                line.index,
-                line.iloc[:, i].values if isinstance(line.columns, pd.MultiIndex) else line.iloc[:, i],
+                line.index.values,
+                line.iloc[:, i].values if isinstance(line.columns, pd.MultiIndex) else line.iloc[:, i].values,
                 color = color, 
                 linestyle = style,
                 label = (
