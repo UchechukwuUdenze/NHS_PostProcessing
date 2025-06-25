@@ -621,7 +621,7 @@ if __name__ == '__main__':
     # name of forecast layer from GeoMet
     # DHPS = Deterministic Hydrologic Prediction System (a subsystem of NSRPS)
     # when EHPS is available, the `layer_name` could be changed
-    layer_name = 'EHPS_1km_RiverDischarge-Min3h'
+    layer_name = 'DHPS_1km_RiverDischarge'
     # layer_name = 'EHPS_1km_RiverDischarge-Min24h-Day17to32'
 
     # PILOT: gauge stations in Newfoundland whose data is assimilated by NSRPS
@@ -633,7 +633,7 @@ if __name__ == '__main__':
         # '02YL001',
         # '02YK005',
         # '02YL008',
-        # '02YC001',
+        '02YC001',
     ]
 
     data = main(
