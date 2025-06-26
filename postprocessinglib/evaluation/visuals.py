@@ -28,6 +28,53 @@ import colorsys
 from postprocessinglib.evaluation import metrics
 from postprocessinglib.utilities import _helper_functions as hlp
 
+def calculate_volume(flow_df: pd.Series, use_jday = False) -> float:
+    """
+    Calculate the volume under the flow curve using the trapezoidal rule.
+
+    Parameters
+    ----------
+    flow_series : pd.Series
+        DataFrame where each column is a timeseries of streamflow values in m³/s.
+        Index must be datetime-like or day-of-year (1–366) if use_jday is True.
+
+        use_jday : bool, optional
+        If True, treats the index as day-of-year (1–366).
+        Assumes evenly spaced 24-hour intervals.
+
+    Returns
+    -------
+    float
+        Total volume in cubic meters (m³).
+    """
+    volume_dict = {}
+
+    for col in flow_df.columns:
+        series = flow_df[col].dropna()
+
+        if series.empty:
+            volume_dict[col] = np.nan
+            continue
+
+        flow = series.values
+
+        if use_jday:
+            dt_seconds = 86400  # Assume constant 1-day intervals
+            vol = np.sum(flow) * dt_seconds
+        else:
+            idx = series.index
+
+            if not pd.api.types.is_datetime64_any_dtype(idx):
+                raise ValueError(f"Column {col} index must be datetime-like or use_jday=True.")
+
+            # Convert datetime index to seconds between points
+            dt_seconds = np.diff(idx.astype('int64')) / 1e9  # from nanoseconds to seconds
+            vol = np.sum(flow) * dt_seconds
+
+        volume_dict[col] = hlp.sig_figs(vol, 4)  # Keep formatting consistent
+
+    return pd.DataFrame([volume_dict])
+
 def parse_linestyle(linestyle):
     """
     Parses a linestyle string to extract color and style.
@@ -185,8 +232,8 @@ def _finalize_plot(ax, grid, labels, title, name, i):
     plt.legend(loc='best')
 
     plt.tight_layout()    
-    plt.xticks(fontsize=10, rotation=45)
-    plt.yticks(fontsize=15)
+    plt.xticks(fontsize=12, rotation=45)
+    plt.yticks(fontsize=12)
 
     if labels:
         plt.xlabel(labels[0], fontsize=18)
@@ -752,7 +799,7 @@ def bounded_plot(
                 )
 
             # Add single metrics calculation if requested
-            possible_metrices = ["SPOD", "TTP", "TTCOM"]
+            possible_metrices = ["SPOD", "TTP", "TTCOM", "VOLUME"]
             if metrices is not None:
                 if not isinstance(metrices, list):
                     raise TypeError("Metrices must be a list.")
@@ -765,6 +812,7 @@ def bounded_plot(
                     "SPOD": metrics.SpringPulseOnset,
                     "TTP": metrics.time_to_peak,
                     "TTCOM": metrics.time_to_centre_of_mass,
+                    "VOLUME": calculate_volume,
                 }
 
                 # Calculate and format metric values
@@ -773,6 +821,8 @@ def bounded_plot(
                     result_df = metric_funcs[metric](line.iloc[:, [i]], use_jday = True)
                     # Assume single-row result, get the first value
                     value = result_df.iloc[0, 0]
+                    if len(str(int(abs(value))))> 6:
+                        value = f"{value:.4e}"
                     text_lines.append(f"{metric}: {value}")
 
                 # Join all metric results into one multiline string
@@ -780,7 +830,7 @@ def bounded_plot(
 
                 # Display the text in the plot (top-left corner)
                 plt.text(
-                    0.01, 0.95 - 0.10 * line_index,  # Offset based on line index
+                    0.01, 0.98 - 0.18 * line_index,  # Offset based on line index
                     s=text_block,
                     transform=plt.gca().transAxes,
                     fontsize=10,
