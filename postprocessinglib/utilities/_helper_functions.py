@@ -425,11 +425,12 @@ def sig_figs(x: float, precision: int)-> float:
     >>> print(rounded_number)
     1.23
     """
-    if not np.isnan(x):
+    try:
         x = float(x)
-        precision = int(precision)
+        if x == 0 or math.isnan(x):
+            return 0.0  # or np.nan, depending on preference
         return round(x, -int(math.floor(math.log10(abs(x)))) + (precision - 1))
-    else:
+    except (ValueError, TypeError):
         return np.nan
     
 def columns_to_MultiIndex(cols: pd.Index) -> pd.MultiIndex:
