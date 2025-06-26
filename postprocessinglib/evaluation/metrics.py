@@ -940,7 +940,7 @@ def time_to_peak(df: pd.DataFrame, stations: list[int]=[], use_jday:bool=False)-
 
     df_out = pd.DataFrame.from_dict(results, orient='index', columns=['ttp'])
     # Rename the index to be more descriptive and to match with the other metrics
-    # df_out.index = [f"Station {i}" for i in df_out.index]
+    df_out.index = [f"Station {i}" for i in df_out.index.str.extract('(\d+)').astype(int)[0]]
     df_out.index.name = "Station"
     return df_out
 
@@ -1072,7 +1072,7 @@ def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[], use_jday:bo
 
     df_out = pd.DataFrame.from_dict(results, orient='index', columns=['ttcom'])
     # Rename the index to be more descriptive and to match with the other metrics
-    # df_out.index = [f"Station {i}" for i in df_out.index]
+    df_out.index = [f"Station {i}" for i in df_out.index.str.extract('(\d+)').astype(int)[0]]
     df_out.index.name = "Station"
     return df_out
 
