@@ -90,7 +90,8 @@ def parse_linestyle(linestyle):
         color = color_str
     return color, style
 
-def _save_or_display_plot(fig, save: bool, save_as: Union[str, List[str]], dir: str, i: int, type: str):
+def _save_or_display_plot(fig, save: bool, save_as: Union[str, List[str]], dir: str, i: int,
+                          type: str, stations: int = 1):
     """
     Save the plot to a file or display it based on user preferences.
 
@@ -150,7 +151,17 @@ def _save_or_display_plot(fig, save: bool, save_as: Union[str, List[str]], dir: 
         plt.tight_layout()
         if not os.path.exists(dir):
             os.makedirs(dir)
-        filename = f"{save_as}.png" if isinstance(save_as, str) else f"{type}_{i + 1}.png"
+
+        # Determine filename based on conditions
+        if isinstance(save_as, list) and len(save_as) == stations:
+            filename = f"{save_as[i]}.png"
+        elif isinstance(save_as, str) and stations > 1:
+            filename = f"{save_as}_{i + 1}.png"
+        elif isinstance(save_as, str):
+            filename = f"{save_as}.png"
+        else:
+            filename = f"{type}_{i + 1}.png"
+
         fig.savefig(os.path.join(dir, filename), bbox_inches='tight')
         plt.close(fig)
     else:
@@ -534,7 +545,7 @@ def plot(
 
             # Save or auto-save for large column counts
             auto_save = len(sims["sim_1"].columns) > 5 
-            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "plot")
+            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "plot", num_columns)
 
 
 def bounded_plot(
@@ -851,7 +862,7 @@ def bounded_plot(
         _finalize_plot(ax, grid, labels, title, "bounded-plot", i)
 
         auto_save = num_columns > 5
-        _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "bounded-plot")
+        _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "bounded-plot", num_columns)
 
 
 def histogram(
@@ -1041,7 +1052,7 @@ def histogram(
 
         # Save or auto-save for large column counts
         auto_save = len(obs.columns) > 5
-        _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "histogram")
+        _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "histogram", len(obs.columns))
 
 
 def scatter(
@@ -1378,7 +1389,7 @@ def scatter(
 
             # Save or auto-save for large column counts
             auto_save = len(obs.columns) > 5
-            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "scatter-plot")
+            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "scatter-plot", len(obs.columns))
     else:
         # Calculate metrics: returns MultiIndex column DataFrame
         metr = metrics.calculate_metrics(observed=observed, simulated=simulated, metrices=[metric])
@@ -1664,7 +1675,7 @@ def qqplot(
 
         # Save or auto-save for large column counts
         auto_save = len(obs.columns) > 5
-        _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "qqplot")  
+        _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "qqplot", len(obs.columns))  
 
 
 def flow_duration_curve(
@@ -1856,6 +1867,6 @@ def flow_duration_curve(
     
             # Save or auto-save for large column counts
             auto_save = len(obs.columns) > 5
-            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "fdc-plot") 
+            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "fdc-plot", len(obs.columns)) 
 
 
