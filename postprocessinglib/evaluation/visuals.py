@@ -545,7 +545,7 @@ def plot(
 
             # Save or auto-save for large column counts
             auto_save = len(sims["sim_1"].columns) > 5 
-            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "plot", num_columns)
+            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "plot", len(line_df.columns) if df is not None else len(sims["sim_1"].columns))
 
 
 def bounded_plot(
@@ -1397,15 +1397,22 @@ def scatter(
         # print(f"Metrics to plot: \n{metr}\n")
 
         # Determine values to plot
-        if mode == "median":
-            median_vals = metr.median(axis=1)
-            values = pd.DataFrame({f"{metric}_median": median_vals})
-            columns = [f"{metric}_median"]
+        if mode != "models":
+            try:
+                method = getattr(metr, mode)
+            except AttributeError:
+                raise ValueError(f"Invalid mode '{mode}'. Must be a valid DataFrame method (e.g., 'max', 'mean', 'median', etc.).")
+
+            vals = method(axis=1)
+            values = pd.DataFrame({f"{metric}_{mode}": vals})
+            columns = [f"{metric}_{mode}"]
+
         elif mode == "models" and models:
             # Assume columns are like: MultiIndex([("MSE", "model1"), ("MSE", "model2"), ...])
             values = metr.loc[:, (metric, models)]  # Use tuple to get (metric, modelX)
             values.columns = models  # Flatten columns for plotting
-            columns = values.columns.tolist()            
+            columns = values.columns.tolist()
+
         else:
             raise ValueError("Invalid mode or missing model list for 'models' mode")
 
@@ -1443,9 +1450,9 @@ def scatter(
             gdf_shapefile.plot(ax=ax, edgecolor='black', facecolor="None", linewidth=0.5)
 
             # Plot metric values
-            legend_label = f"{col}" if mode == "models" else f"{metric} (median)"
+            legend_label = f"{col}" if mode == "models" else f"{metric} {mode}"
             gdf_points.plot(ax=ax, column=col, cmap=cmap, vmin=vmin, vmax=vmax,
-                            legend=True, markersize=40, label=legend_label,
+                            legend=True, markersize=40, label="Stations",
                             legend_kwds={'label': legend_label, "orientation": "vertical"})
 
             _finalize_plot(ax, grid, labels, title, "shapefile-plot", idx)
