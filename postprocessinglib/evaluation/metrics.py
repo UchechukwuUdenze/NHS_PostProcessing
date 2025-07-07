@@ -143,14 +143,17 @@ def mse(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.DataFrame
 
     mse_results = {}
 
+    # Vectorized calculation of MSE for each station
     for j in stations_to_process:
         valid_observed = hlp.filter_valid_data(observed, station_num=j)
 
+        # Prepare observed values
+        obs_values = valid_observed.iloc[:, j].values
+
+        # Loop over the simulated data and calculate MSE
         station_mse = {}
         for k, sim in enumerate(simulated):
-            sim_values = sim.loc[valid_observed.index].iloc[:, j]
-            obs_values = valid_observed.iloc[:, j]
-
+            sim_values = sim.loc[valid_observed.index].iloc[:, j].values
             mse_val = np.mean((obs_values - sim_values) ** 2)
             station_mse[f"model{k+1}"] = hlp.sig_figs(mse_val, 4)
 
@@ -1144,9 +1147,9 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[], use_jday:bool=Fal
 
     """
     if not stations:
-        stations = list(range(1, df.shape[1] + 1))  # 1-based indexing
+        stations = df.columns.tolist()
 
-    results = []
+    results = {}
 
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = df.columns.get_level_values(0)
@@ -1156,10 +1159,8 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[], use_jday:bool=Fal
         days_per_year = 366
         num_years = df.shape[0] // days_per_year
 
-        for j in stations:
-            col_idx = j - 1
-            station_col = df.columns[col_idx]
-            data = df[station_col].values
+        for station in stations:
+            data = df[station].values
             yearly_spod = []
 
             for year in range(num_years):
@@ -1168,7 +1169,6 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[], use_jday:bool=Fal
                 year_data = data[start:end]
 
                 if len(year_data) > 200 and np.nansum(year_data) > 0:
-                    valid = ~np.isnan(year_data)
                     mean_val = np.nanmean(year_data)
                     cumulative = 0.0
                     min_cumulative = float("inf")
@@ -1185,20 +1185,18 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[], use_jday:bool=Fal
                     yearly_spod.append(onset_day)
 
             avg_spod = hlp.sig_figs(np.mean(yearly_spod), 3) if yearly_spod else np.nan
-            results.append({"Station": station_col, "SPOD": avg_spod})    
+            results[station] = round(avg_spod, 3)
     else:
         # Handle MultiIndex (YEAR, JDAY) or DatetimeIndex
         years = df.index.get_level_values(0).unique() if isinstance(df.index, pd.MultiIndex) else df.index.year.unique()
 
-        for j in stations:
-            col_idx = j - 1
-            station_col = df.columns[col_idx]
+        for station in stations:
             yearly_spod = []
 
             for year in years:
                 try:
                     # Get the year's data
-                    data_slice = df.loc[year, station_col] if isinstance(df.index, pd.MultiIndex) else df[df.index.year == year][station_col]
+                    data_slice = df.loc[year, station] if isinstance(df.index, pd.MultiIndex) else df[df.index.year == year][station]
                 except KeyError:
                     continue
 
@@ -1223,12 +1221,13 @@ def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[], use_jday:bool=Fal
             else:
                 spod = np.nan
 
-            results.append({
-                "Station": station_col,
-                "SPOD": spod
-            })
+            results[station] = round(spod, 3)
 
-    return pd.DataFrame(results).set_index("Station")
+    df_out = pd.DataFrame.from_dict(results, orient='index', columns=['spod'])
+    # Rename the index to be more descriptive and to match with the other metrics
+    df_out.index = [f"Station {i}" for i in df_out.index.str.extract('(\d+)').astype(int)[0]]
+    df_out.index.name = "Station"
+    return df_out
 
 
 # def SpringPulseOnset(df: pd.DataFrame, stations: list[int]=[])->int:

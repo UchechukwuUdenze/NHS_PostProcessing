@@ -1000,12 +1000,29 @@ def generate_dataframes(csv_fpaths: list=None, sim_fpaths: list = None, obs_fpat
     """
 
     def _merge_dataframes(obs, sim_dfs):
-        merged = pd.DataFrame(index=obs.index)
-        for j in range(obs.shape[1]):
-            merged = pd.concat([merged, obs.iloc[:, [j]]] +
-                               [sim.iloc[:, [j]] for sim in sim_dfs], axis=1)
-        merged.columns = hlp.columns_to_MultiIndex(merged.columns)
-        return merged
+        obs_vals = obs.to_numpy()
+        sim_vals = [sim.to_numpy() for sim in sim_dfs]
+
+        n_timesteps, n_stations = obs_vals.shape
+        n_models = len(sim_vals)
+
+        # Allocate output array: shape [n_timesteps, n_stations * (1 + n_models)]
+        merged_array = np.empty((n_timesteps, n_stations * (1 + n_models)))
+        
+        col_names = []
+
+        for j in range(n_stations):
+            # Column block for this station: [obs, sim1, sim2, ...]
+            merged_array[:, j*(1 + n_models)] = obs_vals[:, j]
+            col_names.append((f"Station {j+1}", "QOMEAS"))
+
+            for m in range(n_models):
+                merged_array[:, j*(1 + n_models) + m + 1] = sim_vals[m][:, j]
+                col_names.append((f"Station {j+1}", f"QOSIM{m+1}"))
+
+        merged_df = pd.DataFrame(merged_array, index=obs.index, columns=pd.MultiIndex.from_tuples(col_names))
+        return merged_df
+    
     
     def _read_and_process_csv(path, is_sim=False):
         df = pd.read_csv(path, skipinitialspace=True, index_col=[0, 1])
@@ -1065,9 +1082,10 @@ def generate_dataframes(csv_fpaths: list=None, sim_fpaths: list = None, obs_fpat
 
     # Step 2: Date Range Filtering (for both observed and simulated data)
     if start_date or end_date:
-        slice_ = slice(start_date if start_date else None, end_date if end_date else None)
-        for key in list(DATAFRAMES.keys()):
-            DATAFRAMES[key] = DATAFRAMES[key].loc[slice_]
+        slice_ = pd.to_datetime(start_date or DATAFRAMES["DF_MERGED"].index.min()), \
+                pd.to_datetime(end_date or DATAFRAMES["DF_MERGED"].index.max())
+        for key in DATAFRAMES:
+            DATAFRAMES[key] = DATAFRAMES[key].loc[slice_[0]:slice_[1]]
 
     print(f"The start date for the Data is {DATAFRAMES['DF_MERGED'].index[0].strftime('%Y-%m-%d')}")
     
@@ -1129,43 +1147,29 @@ def generate_dataframes(csv_fpaths: list=None, sim_fpaths: list = None, obs_fpat
         elif isinstance(stat_method, str):
             stat_method = [stat_method]
         elif not isinstance(stat_method, list):
-            raise ValueError("stat_method must be a string or a list of strings.")
-        
-        stat_method = ["min", "max", "median"] + stat_method  # Default aggregates
-        combined_cols = []
-        combined_data = []
+            raise ValueError("stat_method must be a string or list of strings.")
 
-        # Create empty DF_STATS if not exists
-        if "DF_STATS" not in DATAFRAMES:
-            DATAFRAMES["DF_STATS"] = stat_aggregate(df=DATAFRAMES["DF_MERGED"], method="median") # Create it using a default method, in this case, the median
-        
-        # Loop through each method and apply stat_aggregate
+        stat_method = ["min", "max", "median"] + stat_method
+        stats = {}
+
         for method in stat_method:
-            temp_df = stat_aggregate(df=DATAFRAMES["DF_MERGED"], method=method)
+            df = stat_aggregate(DATAFRAMES["DF_MERGED"], method=method)
 
-            for station in DATAFRAMES["DF_STATS"].columns.get_level_values(0).unique():
-                temp_df_cols = temp_df[station]
+            # 🔥 Flatten extra levels if present (e.g., ('Station 1', 'MIN') → 'Station 1')
+            if isinstance(df.columns, pd.MultiIndex):
+                if df.columns.nlevels > 1 and method.upper() in df.columns.get_level_values(-1):
+                    df.columns = df.columns.get_level_values(0)
 
-                # Important fix: Make sure temp_df_cols is DataFrame not Series
-                if isinstance(temp_df_cols, pd.Series):
-                    temp_df_cols = temp_df_cols.to_frame()
+            stats[method] = df
 
-                for col in temp_df_cols.columns:
-                    combined_cols.append((station, col))
+        # 🧱 Combine into MultiIndex: (station, stat)
+        combined_df = pd.concat(stats.values(), axis=1, keys=stats.keys())
+        combined_df.columns = combined_df.columns.swaplevel(0, 1)
 
-                combined_data.append(temp_df_cols)
+        # 🧽 Natural sort stations
+        sorted_stations = natsorted(combined_df.columns.levels[0], key=str)
+        combined_df = combined_df.reindex(columns=sorted_stations, level=0)
 
-        # Now merge everything
-        final_df = pd.concat(combined_data, axis=1)
-        final_df.columns = pd.MultiIndex.from_tuples(combined_cols)
-        final_df = final_df.loc[:, ~final_df.columns.duplicated()]
-        sorted_stations = natsorted(final_df.T.index.get_level_values(0).unique())
-        new_blocks = [
-            final_df.T[final_df.T.index.get_level_values(0) == station].T
-            for station in sorted_stations
-        ]
-        final_df = pd.concat(new_blocks, axis=1)
-        final_df.columns = pd.MultiIndex.from_tuples(final_df.columns)
-        DATAFRAMES["DF_STATS"] = final_df
+        DATAFRAMES["DF_STATS"] = combined_df
 
     return DATAFRAMES
