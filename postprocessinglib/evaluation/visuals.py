@@ -28,53 +28,6 @@ import colorsys
 from postprocessinglib.evaluation import metrics
 from postprocessinglib.utilities import _helper_functions as hlp
 
-def calculate_volume(flow_df: pd.Series, use_jday = False) -> float:
-    """
-    Calculate the volume under the flow curve using the trapezoidal rule.
-
-    Parameters
-    ----------
-    flow_series : pd.Series
-        DataFrame where each column is a timeseries of streamflow values in m³/s.
-        Index must be datetime-like or day-of-year (1–366) if use_jday is True.
-
-        use_jday : bool, optional
-        If True, treats the index as day-of-year (1–366).
-        Assumes evenly spaced 24-hour intervals.
-
-    Returns
-    -------
-    float
-        Total volume in cubic meters (m³).
-    """
-    volume_dict = {}
-
-    for col in flow_df.columns:
-        series = flow_df[col].dropna()
-
-        if series.empty:
-            volume_dict[col] = np.nan
-            continue
-
-        flow = series.values
-
-        if use_jday:
-            dt_seconds = 86400  # Assume constant 1-day intervals
-            vol = np.sum(flow) * dt_seconds
-        else:
-            idx = series.index
-
-            if not pd.api.types.is_datetime64_any_dtype(idx):
-                raise ValueError(f"Column {col} index must be datetime-like or use_jday=True.")
-
-            # Convert datetime index to seconds between points
-            dt_seconds = np.diff(idx.astype('int64')) / 1e9  # from nanoseconds to seconds
-            vol = np.sum(flow) * dt_seconds
-
-        volume_dict[col] = hlp.sig_figs(vol, 4)  # Keep formatting consistent
-
-    return pd.DataFrame([volume_dict])
-
 def parse_linestyle(linestyle):
     """
     Parses a linestyle string to extract color and style.
@@ -90,8 +43,7 @@ def parse_linestyle(linestyle):
         color = color_str
     return color, style
 
-def _save_or_display_plot(fig, save: bool, save_as: Union[str, List[str]], dir: str, i: int,
-                          type: str, stations: int = 1):
+def _save_or_display_plot(fig, save: bool, save_as: Union[str, List[str]], dir: str, i: int, type: str):
     """
     Save the plot to a file or display it based on user preferences.
 
@@ -151,17 +103,7 @@ def _save_or_display_plot(fig, save: bool, save_as: Union[str, List[str]], dir: 
         plt.tight_layout()
         if not os.path.exists(dir):
             os.makedirs(dir)
-
-        # Determine filename based on conditions
-        if isinstance(save_as, list) and len(save_as) == stations:
-            filename = f"{save_as[i]}.png"
-        elif isinstance(save_as, str) and stations > 1:
-            filename = f"{save_as}_{i + 1}.png"
-        elif isinstance(save_as, str):
-            filename = f"{save_as}.png"
-        else:
-            filename = f"{type}_{i + 1}.png"
-
+        filename = f"{save_as}.png" if isinstance(save_as, str) else f"{type}_{i + 1}.png"
         fig.savefig(os.path.join(dir, filename), bbox_inches='tight')
         plt.close(fig)
     else:
@@ -243,8 +185,8 @@ def _finalize_plot(ax, grid, labels, title, name, i):
     plt.legend(loc='best')
 
     plt.tight_layout()    
-    plt.xticks(fontsize=12, rotation=45)
-    plt.yticks(fontsize=12)
+    plt.xticks(fontsize=10, rotation=45)
+    plt.yticks(fontsize=15)
 
     if labels:
         plt.xlabel(labels[0], fontsize=18)
@@ -265,6 +207,7 @@ def plot(
     merged_df: pd.DataFrame = None, 
     df: pd.DataFrame = None, 
     sim_df: pd.DataFrame = None,
+    step: bool = False,
     legend: tuple[str, str] = ('Data',), 
     metrices: list[str] = None,
     mode:str = 'median',
@@ -305,6 +248,9 @@ def plot(
 
     df : pd.DataFrame, optional
         A Single DataFrame usually containing only one of either simulated or observed data... or any data.
+    
+    step : bool, optional
+        Whether to plot the data as a step plot. Default is False, which plots a regular line plot.
 
     legend : tuple of str, optional
         A tuple containing the labels for the data being plotted
@@ -486,7 +432,13 @@ def plot(
         for i in range (0, len(line_df.columns)) if isinstance(line_df, pd.DataFrame) else range (0, len(line_df)):
             # Plotting the Data     
             fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
-            ax.plot(time, line_df.iloc[:, i], linestyles[0], label=legend[0], linewidth = linewidth[0])
+            color, style = parse_linestyle(linestyles[0])  # parse once for df
+            if step:
+                ax.step(time, line_df.iloc[:, i], where='pre', color=color, linestyle=style,
+                        label=legend[0], linewidth=linewidth[0])
+            else:
+                ax.plot(time, line_df.iloc[:, i], color=color, linestyle=style,
+                        label=legend[0], linewidth=linewidth[0])
 
             if padding:
                 plt.xlim(time[0], time[-1])
@@ -499,12 +451,21 @@ def plot(
             # Plotting the Data     
             fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
             if obs is not None:                
-                ax.plot(time, obs.iloc[:, i], color = eval(linestyles[0][:-1]) if linestyles[0][:-1].startswith("(") else linestyles[0][:-1], 
-                        linestyle = linestyles[0][-1],label=legend[0], linewidth = linewidth[0])
+                color, style = parse_linestyle(linestyles[0])
+                if step:
+                    ax.step(time, obs.iloc[:, i], where='pre', color=color, linestyle=style,
+                            label=legend[0], linewidth=linewidth[0])
+                else:
+                    ax.plot(time, obs.iloc[:, i], color=color, linestyle=style,
+                            label=legend[0], linewidth=linewidth[0])
             for j in range(1, num_sim+1):
                 color, style = parse_linestyle(linestyles[j])  # Parse the first linestyle for simulated data
-                ax.plot(time, sims[f"sim_{j}"].iloc[:, i], color = color,
-                        linestyle = style, label=legend[j], linewidth = linewidth[j])            
+            if step:
+                ax.step(time, sims[f"sim_{j}"].iloc[:, i], where='pre', color=color,
+                        linestyle=style, label=legend[j], linewidth=linewidth[j])
+            else:
+                ax.plot(time, sims[f"sim_{j}"].iloc[:, i], color=color,
+                        linestyle=style, label=legend[j], linewidth=linewidth[j])           
             if padding:
                 plt.xlim(time[0], time[-1])
             _finalize_plot(ax, grid, labels, title, "plot", i)
@@ -545,7 +506,7 @@ def plot(
 
             # Save or auto-save for large column counts
             auto_save = len(sims["sim_1"].columns) > 5 
-            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "plot", len(line_df.columns) if df is not None else len(sims["sim_1"].columns))
+            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "plot")
 
 
 def bounded_plot(
@@ -553,12 +514,13 @@ def bounded_plot(
     extra_lines: List[pd.DataFrame] = None,
     upper_bounds: List[pd.DataFrame] = None,
     lower_bounds: List[pd.DataFrame] = None,
+    step: bool = False,
     bound_legend: List[str] = None,
     legend: Tuple[str, str] = None,
     grid: bool = False,
     title: Union[str, List[str]] = None,
     labels: Tuple[str, str] = None,
-    linestyles: Tuple[str, str] = ('m-',),
+    linestyles: Tuple[str, str] = ('r-',),
     padding: bool = False,
     fig_size: Tuple[float, float] = (10, 6),
     metrices: List[str] = None,
@@ -595,6 +557,12 @@ def bounded_plot(
         - legend[0]
         - colors[0], etc.
         Take note of this when plotting.  
+
+    step : bool, optional
+        Whether to plot the data as a step plot. Default is False, which plots a regular line plot.
+    
+    bound_legend : list of str, optional
+        A list containing the labels for the upper and lower bounds.
 
     legend : tuple of str, optional
         A tuple containing the labels for the simulated and observed data, default is ('Simulated Data', 'Observed Data').
@@ -767,14 +735,24 @@ def bounded_plot(
         # Plot extra lines (if any), column i
         if extra_lines:
             for extra_line in extra_lines:
-                ax.plot(
-                    extra_line.index.values,
-                    extra_line.iloc[:, i].values if isinstance(line.columns, pd.MultiIndex) else line.iloc[:, i].values,
-                    color =  eval(linestyles[0][:-1]) if linestyles[0][:-1].startswith("(") else linestyles[0][:-1], 
-                    linestyle='--',
-                    label=legend[0] if legend else "Extra Line",
-                    linewidth=1.5
-                )
+                if step:
+                    ax.step(
+                        extra_line.index,
+                        extra_line.iloc[:, i],
+                        color =  eval(linestyles[0][:-1]) if linestyles[0][:-1].startswith("(") else linestyles[0][:-1], 
+                        linestyle='--',
+                        label=legend[0] if legend else "Extra Line",
+                        linewidth=1.5
+                    )
+                else:
+                    ax.plot(
+                        extra_line.index,
+                        extra_line.iloc[:, i],
+                        color =  eval(linestyles[0][:-1]) if linestyles[0][:-1].startswith("(") else linestyles[0][:-1], 
+                        linestyle='--',
+                        label=legend[0] if legend else "Extra Line",
+                        linewidth=1.5
+                    )
 
         # Plot each main line and its bounds
         for line_index, line in enumerate(lines):
@@ -783,34 +761,48 @@ def bounded_plot(
             
             color, style = parse_linestyle(linestyles[line_index+1] if extra_lines else linestyles[line_index])
             
-            ax.plot(
-                line.index.values,
-                line.iloc[:, i].values if isinstance(line.columns, pd.MultiIndex) else line.iloc[:, i].values,
-                color = color, 
-                linestyle = style,
-                label = (
-                        legend[line_index+1] if legend and extra_lines
-                        else legend[line_index] if legend
-                        else f"Line {line_index+1}"
-                    ),
-                linewidth=1.5
-            )
+            if step:
+                ax.step(
+                    line.index,
+                    line.iloc[:, i],
+                    color = color, 
+                    linestyle = style,
+                    label = (
+                            legend[line_index+1] if legend and extra_lines
+                            else legend[line_index] if legend
+                            else f"Line {line_index+1}"
+                        ),
+                    linewidth=1.5
+                )
+            else:
+                ax.plot(
+                    line.index,
+                    line.iloc[:, i],
+                    color = color, 
+                    linestyle = style,
+                    label = (
+                            legend[line_index+1] if legend and extra_lines
+                            else legend[line_index] if legend
+                            else f"Line {line_index+1}"
+                        ),
+                    linewidth=1.5
+                )
 
             upper_obs = _prepare_bounds(upper_bounds, line_index, i)
             lower_obs = _prepare_bounds(lower_bounds, line_index, i)
 
-            for j in range(len(upper_obs)):
+            for upper_index, upper in enumerate(upper_obs):
                 ax.fill_between(
                     line.index,
-                    lower_obs[j],
-                    upper_obs[j],
+                    lower_obs[upper_index],
+                    upper,
                     alpha=transparency[line_index],
                     color = color,
-                    label=bound_legend[line_index] if bound_legend and line_index < len(bound_legend) else None
+                    label=bound_legend[upper_index] if bound_legend and line_index < len(bound_legend) else None
                 )
 
             # Add single metrics calculation if requested
-            possible_metrices = ["SPOD", "TTP", "TTCOM", "VOLUME"]
+            possible_metrices = ["SPOD", "TTP", "TTCOM"]
             if metrices is not None:
                 if not isinstance(metrices, list):
                     raise TypeError("Metrices must be a list.")
@@ -823,7 +815,6 @@ def bounded_plot(
                     "SPOD": metrics.SpringPulseOnset,
                     "TTP": metrics.time_to_peak,
                     "TTCOM": metrics.time_to_centre_of_mass,
-                    "VOLUME": calculate_volume,
                 }
 
                 # Calculate and format metric values
@@ -832,8 +823,6 @@ def bounded_plot(
                     result_df = metric_funcs[metric](line.iloc[:, [i]], use_jday = True)
                     # Assume single-row result, get the first value
                     value = result_df.iloc[0, 0]
-                    if len(str(int(abs(value))))> 6:
-                        value = f"{value:.4e}"
                     text_lines.append(f"{metric}: {value}")
 
                 # Join all metric results into one multiline string
@@ -841,7 +830,7 @@ def bounded_plot(
 
                 # Display the text in the plot (top-left corner)
                 plt.text(
-                    0.01, 0.98 - 0.18 * line_index,  # Offset based on line index
+                    0.01, 0.95 - 0.10 * line_index,  # Offset based on line index
                     s=text_block,
                     transform=plt.gca().transAxes,
                     fontsize=10,
@@ -862,7 +851,7 @@ def bounded_plot(
         _finalize_plot(ax, grid, labels, title, "bounded-plot", i)
 
         auto_save = num_columns > 5
-        _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "bounded-plot", num_columns)
+        _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "bounded-plot")
 
 
 def histogram(
@@ -1052,7 +1041,7 @@ def histogram(
 
         # Save or auto-save for large column counts
         auto_save = len(obs.columns) > 5
-        _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "histogram", len(obs.columns))
+        _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "histogram")
 
 
 def scatter(
@@ -1389,7 +1378,7 @@ def scatter(
 
             # Save or auto-save for large column counts
             auto_save = len(obs.columns) > 5
-            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "scatter-plot", len(obs.columns))
+            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "scatter-plot")
     else:
         # Calculate metrics: returns MultiIndex column DataFrame
         metr = metrics.calculate_metrics(observed=observed, simulated=simulated, metrices=[metric])
@@ -1397,22 +1386,15 @@ def scatter(
         # print(f"Metrics to plot: \n{metr}\n")
 
         # Determine values to plot
-        if mode != "models":
-            try:
-                method = getattr(metr, mode)
-            except AttributeError:
-                raise ValueError(f"Invalid mode '{mode}'. Must be a valid DataFrame method (e.g., 'max', 'mean', 'median', etc.).")
-
-            vals = method(axis=1)
-            values = pd.DataFrame({f"{metric}_{mode}": vals})
-            columns = [f"{metric}_{mode}"]
-
+        if mode == "median":
+            median_vals = metr.median(axis=1)
+            values = pd.DataFrame({f"{metric}_median": median_vals})
+            columns = [f"{metric}_median"]
         elif mode == "models" and models:
             # Assume columns are like: MultiIndex([("MSE", "model1"), ("MSE", "model2"), ...])
             values = metr.loc[:, (metric, models)]  # Use tuple to get (metric, modelX)
             values.columns = models  # Flatten columns for plotting
-            columns = values.columns.tolist()
-
+            columns = values.columns.tolist()            
         else:
             raise ValueError("Invalid mode or missing model list for 'models' mode")
 
@@ -1450,9 +1432,9 @@ def scatter(
             gdf_shapefile.plot(ax=ax, edgecolor='black', facecolor="None", linewidth=0.5)
 
             # Plot metric values
-            legend_label = f"{col}" if mode == "models" else f"{metric} {mode}"
+            legend_label = f"{col}" if mode == "models" else f"{metric} (median)"
             gdf_points.plot(ax=ax, column=col, cmap=cmap, vmin=vmin, vmax=vmax,
-                            legend=True, markersize=40, label="Stations",
+                            legend=True, markersize=40, label=legend_label,
                             legend_kwds={'label': legend_label, "orientation": "vertical"})
 
             _finalize_plot(ax, grid, labels, title, "shapefile-plot", idx)
@@ -1682,7 +1664,7 @@ def qqplot(
 
         # Save or auto-save for large column counts
         auto_save = len(obs.columns) > 5
-        _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "qqplot", len(obs.columns))  
+        _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "qqplot")  
 
 
 def flow_duration_curve(
@@ -1874,6 +1856,6 @@ def flow_duration_curve(
     
             # Save or auto-save for large column counts
             auto_save = len(obs.columns) > 5
-            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "fdc-plot", len(obs.columns)) 
+            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "fdc-plot") 
 
 
