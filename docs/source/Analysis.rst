@@ -45,4 +45,4 @@ The data is aggregated by Julian date to compute the mean streamflow for each da
 Key hydrological metrics (TtCoM, TtP, Spring Pulse Onset) are computed for the median values. The results are visualized using filled plots to highlight variability and central tendency, with annotations showing the calculated metrics and their differences relative to the baseline period.
 
 
-If you have any comments, please reach out to Uchechukwu UDENZE at uchechukwu.udenze@ec.gc.ca or Fuad Yassin at fuad.yassin@ec.gc.ca.
+If you have any comments, please reach out to Uchechukwu UDENZE at uchechukwu.udenze@ec.gc.ca or Fuad Yassin at fuad.yassin@usask.ca.
