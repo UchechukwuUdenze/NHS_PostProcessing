@@ -218,7 +218,7 @@ def fcst_times_from_wms(
     # create a list of ISO formatted forecast datetime strings
     fcasthrs = [datetime.strftime(hr, iso_format) for hr in hrs]
 
-    return latest_fcast, fcasthrs
+    return oldest_fcast, latest_fcast, fcasthrs
 
 
 # def fcst_times_from_wms(
@@ -538,7 +538,7 @@ def main(
     stns = stns_on_grid(stn_locs_file) 
 
     # fetch time steps from the latest forecast from GeoMet's Web Map Service
-    latest_fcast, fcst_dtimes = fcst_times_from_wms(
+    oldest_fcast, latest_fcast, fcst_dtimes = fcst_times_from_wms(
         layer_name=layer_name, 
         username=username, 
         password=password
@@ -599,16 +599,22 @@ def main(
             lon=lon, 
             method='nearest'
         )
+        # print(strflw)
+        # print("\n")
 
         # store streamflow in dataframe
         df = strflw.to_dataframe()
+        # print(df)
+        # print("\n")
         
         # dropping unneeded information
         df = df.drop(['crs', 'lat', 'lon'], axis=1) 
-        df = df.rename(columns={'Band1': stn})
+        df = df.rename(columns={'RiverDischarge': f"{stn}_sim"})
 
         # append the forecasts for this station to the big DataFrame
         data = pd.concat([data, df], axis=1)
+        # print(data)
+        # print("\n")
 
         logger.info(
             f"Finished forecast queries for station: {stn}; iteration: {i}"

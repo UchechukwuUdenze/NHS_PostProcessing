@@ -207,6 +207,7 @@ def plot(
     merged_df: pd.DataFrame = None, 
     df: pd.DataFrame = None, 
     sim_df: pd.DataFrame = None,
+    step: bool = False,
     legend: tuple[str, str] = ('Data',), 
     metrices: list[str] = None,
     mode:str = 'median',
@@ -247,6 +248,9 @@ def plot(
 
     df : pd.DataFrame, optional
         A Single DataFrame usually containing only one of either simulated or observed data... or any data.
+    
+    step : bool, optional
+        Whether to plot the data as a step plot. Default is False, which plots a regular line plot.
 
     legend : tuple of str, optional
         A tuple containing the labels for the data being plotted
@@ -428,7 +432,13 @@ def plot(
         for i in range (0, len(line_df.columns)) if isinstance(line_df, pd.DataFrame) else range (0, len(line_df)):
             # Plotting the Data     
             fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
-            ax.plot(time, line_df.iloc[:, i], linestyles[0], label=legend[0], linewidth = linewidth[0])
+            color, style = parse_linestyle(linestyles[0])  # parse once for df
+            if step:
+                ax.step(time, line_df.iloc[:, i], where='pre', color=color, linestyle=style,
+                        label=legend[0], linewidth=linewidth[0])
+            else:
+                ax.plot(time, line_df.iloc[:, i], color=color, linestyle=style,
+                        label=legend[0], linewidth=linewidth[0])
 
             if padding:
                 plt.xlim(time[0], time[-1])
@@ -441,12 +451,21 @@ def plot(
             # Plotting the Data     
             fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
             if obs is not None:                
-                ax.plot(time, obs.iloc[:, i], color = eval(linestyles[0][:-1]) if linestyles[0][:-1].startswith("(") else linestyles[0][:-1], 
-                        linestyle = linestyles[0][-1],label=legend[0], linewidth = linewidth[0])
+                color, style = parse_linestyle(linestyles[0])
+                if step:
+                    ax.step(time, obs.iloc[:, i], where='pre', color=color, linestyle=style,
+                            label=legend[0], linewidth=linewidth[0])
+                else:
+                    ax.plot(time, obs.iloc[:, i], color=color, linestyle=style,
+                            label=legend[0], linewidth=linewidth[0])
             for j in range(1, num_sim+1):
                 color, style = parse_linestyle(linestyles[j])  # Parse the first linestyle for simulated data
-                ax.plot(time, sims[f"sim_{j}"].iloc[:, i], color = color,
-                        linestyle = style, label=legend[j], linewidth = linewidth[j])            
+            if step:
+                ax.step(time, sims[f"sim_{j}"].iloc[:, i], where='pre', color=color,
+                        linestyle=style, label=legend[j], linewidth=linewidth[j])
+            else:
+                ax.plot(time, sims[f"sim_{j}"].iloc[:, i], color=color,
+                        linestyle=style, label=legend[j], linewidth=linewidth[j])           
             if padding:
                 plt.xlim(time[0], time[-1])
             _finalize_plot(ax, grid, labels, title, "plot", i)
@@ -495,12 +514,13 @@ def bounded_plot(
     extra_lines: List[pd.DataFrame] = None,
     upper_bounds: List[pd.DataFrame] = None,
     lower_bounds: List[pd.DataFrame] = None,
+    step: bool = False,
     bound_legend: List[str] = None,
     legend: Tuple[str, str] = None,
     grid: bool = False,
     title: Union[str, List[str]] = None,
     labels: Tuple[str, str] = None,
-    linestyles: Tuple[str, str] = ('m-',),
+    linestyles: Tuple[str, str] = ('r-',),
     padding: bool = False,
     fig_size: Tuple[float, float] = (10, 6),
     metrices: List[str] = None,
@@ -537,6 +557,12 @@ def bounded_plot(
         - legend[0]
         - colors[0], etc.
         Take note of this when plotting.  
+
+    step : bool, optional
+        Whether to plot the data as a step plot. Default is False, which plots a regular line plot.
+    
+    bound_legend : list of str, optional
+        A list containing the labels for the upper and lower bounds.
 
     legend : tuple of str, optional
         A tuple containing the labels for the simulated and observed data, default is ('Simulated Data', 'Observed Data').
@@ -709,14 +735,24 @@ def bounded_plot(
         # Plot extra lines (if any), column i
         if extra_lines:
             for extra_line in extra_lines:
-                ax.plot(
-                    extra_line.index,
-                    extra_line.iloc[:, i],
-                    color =  eval(linestyles[0][:-1]) if linestyles[0][:-1].startswith("(") else linestyles[0][:-1], 
-                    linestyle='--',
-                    label=legend[0] if legend else "Extra Line",
-                    linewidth=1.5
-                )
+                if step:
+                    ax.step(
+                        extra_line.index,
+                        extra_line.iloc[:, i],
+                        color =  eval(linestyles[0][:-1]) if linestyles[0][:-1].startswith("(") else linestyles[0][:-1], 
+                        linestyle='--',
+                        label=legend[0] if legend else "Extra Line",
+                        linewidth=1.5
+                    )
+                else:
+                    ax.plot(
+                        extra_line.index,
+                        extra_line.iloc[:, i],
+                        color =  eval(linestyles[0][:-1]) if linestyles[0][:-1].startswith("(") else linestyles[0][:-1], 
+                        linestyle='--',
+                        label=legend[0] if legend else "Extra Line",
+                        linewidth=1.5
+                    )
 
         # Plot each main line and its bounds
         for line_index, line in enumerate(lines):
@@ -725,30 +761,44 @@ def bounded_plot(
             
             color, style = parse_linestyle(linestyles[line_index+1] if extra_lines else linestyles[line_index])
             
-            ax.plot(
-                line.index,
-                line.iloc[:, i],
-                color = color, 
-                linestyle = style,
-                label = (
-                        legend[line_index+1] if legend and extra_lines
-                        else legend[line_index] if legend
-                        else f"Line {line_index+1}"
-                    ),
-                linewidth=1.5
-            )
+            if step:
+                ax.step(
+                    line.index,
+                    line.iloc[:, i],
+                    color = color, 
+                    linestyle = style,
+                    label = (
+                            legend[line_index+1] if legend and extra_lines
+                            else legend[line_index] if legend
+                            else f"Line {line_index+1}"
+                        ),
+                    linewidth=1.5
+                )
+            else:
+                ax.plot(
+                    line.index,
+                    line.iloc[:, i],
+                    color = color, 
+                    linestyle = style,
+                    label = (
+                            legend[line_index+1] if legend and extra_lines
+                            else legend[line_index] if legend
+                            else f"Line {line_index+1}"
+                        ),
+                    linewidth=1.5
+                )
 
             upper_obs = _prepare_bounds(upper_bounds, line_index, i)
             lower_obs = _prepare_bounds(lower_bounds, line_index, i)
 
-            for j in range(len(upper_obs)):
+            for upper_index, upper in enumerate(upper_obs):
                 ax.fill_between(
                     line.index,
-                    lower_obs[j],
-                    upper_obs[j],
+                    lower_obs[upper_index],
+                    upper,
                     alpha=transparency[line_index],
                     color = color,
-                    label=bound_legend[line_index] if bound_legend and line_index < len(bound_legend) else None
+                    label=bound_legend[upper_index] if bound_legend and line_index < len(bound_legend) else None
                 )
 
             # Add single metrics calculation if requested
