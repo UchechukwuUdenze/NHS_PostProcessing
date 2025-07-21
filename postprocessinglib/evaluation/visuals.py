@@ -178,7 +178,7 @@ def _prepare_bounds(bounds, line_index, column_index):
     line_bounds = bounds[line_index]  # List of DataFrames for this line
     return [b.iloc[:, column_index] for b in line_bounds]
 
-def _finalize_plot(ax, grid, labels, title, name, i):
+def _finalize_plot(ax, grid, minor_grid, labels, title, name, i):
     """
     Finalizes the plot by setting labels, title, and grid options.
     """
@@ -200,7 +200,12 @@ def _finalize_plot(ax, grid, labels, title, name, i):
             ax.set_title(label=title, fontdict=title_dict, pad=25)
 
     if grid:
-        plt.grid(True) 
+        plt.grid(True, which='major') 
+
+    if minor_grid:
+        plt.minorticks_on()
+        ax.grid(which='minor', linewidth='0.5', color='gray')
+        
 
 
 def plot(
@@ -212,7 +217,8 @@ def plot(
     metrices: list[str] = None,
     mode:str = 'median',
     models:List[str] = None,
-    grid: bool = False, 
+    grid: bool = False,
+    minor_grid: bool = False, 
     title: str = None, 
     labels: list[str] = None, 
     padding: bool = False,
@@ -260,6 +266,9 @@ def plot(
 
     grid : bool, optional
         Whether to display a grid on the plot, default is False.
+    
+    minor_grid : bool, optional
+        Whether to display a minor grid on the plot, default is False.
 
     title : str, optional
         The title of the plot.
@@ -442,7 +451,7 @@ def plot(
 
             if padding:
                 plt.xlim(time[0], time[-1])
-            _finalize_plot(ax, grid, labels, title, "plot", i)
+            _finalize_plot(ax, grid, minor_grid, labels, title, "plot", i)
             auto_save = len(line_df.columns) > 5
             _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "plot")
     else:
@@ -453,22 +462,22 @@ def plot(
             if obs is not None:                
                 color, style = parse_linestyle(linestyles[0])
                 if step:
-                    ax.step(time, obs.iloc[:, i], where='pre', color=color, linestyle=style,
+                    ax.step(time, obs.iloc[:, i], where='post', color=color, linestyle=style,
                             label=legend[0], linewidth=linewidth[0])
                 else:
                     ax.plot(time, obs.iloc[:, i], color=color, linestyle=style,
                             label=legend[0], linewidth=linewidth[0])
             for j in range(1, num_sim+1):
                 color, style = parse_linestyle(linestyles[j])  # Parse the first linestyle for simulated data
-            if step:
-                ax.step(time, sims[f"sim_{j}"].iloc[:, i], where='pre', color=color,
-                        linestyle=style, label=legend[j], linewidth=linewidth[j])
-            else:
-                ax.plot(time, sims[f"sim_{j}"].iloc[:, i], color=color,
-                        linestyle=style, label=legend[j], linewidth=linewidth[j])           
+                if step:
+                    ax.step(time, sims[f"sim_{j}"].iloc[:, i], where='post', color=color,
+                            linestyle=style, label=legend[j], linewidth=linewidth[j])
+                else:
+                    ax.plot(time, sims[f"sim_{j}"].iloc[:, i], color=color,
+                            linestyle=style, label=legend[j], linewidth=linewidth[j])           
             if padding:
                 plt.xlim(time[0], time[-1])
-            _finalize_plot(ax, grid, labels, title, "plot", i)
+            _finalize_plot(ax, grid, minor_grid, labels, title, "plot", i)
 
             # Placing Metrics on the Plot if requested
             if obs is not None and metrices:
@@ -518,6 +527,7 @@ def bounded_plot(
     bound_legend: List[str] = None,
     legend: Tuple[str, str] = None,
     grid: bool = False,
+    minor_grid: bool = False,
     title: Union[str, List[str]] = None,
     labels: Tuple[str, str] = None,
     linestyles: Tuple[str, str] = ('r-',),
@@ -569,6 +579,9 @@ def bounded_plot(
 
     grid : bool, optional
         Whether to display a grid on the plot, default is False.
+
+    minor_grid : bool, optional
+        Whether to display a minor grid on the plot, default is False.
 
     title : str, optional
         The title of the plot.
@@ -712,18 +725,18 @@ def bounded_plot(
 
     # Available line styles
     # Generate colors dynamically using Matplotlib colormap
-    cmap = plt.cm.get_cmap("tab10", len(lines)+1)  # +1 for extra line
-    colors = [cmap(i) for i in range(len(lines)+1)]
+    cmap = plt.cm.get_cmap("tab10", len(lines)+len(extra_lines) if extra_lines else len(lines))  # +1 for extra line
+    colors = [cmap(i) for i in range(len(lines)+len(extra_lines) if extra_lines else len(lines))]
     # base_linestyles = ["-", "--", "-.", ":"]
-    style = ('-',) * (len(lines)+1) # default to solid lines unless overwritten
+    style = ('-',) * (len(lines)+len(extra_lines) if extra_lines else len(lines)) # default to solid lines unless overwritten
 
     # Generate linestyles dynamically
-    if len(linestyles) < (len(lines)+1 if extra_lines else len(lines)):
+    if len(linestyles) < (len(lines)+len(extra_lines) if extra_lines else len(lines)):
         print("Number of linestyles provided is less than the minimum required. "
-                "Number of Lines : " + str(len(lines)+ 1 if extra_lines else len(lines)) + ". Number of linestyles provided is: ", str(len(linestyles)) +
+                "Number of Lines : " + str(len(lines)+ len(extra_lines) if extra_lines else len(lines)) + ". Number of linestyles provided is: ", str(len(linestyles)) +
                 ". Defaulting to solid lines (-)")
         linestyles = linestyles + tuple(f"{colors[i % len(colors)]}{style[i % len(style)]}" 
-                        for i in range(len(lines)+1 if extra_lines else len(lines)))
+                        for i in range(len(lines)+len(extra_lines) if extra_lines else len(lines)))
 
     # Plotting
     num_columns = lines[0].shape[1]  # all lines have same number of columns
@@ -734,23 +747,26 @@ def bounded_plot(
 
         # Plot extra lines (if any), column i
         if extra_lines:
-            for extra_line in extra_lines:
+            # z = 0 # Just to avoid erroring out if extra_lines is None
+            for z, extra_line in enumerate(extra_lines):
                 if step:
                     ax.step(
                         extra_line.index,
                         extra_line.iloc[:, i],
-                        color =  eval(linestyles[0][:-1]) if linestyles[0][:-1].startswith("(") else linestyles[0][:-1], 
-                        linestyle='--',
-                        label=legend[0] if legend else "Extra Line",
+                        color =  eval(linestyles[z][:-1]) if linestyles[z][:-1].startswith("(") else linestyles[z][:-1], 
+                        # linestyle='--',
+                        linestyle=linestyles[z][-1],
+                        label=legend[z] if legend else "Extra Line",
                         linewidth=1.5
                     )
                 else:
                     ax.plot(
                         extra_line.index,
                         extra_line.iloc[:, i],
-                        color =  eval(linestyles[0][:-1]) if linestyles[0][:-1].startswith("(") else linestyles[0][:-1], 
-                        linestyle='--',
-                        label=legend[0] if legend else "Extra Line",
+                        color =  eval(linestyles[z][:-1]) if linestyles[z][:-1].startswith("(") else linestyles[z][:-1], 
+                        # linestyle='--',
+                        linestyle=linestyles[z][-1],
+                        label=legend[z] if legend else "Extra Line",
                         linewidth=1.5
                     )
 
@@ -759,7 +775,7 @@ def bounded_plot(
             if not isinstance(line, pd.DataFrame):
                 raise ValueError("All items in 'lines' must be a DataFrame.")
             
-            color, style = parse_linestyle(linestyles[line_index+1] if extra_lines else linestyles[line_index])
+            color, style = parse_linestyle(linestyles[line_index+z+1] if extra_lines else linestyles[line_index])
             
             if step:
                 ax.step(
@@ -768,7 +784,7 @@ def bounded_plot(
                     color = color, 
                     linestyle = style,
                     label = (
-                            legend[line_index+1] if legend and extra_lines
+                            legend[line_index+z+1] if legend and extra_lines
                             else legend[line_index] if legend
                             else f"Line {line_index+1}"
                         ),
@@ -781,7 +797,7 @@ def bounded_plot(
                     color = color, 
                     linestyle = style,
                     label = (
-                            legend[line_index+1] if legend and extra_lines
+                            legend[line_index+z+1] if legend and extra_lines
                             else legend[line_index] if legend
                             else f"Line {line_index+1}"
                         ),
@@ -848,7 +864,7 @@ def bounded_plot(
         if padding:
             plt.xlim(lines[0].index[0], lines[0].index[-1])
 
-        _finalize_plot(ax, grid, labels, title, "bounded-plot", i)
+        _finalize_plot(ax, grid, minor_grid, labels, title, "bounded-plot", i)
 
         auto_save = num_columns > 5
         _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "bounded-plot")
@@ -869,6 +885,7 @@ def histogram(
     title: str = None,
     labels: Tuple[str, str] = ('Value', 'Frequency'),
     grid: bool = False,
+    minor_grid: bool = False,
     save: bool = False,
     save_as: str = None,
     dir: str = os.getcwd()
@@ -918,6 +935,9 @@ def histogram(
 
     grid: bool
         If True, adds a grid to the plot.
+
+    minor_grid: bool
+        If True, adds a minor grid to the plot.
 
     title: str
         If given, sets the title of the plot.
@@ -1037,7 +1057,7 @@ def histogram(
                 density=prob_dens)
             plt.legend(labels=[legend[1],legend[0]], loc='best')
 
-        _finalize_plot(ax, grid, labels, title, "histogram", i)
+        _finalize_plot(ax, grid, minor_grid, labels, title, "histogram", i)
 
         # Save or auto-save for large column counts
         auto_save = len(obs.columns) > 5
@@ -1046,6 +1066,7 @@ def histogram(
 
 def scatter(
   grid: bool = False, 
+  minor_grid: bool = False,
   title: str = None, 
   legend: tuple[str, str] = None,
   labels: tuple[str, str] = ('Simulated Data', 'Observed Data'),
@@ -1092,6 +1113,9 @@ def scatter(
     ----------
     grid : bool, optional
         Whether to display a grid on the plot, default is False.
+
+    minor_grid : bool, optional
+        Whether to display a minor grid on the plot, default is False.
 
     title : str, optional
         The title of the plot.
@@ -1340,7 +1364,7 @@ def scatter(
             if best_fit or line45:
                 ax.legend(fontsize=12)
             
-            _finalize_plot(ax, grid, labels, title, "scatter-plot", i)               
+            _finalize_plot(ax, grid, minor_grid, labels, title, "scatter-plot", i)               
 
             # Placing Metrics on the Plot if requested
             if metrices:
@@ -1437,7 +1461,7 @@ def scatter(
                             legend=True, markersize=40, label=legend_label,
                             legend_kwds={'label': legend_label, "orientation": "vertical"})
 
-            _finalize_plot(ax, grid, labels, title, "shapefile-plot", idx)
+            _finalize_plot(ax, grid, minor_grid, labels, title, "shapefile-plot", idx)
         
             # Save or auto-save for large column counts
             _save_or_display_plot(fig, save, save_as, dir, i=idx, type="shapefile-plot")
@@ -1445,6 +1469,7 @@ def scatter(
 
 def qqplot(
     grid: bool = False, 
+    minor_grid: bool = False,
     title: str = None, 
     labels: tuple[str, str] = None, 
     fig_size: tuple[float, float] = (10, 6),
@@ -1474,6 +1499,9 @@ def qqplot(
     ----------
     grid : bool, optional
         Whether to display a grid on the plot, default is False.
+    
+    minor_grid : bool, optional
+        Whether to display a minor grid on the plot, default is False.
 
     title : str, optional
         The title of the plot.
@@ -1660,7 +1688,7 @@ def qqplot(
             ax.plot(msim, mobs, linestyle=linestyle[1][1:], label=q_labels[0], linewidth=linewidth[0], color=adjusted_color)
             ax.plot(quant_sim, quant_obs, linestyle=linestyle[2][1], label=q_labels[1], marker='o', markerfacecolor='w', linewidth=linewidth[1], color=adjusted_color)
 
-        _finalize_plot(ax, grid, labels, title, "qqplot", i)
+        _finalize_plot(ax, grid, minor_grid, labels, title, "qqplot", i)
 
         # Save or auto-save for large column counts
         auto_save = len(obs.columns) > 5
@@ -1672,7 +1700,8 @@ def flow_duration_curve(
     sim_df: pd.DataFrame = None,
     df: pd.DataFrame = None, 
     legend: tuple[str, str] = ('Data',), 
-    grid: bool = False, 
+    grid: bool = False,
+    minor_grid: bool = False, 
     title: str = None, 
     labels: tuple[str, str] = ('Exceedance Probability (%)', 'Flow'),
     linestyles: tuple[str, str] = ('r-',), 
@@ -1707,6 +1736,9 @@ def flow_duration_curve(
 
     grid : bool, optional
         Whether to display a grid on the plot. Defaults to False.
+    
+    minor_grid : bool, optional
+        Whether to display a minor grid on the plot. Defaults to False.
 
     title : str, optional
         Title of the plot. If not provided, no title will be displayed.
@@ -1831,7 +1863,7 @@ def flow_duration_curve(
             exceedance_prob = np.linspace(0, 100, len(line_df_sorted))
             ax.plot(exceedance_prob, line_df_sorted, linestyles[0], label=legend[0], linewidth=linewidth[0])
 
-            _finalize_plot(ax, grid, labels, title, "fdc-plot", i)
+            _finalize_plot(ax, grid, minor_grid, labels, title, "fdc-plot", i)
             
             # Save or auto-save for large column counts
             auto_save = len(obs.columns) > 5
@@ -1852,7 +1884,7 @@ def flow_duration_curve(
                 ax.plot(exceedance_prob, sim_sorted, color = eval(linestyles[j][:-1]) if linestyles[j][:-1].startswith("(") else linestyles[j][:-1],
                         linestyle = linestyles[j][-1], label=legend[j], linewidth = linewidth[j])            
 
-            _finalize_plot(ax, grid, labels, title, "fdc-plot", i)
+            _finalize_plot(ax, grid, minor_grid, labels, title, "fdc-plot", i)
     
             # Save or auto-save for large column counts
             auto_save = len(obs.columns) > 5
