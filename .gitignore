@@ -17,3 +17,6 @@ docs/build/
 TEST.py
 postprocessinglib/config.cfg
 LineUncerCCPlotFlow 1.ipynb
+venv/
+grand*
+Analysis.ipynb
