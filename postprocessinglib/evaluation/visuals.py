@@ -213,6 +213,7 @@ def plot(
     df: pd.DataFrame = None, 
     sim_df: pd.DataFrame = None,
     step: bool = False,
+    where: str = 'pre',
     legend: tuple[str, str] = ('Data',), 
     metrices: list[str] = None,
     mode:str = 'median',
@@ -257,6 +258,9 @@ def plot(
     
     step : bool, optional
         Whether to plot the data as a step plot. Default is False, which plots a regular line plot.
+
+    where : str, optional
+        The location of the step in the step plot. Default is 'pre', which means the step occurs before the x value.
 
     legend : tuple of str, optional
         A tuple containing the labels for the data being plotted
@@ -443,7 +447,7 @@ def plot(
             fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
             color, style = parse_linestyle(linestyles[0])  # parse once for df
             if step:
-                ax.step(time, line_df.iloc[:, i], where='pre', color=color, linestyle=style,
+                ax.step(time, line_df.iloc[:, i], where=where, color=color, linestyle=style,
                         label=legend[0], linewidth=linewidth[0])
             else:
                 ax.plot(time, line_df.iloc[:, i], color=color, linestyle=style,
@@ -462,7 +466,7 @@ def plot(
             if obs is not None:                
                 color, style = parse_linestyle(linestyles[0])
                 if step:
-                    ax.step(time, obs.iloc[:, i], where='post', color=color, linestyle=style,
+                    ax.step(time, obs.iloc[:, i], where=where, color=color, linestyle=style,
                             label=legend[0], linewidth=linewidth[0])
                 else:
                     ax.plot(time, obs.iloc[:, i], color=color, linestyle=style,
@@ -470,7 +474,7 @@ def plot(
             for j in range(1, num_sim+1):
                 color, style = parse_linestyle(linestyles[j])  # Parse the first linestyle for simulated data
                 if step:
-                    ax.step(time, sims[f"sim_{j}"].iloc[:, i], where='post', color=color,
+                    ax.step(time, sims[f"sim_{j}"].iloc[:, i], where=where, color=color,
                             linestyle=style, label=legend[j], linewidth=linewidth[j])
                 else:
                     ax.plot(time, sims[f"sim_{j}"].iloc[:, i], color=color,
@@ -524,6 +528,7 @@ def bounded_plot(
     upper_bounds: List[pd.DataFrame] = None,
     lower_bounds: List[pd.DataFrame] = None,
     step: bool = False,
+    where: str = 'pre',
     bound_legend: List[str] = None,
     legend: Tuple[str, str] = None,
     grid: bool = False,
@@ -570,6 +575,9 @@ def bounded_plot(
 
     step : bool, optional
         Whether to plot the data as a step plot. Default is False, which plots a regular line plot.
+
+    where : str, optional
+        The location of the step in the step plot. Default is 'pre', which means the step occurs before the x value.
     
     bound_legend : list of str, optional
         A list containing the labels for the upper and lower bounds.
@@ -757,7 +765,8 @@ def bounded_plot(
                         # linestyle='--',
                         linestyle=linestyles[z][-1],
                         label=legend[z] if legend else "Extra Line",
-                        linewidth=1.5
+                        linewidth=1.5,
+                        where=where,
                     )
                 else:
                     ax.plot(
@@ -788,7 +797,8 @@ def bounded_plot(
                             else legend[line_index] if legend
                             else f"Line {line_index+1}"
                         ),
-                    linewidth=1.5
+                    linewidth=1.5,
+                    where=where,
                 )
             else:
                 ax.plot(
