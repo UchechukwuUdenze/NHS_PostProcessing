@@ -800,7 +800,7 @@ def bias(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.DataFram
 
         for k, sim in enumerate(simulated):
             sim_values = sim.loc[valid_observed.index].iloc[:, j]
-            numerator = np.sum(obs_values - sim_values)
+            numerator = np.sum(sim_values - obs_values)
             denominator = np.sum(obs_values)
 
             pbias_val = 100 * numerator / denominator if denominator != 0 else np.nan
