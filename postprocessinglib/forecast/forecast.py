@@ -459,6 +459,7 @@ def stns_on_grid(
         df = pd.DataFrame(rows, columns=['id', 'lat', 'lon'])
         df = df.set_index('id')
 
+    # print("Stations on grid:\n", df)
     return df
 
 
@@ -493,6 +494,7 @@ def find_stn_target_gridcell(
     closest_lon_idx = (np.abs(ds.lon.data - nsrps_lon)).argmin()
     lon = ds.lon.data[closest_lon_idx]
     
+    # print("Closest lat and lon values", lat, lon)
     return lat, lon
 
 
@@ -554,6 +556,10 @@ def main(
     # create empty dataframe to store forecast data for stations
     data = pd.DataFrame([])
 
+    # dictionary to store the closest lat / lon coordinates for each station
+    # these are the coordinates of the grid cell that is closest to the station's
+    closest_coords = {}
+
     for i, stn in enumerate(stn_list):
 
         # "model world" coordinates extracted with nsrps_stns_to_geojson.py
@@ -590,6 +596,9 @@ def main(
         # find the lat / lot corresponding to the target grid cell's indices
         lat, lon = find_stn_target_gridcell(ds, lat_nsrps, lon_nsrps)
 
+        # Added here just to test the actual vs closest lat / lon values
+        closest_coords[stn] = (lat, lon)
+
         # extract the streamflow at the station of interest
         # note: using NSRPS lat / lon to `select` streamflow from target cell
         # is not always reliable b/c NSRPS lat / lons are not always co-located
@@ -619,6 +628,7 @@ def main(
         logger.info(
             f"Finished forecast queries for station: {stn}; iteration: {i}"
         )
+    # return data, closest_coords, stns
     return data
 
 
@@ -634,20 +644,23 @@ if __name__ == '__main__':
     nfl_stns = [
         # '02ZB001',
         # '02YJ001',
-        '02YK002',
+        '05GG001',
         # '02YL003',
         # '02YL001',
         # '02YK005',
         # '02YL008',
-        '02YC001',
+        '05CC002',
+        '05AC003'
     ]
+    # nfl_stns = ['05AA024', '05AC003', '05AD007', '05AG006', '05AJ001', '05BB001', '05BG010', '05BH004', '05BL024', '05BN012', '05CA009', '05CB001', '05CC002', '05CE001', '05CK004', '05DB006', '05DC001', '05DF001', '05EF001', '05FA001', '05FE004', '05GG001', '05HD039', '05HG001', '05KD003', '05KJ001']
 
+    # data, closest_coords, stns = main(
     data = main(
         # auth_path='config.cfg',
         auth_path='../config.cfg',
         stn_list=nfl_stns,
         layer_name=layer_name, 
-        stn_locs_file='nsrps_model_stn_locs.json'
+        stn_locs_file='available_stations.json'
     )
     
     # sanity check that the flows look reasonable
@@ -657,8 +670,19 @@ if __name__ == '__main__':
         # f"First 5 rows of forecasted streamflow: \n {data.head()}"
         # f"\nFirst 20 rows of forecasted streamflow: \n {data.iloc[:20]}"
         f"\nForecasted streamflow: \n {data}"
+        # f"\nForecasted streamflow: \n {data.tail(40)}"
 
     )
+    # logger.info(
+    #         f"\nComparing Actual Lat Lon from JSON file and closest lat lon from WCS: \n"
+    # )
+    # for stn in nfl_stns:
+    #     clat, clon = closest_coords[stn]
+    #     logger.info(
+    #         f"Station {stn}:\n"
+    #         f"Actual Lat: {stns.loc[stn]['lat']}, Actual Lon: {stns.loc[stn]['lon']}\n"
+    #         f"Closest Lat: {clat}, Closest Lon: {clon}\n"
+    # )
 
 
 # def main(
