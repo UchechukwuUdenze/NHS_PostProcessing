@@ -50,4 +50,18 @@ Key hydrological metrics (TtCoM, TtP, Spring Pulse Onset) are computed for the m
 Forecast_Analysis
 -----------------
 
+.. toctree::
+   :maxdepth: 1
+
+   notebooks/Forecast_Analysis.ipynb
+
+
+
+Multimodel_Analysis
+-------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   notebooks/Multimodel_Analysis.ipynb
 If you have any comments, please reach out to Uchechukwu UDENZE at uchechukwu.udenze@ec.gc.ca or Fuad Yassin at fuad.yassin@usask.ca.
