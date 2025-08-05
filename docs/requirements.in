@@ -8,3 +8,4 @@ geopandas
 shapely
 openpyxl
 ipykernel
+owslib
