@@ -515,7 +515,7 @@ def lognse(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.DataFr
 
 
 def kge(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.DataFrame]],
-            stations: list[int]=[], scale: list[float]=[1. ,1. ,1.]) -> float:
+            stations: list[int]=[], scale: list[float]=[1. ,1. ,1.], return_kge_components: bool = False) -> pd.DataFrame:
     """ Calculates the Kling-Gupta Efficiency of the data
 
     Parameters
@@ -530,7 +530,10 @@ def kge(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.DataFrame
     scale: list[float, float, float]
             Scale factor for correlation[0], alpha[1], and beta[2] components 
             in the calculation of KGE
-
+    return_components : bool, default False
+        If True, returns a MultiIndex DataFrame with (KGE, r, alpha, beta) x (model#).
+        If False, returns the original KGE-only DataFrame (backward compatible).
+        
     Returns
     -------
     pd.DataFrame:
@@ -585,7 +588,12 @@ def kge(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.DataFrame
 
     stations_to_process = [s - 1 for s in stations] if stations else list(range(observed.shape[1]))
     kge_results = {}
-
+    # Component mode containers
+    if return_kge_components:
+        rows = []
+        station_names = []
+        metrics_top = ["KGE", "r", "alpha", "beta"]
+        model_names = [f"model{i+1}" for i in range(len(simulated))]
     for j in stations_to_process:
         valid_observed = hlp.filter_valid_data(observed, station_num=j)
         obs_values = valid_observed.iloc[:, j]
@@ -593,6 +601,7 @@ def kge(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.DataFrame
         std_obs = obs_values.std(ddof=1)
 
         station_kge = {}
+        row = {} if return_kge_components else None
         for k, sim in enumerate(simulated):
             sim_values = sim.loc[valid_observed.index].iloc[:, j]
             mean_sim = sim_values.mean()
@@ -610,11 +619,32 @@ def kge(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.DataFrame
                 (scale[1] * (a - 1)) ** 2 +
                 (scale[2] * (b - 1)) ** 2
             )
-            station_kge[f"model{k+1}"] = hlp.sig_figs(kge_val, 4)
+            model_key = f"model{k+1}"
+            station_kge[model_key] = hlp.sig_figs(val, 4)
+            if return_kge_components:
+                row[("KGE",   model_key)] = hlp.sig_figs(val, 4)
+                row[("r",     model_key)] = hlp.sig_figs(r, 4)
+                row[("alpha", model_key)] = hlp.sig_figs(a, 4)
+                row[("beta",  model_key)] = hlp.sig_figs(b, 4)
 
         kge_results[f"Station {j+1}"] = station_kge
+        
+        if return_kge_components:
+            # Ensure all tuples present
+            for m in metrics_top:
+                for mod in model_names:
+                    row.setdefault((m, mod), np.nan)
+            rows.append(row)
+            station_names.append(f"Station {j+1}")
+            
+    if not return_kge_components:
+        return pd.DataFrame(kge_results).T
 
-    return pd.DataFrame(kge_results).T
+    # Build multiindex columns
+    multi_cols = pd.MultiIndex.from_tuples(list(rows[0].keys()), names=["metric", "model"]) if rows else \
+                 pd.MultiIndex.from_product([["KGE", "r", "alpha", "beta"], [f"model{i+1}" for i in range(len(simulated))]],
+                                            names=["metric", "model"])
+    return pd.DataFrame(rows, index=station_names, columns=multi_cols)
 
 
 def kge_2012(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.DataFrame]],
