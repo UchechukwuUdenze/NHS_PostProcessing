@@ -620,9 +620,9 @@ def kge(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.DataFrame
                 (scale[2] * (b - 1)) ** 2
             )
             model_key = f"model{k+1}"
-            station_kge[model_key] = hlp.sig_figs(val, 4)
+            station_kge[model_key] = hlp.sig_figs(kge_val, 4)
             if return_kge_components:
-                row[("KGE",   model_key)] = hlp.sig_figs(val, 4)
+                row[("KGE",   model_key)] = hlp.sig_figs(kge_val, 4)
                 row[("r",     model_key)] = hlp.sig_figs(r, 4)
                 row[("alpha", model_key)] = hlp.sig_figs(a, 4)
                 row[("beta",  model_key)] = hlp.sig_figs(b, 4)
@@ -760,10 +760,10 @@ def kge_2012(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.Data
                 (scale[2] * (b - 1)) ** 2
             )
             model_key = f"model{k+1}"
-            station_kge[model_key] = hlp.sig_figs(val, 4)
+            station_kge[model_key] = hlp.sig_figs(kge_val, 4)
 
             if return_kge_components:
-                row[("KGE",   model_key)] = hlp.sig_figs(val, 4)
+                row[("KGE",   model_key)] = hlp.sig_figs(kge_val, 4)
                 row[("r",     model_key)] = hlp.sig_figs(r, 4)
                 row[("alpha", model_key)] = hlp.sig_figs(a, 4)
                 row[("beta",  model_key)] = hlp.sig_figs(b, 4)
