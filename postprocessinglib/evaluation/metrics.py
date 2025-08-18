@@ -530,7 +530,7 @@ def kge(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.DataFrame
     scale: list[float, float, float]
             Scale factor for correlation[0], alpha[1], and beta[2] components 
             in the calculation of KGE
-    return_components : bool, default False
+    return_kge_components : bool, default False
         If True, returns a MultiIndex DataFrame with (KGE, r, alpha, beta) x (model#).
         If False, returns the original KGE-only DataFrame (backward compatible).
         
@@ -648,7 +648,7 @@ def kge(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.DataFrame
 
 
 def kge_2012(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.DataFrame]],
-             stations: list[int]=[], scale: list[float]=[1. ,1. ,1.], return_components: bool = False) -> pd.DataFrame:
+             stations: list[int]=[], scale: list[float]=[1. ,1. ,1.], return_kge_components: bool = False) -> pd.DataFrame:
     """ Calculates the Kling-Gupta Efficiency of the data
 
     Parameters
@@ -663,7 +663,7 @@ def kge_2012(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.Data
     scale: list[float, float, float]
             Scale factor for correlation[0], alpha[1], and beta[2] components 
             in the calculation of KGE
-    return_components : bool, default False
+    return_kge_components : bool, default False
         If True, returns a MultiIndex DataFrame with (KGE, r, alpha, beta) x (model#).
         If False, returns the original KGE-only DataFrame (backward compatible).
         
@@ -727,7 +727,7 @@ def kge_2012(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.Data
     stations_to_process = [s - 1 for s in stations] if stations else list(range(observed.shape[1]))
     kge_results = {}
 
-    if return_components:
+    if return_kge_components:
         rows = []
         station_names = []
         metrics_top = ["KGE", "r", "alpha", "beta"]
@@ -740,7 +740,7 @@ def kge_2012(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.Data
         std_obs = obs_values.std(ddof=1)
 
         station_kge = {}
-        row = {} if return_components else None
+        row = {} if return_kge_components else None
         
         for k, sim in enumerate(simulated):
             sim_values = sim.loc[valid_observed.index].iloc[:, j]
@@ -762,7 +762,7 @@ def kge_2012(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.Data
             model_key = f"model{k+1}"
             station_kge[model_key] = hlp.sig_figs(val, 4)
 
-            if return_components:
+            if return_kge_components:
                 row[("KGE",   model_key)] = hlp.sig_figs(val, 4)
                 row[("r",     model_key)] = hlp.sig_figs(r, 4)
                 row[("alpha", model_key)] = hlp.sig_figs(a, 4)
@@ -770,14 +770,14 @@ def kge_2012(observed: pd.DataFrame, simulated: Union[pd.DataFrame, List[pd.Data
 
         kge_results[f"Station {j+1}"] = station_kge
 
-        if return_components:
+        if return_kge_components:
             for m in metrics_top:
                 for mod in model_names:
                     row.setdefault((m, mod), np.nan)
             rows.append(row)
             station_names.append(f"Station {j+1}")
 
-    if not return_components:
+    if not return_kge_components:
         return pd.DataFrame(kge_results).T
 
     multi_cols = pd.MultiIndex.from_tuples(list(rows[0].keys()), names=["metric", "model"]) if rows else \
@@ -1365,8 +1365,8 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: Union[pd.DataFrame,
             it is 'metrics_out.{format}' by default
     metric_options example:
       {
-        "KGE": {"return_components": True},
-        "KGE 2012": {"return_components": True}
+        "KGE": {"return_kge_components": True},
+        "KGE 2012": {"return_kge_components": True}
       }
 
     Returns
@@ -1411,9 +1411,9 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: Union[pd.DataFrame,
         "NegNSE": lambda *args: -nse(*args),
         "LogNSE": lognse,
         "NegLogNSE": lambda *args: -lognse(*args),
-        "KGE": kge,            # will accept return_components
+        "KGE": kge,            # will accept return_kge_components
         "NegKGE": lambda *args: -kge(*args),   # remains scalar
-        "KGE 2012": kge_2012,  # will accept return_components
+        "KGE 2012": kge_2012,  # will accept return_kge_components
         "BIAS": bias,
         "AbsBIAS": lambda *args: bias(*args).abs()
     }
@@ -1423,8 +1423,8 @@ def calculate_all_metrics(observed: pd.DataFrame, simulated: Union[pd.DataFrame,
     # sim-obs metrics
     for name, func in metric_funcs.items():
         opts = _opt_for(name)
-        if name in ["KGE", "KGE 2012"] and "return_components" in opts:
-            df = func(*parameters, return_components=bool(opts["return_components"]))
+        if name in ["KGE", "KGE 2012"] and "return_kge_components" in opts:
+            df = func(*parameters, return_kge_components=bool(opts["return_kge_components"]))
         else:
             df = func(*parameters)
 
@@ -1504,8 +1504,8 @@ def calculate_metrics(observed: pd.DataFrame, simulated: Union[pd.DataFrame, Lis
     metric_options : dict | None
         Per-metric options, e.g.:
         {
-          "KGE": {"return_components": True},
-          "KGE 2012": {"return_components": True}
+          "KGE": {"return_kge_components": True},
+          "KGE 2012": {"return_kge_components": True}
         }
 
     Returns
@@ -1578,9 +1578,9 @@ def calculate_metrics(observed: pd.DataFrame, simulated: Union[pd.DataFrame, Lis
         if metric_lower in metric_funcs:
             opts = _opt_for(metric)
             for idx, (obs, sim, st) in enumerate(parameters_list):
-                # Only pass return_components to KGE flavors
-                if metric_lower in ["kge", "kge 2012"] and "return_components" in opts:
-                    result = metric_funcs[metric_lower](obs, sim, st, return_components=bool(opts["return_components"]))
+                # Only pass return_kge_components to KGE flavors
+                if metric_lower in ["kge", "kge 2012"] and "return_kge_components" in opts:
+                    result = metric_funcs[metric_lower](obs, sim, st, return_kge_components=bool(opts["return_kge_components"]))
                 else:
                     result = metric_funcs[metric_lower](obs, sim, st)
 
