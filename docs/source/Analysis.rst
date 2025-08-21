@@ -63,5 +63,7 @@ Multimodel_Analysis
 .. toctree::
    :maxdepth: 1
 
-   notebooks/Multi-Model_Analysis.ipynb
+   notebooks/MultiModel_Analysis.ipynb
+
+
 If you have any comments, please reach out to Uchechukwu UDENZE at uchechukwu.udenze@ec.gc.ca or Fuad Yassin at fuad.yassin@ec.gc.ca.
