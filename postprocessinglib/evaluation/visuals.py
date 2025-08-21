@@ -969,11 +969,10 @@ def bounded_plot(
 def histogram(
     merged_df: pd.DataFrame = None, 
     df: pd.DataFrame = None, 
-    obs_df: pd.DataFrame = None, 
     sim_df: pd.DataFrame = None,
     bins: int = 100,
     legend: Tuple[str, str] = ('Simulated Data', 'Observed Data'),
-    colors: Tuple[str, str] = ('r', 'b'),
+    colors: list[str] = ['r', 'b'],
     transparency: float = 0.6,
     z_norm=False,
     prob_dens=False,
@@ -1098,22 +1097,116 @@ def histogram(
     `JUPYTER NOTEBOOK Examples <https://github.com/UchechukwuUdenze/NHS_PostProcessing/tree/main/docs/source/notebooks/tutorial-visualizations.ipynb>`_
 
     """
+    if df is None:
+        # Get the number of simulated data columns
+        num_sim = sum(1 for col in  merged_df.columns if col[0] == merged_df.columns[0][0])-1 if merged_df is not None else sum(1 for col in  sim_df.columns if col[0] == sim_df.columns[0][0])
+        print(f"Number of simulated data columns: {num_sim}")
+        
+        # Generate colors dynamically using Matplotlib colormap
+        cmap = plt.cm.get_cmap("tab10", num_sim + 1)  # +1 for Observed
+        colors = colors + [cmap(i) for i in range(num_sim + 1)]
+            
+        # Generate Legends dynamically
+        if len(legend) < num_sim + 1:
+            print("Number of legends provided is less than the number of columns. "
+                    "Number of columns : " + str(num_sim + 1) + ". Number of legends provided is: ", str(len(legend)) +
+                    ". Applying Default legend names")
+            legend = (["Observed"] + [f"Simulated {i+1}" for i in range(num_sim)] if merged_df is not None else [f"Simulated {i+1}" for i in range(num_sim)])           
+            
+
     # Assign the data based on inputs
+    sims = {}
+    obs = None
     if merged_df is not None:
         # If merged_df is provided, separate observed and simulated data
-        obs = merged_df.iloc[:, ::2]
-        sim = merged_df.iloc[:, 1::2]
-    elif sim_df is not None and obs_df is not None:
-        # If both sim_df and obs_df are provided
-        obs = obs_df
-        sim = sim_df
+        obs = merged_df.iloc[:, ::num_sim+1]
+        for i in range(1, num_sim+1):
+            sims[f"sim_{i}"] = merged_df.iloc[:, i::num_sim+1]
+    elif sim_df is not None:
+        # If sim_df is provided, that means theres no observed.
+        for i in range(0, num_sim):
+            sims[f"sim_{i+1}"] = sim_df.iloc[:, i::num_sim]
     elif df is not None:
-        # If only df is provided, treat it as both observed and simulated data
-        obs = df # to keep the future for loop valid
-        sim = None
+        # If only df is provided, it could be either obs, simulated or just random data.
+        # obs = df # to keep the future for loop valid
         line_df = df
     else:
-        raise RuntimeError('Please provide valid data (merged_df, obs_df, sim_df, or df)')
+        raise RuntimeError('Please provide valid data (merged_df, sim_df, or df)')
+    
+    # Plotting
+    if df is not None:
+        for i in range (0, len(line_df.columns)) if isinstance(line_df, pd.DataFrame) else range (0, len(line_df)):
+            # Manipulating and generating the Data
+            if z_norm:
+                # calculating the z-score for the observed data
+                line_df.iloc[:, i] = (line_df.iloc[:, i] - line_df.iloc[:, i].mean()) / line_df.iloc[:, i].std()
+
+            # finding the mimimum and maximum z-scores
+            total_max = line_df.iloc[:, i].max()
+            total_min = line_df.iloc[:, i].min()
+
+            # creating the bins based on the max and min
+            num_bins = np.linspace(total_min - 0.01, total_max + 0.01, bins) 
+            
+            # Plotting the Data     
+            fig = plt.figure(figsize=fig_size, facecolor='w', edgecolor='k')
+            ax = fig.add_subplot(111)
+            
+            ax.hist(line_df.iloc[:, i],
+                bins=num_bins,
+                alpha=transparency,
+                label=legend[0],
+                color=colors[0],
+                edgecolor='black',
+                linewidth=0.5,
+                density=prob_dens)
+            
+            _finalize_plot(ax, grid, minor_grid, font_size, labels, title, "plot", i)
+            auto_save = len(line_df.columns) > 5
+            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "plot")
+    else:
+        # In either case of merged or sim_df, we will alwaays have simulated data, so we plot the obs first if we have it.
+        for i in range (0, len(sims["sim_1"].columns)):
+            if z_norm:
+                if obs is not None:
+                    # calculating the z-score for the observed data if any
+                    obs.iloc[:, i] = (obs.iloc[:, i] - obs.iloc[:, i].mean()) / obs.iloc[:, i].std()
+                
+                for j in range(1, num_sim+1):
+                    sim = sims[f"sim_{j}"]
+                    sim.iloc[:, i] = (sim.iloc[:, i] - sim.iloc[:, i].mean()) / sim.iloc[:, i].std()               
+
+
+
+            # finding the mimimum and maximum z-scores
+            total_max = max(obs.iloc[:, i].max(), sim.iloc[:, i].max()) if obs is not None else sim.iloc[:, i].max()
+            total_min = min(obs.iloc[:, i].min(), sim.iloc[:, i].min()) if obs is not None else sim.iloc[:, i].min()
+
+            # creating the bins based on the max and min
+            num_bins = np.linspace(total_min - 0.01, total_max + 0.01, bins)
+            
+            
+            # Plotting the Data     
+            fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
+            if obs is not None:                
+                color, style = _parse_linestyle(linestyles[0])
+                if step:
+                    ax.step(time, obs.iloc[:, i], where=where, color=color, linestyle=style,
+                            label=legend[0], linewidth=linewidth[0])
+                else:
+                    ax.plot(time, obs.iloc[:, i], color=color, linestyle=style,
+                            label=legend[0], linewidth=linewidth[0])
+            for j in range(1, num_sim+1):
+                color, style = _parse_linestyle(linestyles[j])  # Parse the first linestyle for simulated data
+                if step:
+                    ax.step(time, sims[f"sim_{j}"].iloc[:, i], where=where, color=color,
+                            linestyle=style, label=legend[j], linewidth=linewidth[j])
+                else:
+                    ax.plot(time, sims[f"sim_{j}"].iloc[:, i], color=color,
+                            linestyle=style, label=legend[j], linewidth=linewidth[j])           
+            if padding:
+                plt.xlim(time[0], time[-1])
+            _finalize_plot(ax, grid, minor_grid, font_size, labels, title, "plot", i)
     
     for i in range (0, len(obs.columns)):
         # Manipulating and generating the Data
@@ -1128,7 +1221,6 @@ def histogram(
         # finding the mimimum and maximum z-scores
         total_max = max(obs.iloc[:, i].max(), sim.iloc[:, i].max()) if sim is not None else obs.iloc[:, i].max()
         total_min = min(obs.iloc[:, i].min(), sim.iloc[:, i].min()) if sim is not None else obs.iloc[:, i].min()
-        num_bins = np.linspace(total_min - 0.01, total_max + 0.01, bins)
 
         # creating the bins based on the max and min
         num_bins = np.linspace(total_min - 0.01, total_max + 0.01, bins)    
