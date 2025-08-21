@@ -894,7 +894,7 @@ def time_to_peak(df: pd.DataFrame, stations: list[int]=[], use_jday:bool=False)-
         n = df.shape[0]
         days_per_year = 366
 
-        for station in stations:
+        for k, station in enumerate(stations):
             data = df[station].values
             tpd = 0.0
             ycount = 0
@@ -912,11 +912,11 @@ def time_to_peak(df: pd.DataFrame, stations: list[int]=[], use_jday:bool=False)-
                     ycount += 1
 
             avg_ttp = tpd / ycount if ycount > 0 else np.nan
-            results[station] = round(avg_ttp, 3)
+            results[f"Station {k+1}"] = round(avg_ttp, 3)
 
     else:
         last_year = df.index[-1].year
-        for station in stations:
+        for j, station in enumerate(stations):
             station_data = df[station]
             year = df.index[0].year
             start = 0
@@ -936,13 +936,9 @@ def time_to_peak(df: pd.DataFrame, stations: list[int]=[], use_jday:bool=False)-
                 year += 1
 
             avg_peak = np.mean(yearly_peaks) if yearly_peaks else np.nan
-            results[station] = hlp.sig_figs(avg_peak, 3)
+            results[f"Station {j+1}"] = hlp.sig_figs(avg_peak, 3)
 
-    df_out = pd.DataFrame.from_dict(results, orient='index', columns=['ttp'])
-    # Rename the index to be more descriptive and to match with the other metrics
-    df_out.index = [f"Station {i}" for i in df_out.index.str.extract('(\d+)').astype(int)[0]]
-    df_out.index.name = "Station"
-    return df_out
+    return pd.DataFrame.from_dict(results, orient='index', columns=['ttp'])
 
 
 def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[], use_jday:bool=False)->float:
@@ -1025,7 +1021,7 @@ def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[], use_jday:bo
         n = df.shape[0]
         days_per_year = 366
 
-        for station in stations:
+        for k, station in enumerate(stations):
             data = df[station].values
             total = 0.0
             count = 0
@@ -1043,11 +1039,11 @@ def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[], use_jday:bo
                     count += 1
 
             avg_com = total / count if count > 0 else np.nan
-            results[station] = round(avg_com, 3)
+            results[f"Station {k+1}"] = round(avg_com, 3)
 
     else:
         last_year = df.index[-1].year
-        for station in stations:
+        for j, station in enumerate(stations):
             station_data = df[station]
             year = df.index[0].year
             start = 0
@@ -1068,13 +1064,9 @@ def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[], use_jday:bo
                 year += 1
 
             avg_com = np.mean(yearly_com) if yearly_com else np.nan
-            results[station] = hlp.sig_figs(avg_com, 3)
+            results[f"Station {j+1}"] = hlp.sig_figs(avg_com, 3)
 
-    df_out = pd.DataFrame.from_dict(results, orient='index', columns=['ttcom'])
-    # Rename the index to be more descriptive and to match with the other metrics
-    df_out.index = [f"Station {i}" for i in df_out.index.str.extract('(\d+)').astype(int)[0]]
-    df_out.index.name = "Station"
-    return df_out
+    return pd.DataFrame.from_dict(results, orient='index', columns=['ttcom'])
 
 
 
