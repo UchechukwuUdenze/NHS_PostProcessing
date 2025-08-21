@@ -9,3 +9,5 @@ shapely
 openpyxl
 ipykernel
 owslib
+# GitHub dependency
+git+https://github.com/MESH-Model/MESH-Scripts-PyLib.git

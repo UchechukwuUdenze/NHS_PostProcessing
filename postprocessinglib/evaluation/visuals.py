@@ -28,7 +28,7 @@ import colorsys
 from postprocessinglib.evaluation import metrics
 from postprocessinglib.utilities import _helper_functions as hlp
 
-def parse_linestyle(linestyle):
+def _parse_linestyle(linestyle):
     """
     Parses a linestyle string to extract color and style.
     Handles both named colors and RGB tuples as well as style symbols and words.
@@ -48,14 +48,53 @@ def parse_linestyle(linestyle):
     sorted_styles = sorted(STYLE_MAP.keys(), key=len, reverse=True)
     for style_key in sorted_styles:
         if linestyle.endswith(style_key):
-            color_part = linestyle[:-len(style_key)]
+            color_part = linestyle[:-len(style_key)].strip()
             style = STYLE_MAP[style_key]
+
+            if color_part.startswith('('):  # RGB tuple as string
+                from ast import literal_eval
+                try:
+                    color = literal_eval(color_part)
+                except Exception:
+                    raise ValueError(f"Invalid RGB color format: {color_part}")
+            else:
+                color = color_part if color_part else None  # allow default
+
+            return color, style
+
+    # If no line style is found
+    return linestyle, '-'  # Default to solid line
+
+def _parse_markerstyle(markerstyle: str):
+    """
+    Parses a markerstyle string like 'r.' or '(0.2, 0.4, 0.6, 1.0)^'
+    into a (color, marker) tuple.
+
+    Returns:
+        (color, marker)
+    """
+    valid_markers = {'.', ',', 'o', 'v', '^', '<', '>', '1', '2', '3', '4',
+                     's', 'p', '*', 'h', 'H', '+', 'x', 'X', 'D', 'd', '|', '_'}
+
+    # Try each possible marker at the end of the string
+    for marker in sorted(valid_markers, key=len, reverse=True):
+        if markerstyle.endswith(marker):
+            color_part = markerstyle[:-len(marker)].strip()
+
+            # Handle RGB tuples
             if color_part.startswith('('):
                 from ast import literal_eval
-                color = literal_eval(color_part)
+                try:
+                    color = literal_eval(color_part)
+                except Exception:
+                    raise ValueError(f"Invalid RGB color format: {color_part}")
             else:
-                color = color_part or None  # Default to None if no color specified
-            return color, style
+                color = color_part if color_part else None
+
+            return color, marker
+
+    raise ValueError(f"Invalid markerstyle: '{markerstyle}'. No valid marker found.")
+
 
 def _save_or_display_plot(fig, save: bool, save_as: Union[str, List[str]], dir: str, i: int, type: str):
     """
@@ -469,7 +508,7 @@ def plot(
         for i in range (0, len(line_df.columns)) if isinstance(line_df, pd.DataFrame) else range (0, len(line_df)):
             # Plotting the Data     
             fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
-            color, style = parse_linestyle(linestyles[0])  # parse once for df
+            color, style = _parse_linestyle(linestyles[0])  # parse once for df
             if step:
                 ax.step(time, line_df.iloc[:, i], where=where, color=color, linestyle=style,
                         label=legend[0], linewidth=linewidth[0])
@@ -488,7 +527,7 @@ def plot(
             # Plotting the Data     
             fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
             if obs is not None:                
-                color, style = parse_linestyle(linestyles[0])
+                color, style = _parse_linestyle(linestyles[0])
                 if step:
                     ax.step(time, obs.iloc[:, i], where=where, color=color, linestyle=style,
                             label=legend[0], linewidth=linewidth[0])
@@ -496,7 +535,7 @@ def plot(
                     ax.plot(time, obs.iloc[:, i], color=color, linestyle=style,
                             label=legend[0], linewidth=linewidth[0])
             for j in range(1, num_sim+1):
-                color, style = parse_linestyle(linestyles[j])  # Parse the first linestyle for simulated data
+                color, style = _parse_linestyle(linestyles[j])  # Parse the first linestyle for simulated data
                 if step:
                     ax.step(time, sims[f"sim_{j}"].iloc[:, i], where=where, color=color,
                             linestyle=style, label=legend[j], linewidth=linewidth[j])
@@ -804,7 +843,7 @@ def bounded_plot(
             # z = 0 # Just to avoid erroring out if extra_lines is None
             for z, extra_line in enumerate(extra_lines):
 
-                color, style = parse_linestyle(linestyles[z])
+                color, style = _parse_linestyle(linestyles[z])
 
                 if step:
                     ax.step(
@@ -831,7 +870,7 @@ def bounded_plot(
             if not isinstance(line, pd.DataFrame):
                 raise ValueError("All items in 'lines' must be a DataFrame.")
             
-            color, style = parse_linestyle(linestyles[line_index+z+1] if extra_lines else linestyles[line_index])
+            color, style = _parse_linestyle(linestyles[line_index+z+1] if extra_lines else linestyles[line_index])
             
             if step:
                 ax.step(
@@ -1397,8 +1436,7 @@ def scatter(
             # Plotting the Data
             fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
             for j in range(1, num_sim+1):
-                print(f"Parsing markerstyle[{j-1}]: {markerstyle[j-1]}")
-                color, marker = parse_linestyle(markerstyle[j-1])  # Parse the first linestyle for simulated data
+                color, marker = _parse_markerstyle(markerstyle[j-1])  # Parse the first linestyle for simulated data
                 ax.plot(sims[f"sim_{j}"].iloc[:, i], obs.iloc[:, i],
                         color = color,
                         marker = marker, 
@@ -1484,17 +1522,44 @@ def scatter(
         # print(f"Metrics to plot: \n{metr}\n")
 
         # Determine values to plot
-        if mode == "median":
-            median_vals = metr.median(axis=1)
-            values = pd.DataFrame({f"{metric}_median": median_vals})
-            columns = [f"{metric}_median"]
+        mode_list = ("median", "mean", "mode", "max", "min", "std", "sum")
+        if mode in mode_list:
+            # Map mode strings to appropriate aggregation functions
+            agg_func_map = {
+                "median": lambda df: df.median(axis=1),
+                "mean": lambda df: df.mean(axis=1),
+                "mode": lambda df: df.mode(axis=1).iloc[:, 0] if not df.mode(axis=1).empty else np.nan,
+                "max": lambda df: df.max(axis=1),
+                "min": lambda df: df.min(axis=1),
+                "std": lambda df: df.std(axis=1),
+                "sum": lambda df: df.sum(axis=1)
+            }
+
+            # Handle multi-index column DataFrame
+            if isinstance(metr.columns, pd.MultiIndex):
+                try:
+                    data_block = metr.loc[:, metric]  # extract the DataFrame (e.g., KGE for all models)
+                except KeyError:
+                    raise ValueError(f"Metric '{metric}' not found in metrics DataFrame.")
+            else:
+                data_block = metr  # Fallback if not multi-indexed
+
+            # Apply the appropriate aggregation
+            agg_func = agg_func_map[mode]
+            agg_result = agg_func(data_block)
+
+            values = pd.DataFrame({f"{metric}_{mode}": agg_result})
+            columns = [f"{metric}_{mode}"]
+
         elif mode == "models" and models:
             # Assume columns are like: MultiIndex([("MSE", "model1"), ("MSE", "model2"), ...])
-            values = metr.loc[:, (metric, models)]  # Use tuple to get (metric, modelX)
+            values = metr.loc[:, (metric, models)]
             values.columns = models  # Flatten columns for plotting
-            columns = values.columns.tolist()            
+            columns = values.columns.tolist()
+
         else:
             raise ValueError("Invalid mode or missing model list for 'models' mode")
+
 
         # print(f"Values to plot: \n{values}\n")
 
@@ -1530,7 +1595,7 @@ def scatter(
             gdf_shapefile.plot(ax=ax, edgecolor='black', facecolor="None", linewidth=0.5)
 
             # Plot metric values
-            legend_label = f"{col}" if mode == "models" else f"{metric} (mode)" if len(simulated) > 1 else metric
+            legend_label = f"{col}" if mode == "models" else f"{metric} ({mode})" if len(simulated) > 1 else metric
             gdf_points.plot(ax=ax, column=col, cmap=cmap, vmin=vmin, vmax=vmax,
                             legend=True, markersize=markersize, label=legend_label,
                             legend_kwds={'label': legend_label, "orientation": "vertical"})
