@@ -1167,93 +1167,57 @@ def histogram(
     else:
         # In either case of merged or sim_df, we will alwaays have simulated data, so we plot the obs first if we have it.
         for i in range (0, len(sims["sim_1"].columns)):
+            obs_series = obs.iloc[:, i] if obs is not None else None
+            sim_series_list = []
             if z_norm:
                 if obs is not None:
-                    # calculating the z-score for the observed data if any
-                    obs.iloc[:, i] = (obs.iloc[:, i] - obs.iloc[:, i].mean()) / obs.iloc[:, i].std()
-                
-                for j in range(1, num_sim+1):
-                    sim = sims[f"sim_{j}"]
-                    sim.iloc[:, i] = (sim.iloc[:, i] - sim.iloc[:, i].mean()) / sim.iloc[:, i].std()               
+                    obs_series = (obs_series - obs_series.mean()) / obs_series.std()
+                for j in range(1, num_sim + 1):
+                    sim_j = sims[f"sim_{j}"].iloc[:, i]
+                    sim_j = (sim_j - sim_j.mean()) / sim_j.std()
+                    sim_series_list.append(sim_j)
+            else:
+                if obs is not None:
+                    obs_series = obs_series.copy()
+                for j in range(1, num_sim + 1):
+                    sim_series_list.append(sims[f"sim_{j}"].iloc[:, i])       
 
+            # Combine all relevant series to determine global min/max
+            combined_series = sim_series_list.copy()
+            if obs_series is not None:
+                combined_series.append(obs_series)
 
-
-            # finding the mimimum and maximum z-scores
-            total_max = max(obs.iloc[:, i].max(), sim.iloc[:, i].max()) if obs is not None else sim.iloc[:, i].max()
-            total_min = min(obs.iloc[:, i].min(), sim.iloc[:, i].min()) if obs is not None else sim.iloc[:, i].min()
-
-            # creating the bins based on the max and min
+            total_min = min(s.min() for s in combined_series)
+            total_max = max(s.max() for s in combined_series)
             num_bins = np.linspace(total_min - 0.01, total_max + 0.01, bins)
-            
-            
+
             # Plotting the Data     
-            fig, ax = plt.subplots(figsize=fig_size, facecolor='w', edgecolor='k')
-            if obs is not None:                
-                color, style = _parse_linestyle(linestyles[0])
-                if step:
-                    ax.step(time, obs.iloc[:, i], where=where, color=color, linestyle=style,
-                            label=legend[0], linewidth=linewidth[0])
-                else:
-                    ax.plot(time, obs.iloc[:, i], color=color, linestyle=style,
-                            label=legend[0], linewidth=linewidth[0])
-            for j in range(1, num_sim+1):
-                color, style = _parse_linestyle(linestyles[j])  # Parse the first linestyle for simulated data
-                if step:
-                    ax.step(time, sims[f"sim_{j}"].iloc[:, i], where=where, color=color,
-                            linestyle=style, label=legend[j], linewidth=linewidth[j])
-                else:
-                    ax.plot(time, sims[f"sim_{j}"].iloc[:, i], color=color,
-                            linestyle=style, label=legend[j], linewidth=linewidth[j])           
-            if padding:
-                plt.xlim(time[0], time[-1])
-            _finalize_plot(ax, grid, minor_grid, font_size, labels, title, "plot", i)
-    
-    for i in range (0, len(obs.columns)):
-        # Manipulating and generating the Data
-        if z_norm:
-            # calculating the z-score for the observed data
-            obs.iloc[:, i] = (obs.iloc[:, i] - obs.iloc[:, i].mean()) / obs.iloc[:, i].std()
-
-            if sim is not None:
-                # calculating the z-score for the simulated data 
-                sim.iloc[:, i] = (sim.iloc[:, i] - sim.iloc[:, i].mean()) / sim.iloc[:, i].std()
-
-        # finding the mimimum and maximum z-scores
-        total_max = max(obs.iloc[:, i].max(), sim.iloc[:, i].max()) if sim is not None else obs.iloc[:, i].max()
-        total_min = min(obs.iloc[:, i].min(), sim.iloc[:, i].min()) if sim is not None else obs.iloc[:, i].min()
-
-        # creating the bins based on the max and min
-        num_bins = np.linspace(total_min - 0.01, total_max + 0.01, bins)    
-
-        # Getting the fig and axis handles
-        fig = plt.figure(figsize=fig_size)
-        ax = fig.add_subplot(111) 
-
-        # Plotting the Data
-        ax.hist(obs.iloc[:, i],
-                bins=num_bins,
-                alpha=transparency,
-                label=legend[1],
-                color=colors[1],
-                edgecolor='black',
-                linewidth=0.5,
-                density=prob_dens)
-        if sim is not None:
-            ax.hist(sim.iloc[:, i],
+            fig = plt.figure(figsize=fig_size, facecolor='w', edgecolor='k')
+            ax = fig.add_subplot(111)
+            
+            ax.hist(obs_series,
                 bins=num_bins,
                 alpha=transparency,
                 label=legend[0],
                 color=colors[0],
                 edgecolor='black',
                 linewidth=0.5,
-                density=prob_dens)
-            plt.legend(labels=[legend[1],legend[0]], loc='best')
-
-        _finalize_plot(ax, grid, minor_grid, font_size, labels, title, "histogram", i)
-
-        # Save or auto-save for large column counts
-        auto_save = len(obs.columns) > 5
-        _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "histogram")
+                density=prob_dens
+                )
+            for j, sim_series in enumerate(sim_series_list, start=1):
+                ax.hist(sim_series,
+                        bins=num_bins,
+                        alpha=transparency,
+                        label=legend[j],
+                        color=colors[j],
+                        edgecolor='black',
+                        linewidth=0.5,
+                        density=prob_dens
+                        )
+            
+            _finalize_plot(ax, grid, minor_grid, font_size, labels, title, "plot", i)
+            auto_save = len(line_df.columns) > 5
+            _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "plot")
 
 
 def scatter(

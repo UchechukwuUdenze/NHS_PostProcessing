@@ -1018,7 +1018,7 @@ def time_to_centre_of_mass(df: pd.DataFrame, stations: list[int]=[], use_jday:bo
 
     Returns
     -------
-   pd.DataFrame
+    pd.DataFrame
         Dataframe containing the average time to the centre of mass for the stations
 
     Example
