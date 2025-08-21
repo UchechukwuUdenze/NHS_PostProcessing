@@ -1216,7 +1216,7 @@ def histogram(
                         )
             
             _finalize_plot(ax, grid, minor_grid, font_size, labels, title, "plot", i)
-            auto_save = len(line_df.columns) > 5
+            auto_save = len(sims["sim_1"].columns) > 5
             _save_or_display_plot(fig, save or auto_save, save_as, dir, i, "plot")
 
 
